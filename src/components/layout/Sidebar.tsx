@@ -21,6 +21,7 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarSeparator,
+  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
 
@@ -48,11 +49,12 @@ export function AppSidebar() {
             <Package className="h-5 w-5 text-sidebar-primary-foreground" />
           </div>
           {!isCollapsed && (
-            <div className="flex flex-col overflow-hidden">
+            <div className="flex flex-1 flex-col overflow-hidden">
               <span className="truncate text-sm font-semibold">Wäsche Oberpinzgau</span>
               <span className="truncate text-xs text-sidebar-foreground/60">Kundenportal</span>
             </div>
           )}
+          <SidebarTrigger className="ml-auto h-8 w-8 shrink-0" />
         </div>
       </SidebarHeader>
 
