@@ -78,7 +78,6 @@ export function useWaescheArtikel() {
       const { data, error } = await supabase
         .from('waescheartikel')
         .select('*')
-        .eq('aktiv', true)
         .order('kategorie, name');
       
       if (error) throw error;

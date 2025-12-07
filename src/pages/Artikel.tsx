@@ -49,7 +49,11 @@ export default function Artikel() {
               {artikel.filter(a => a.kategorie === kategorie).map((art) => (
                 <div
                   key={art.id}
-                  className="group rounded-xl border border-border bg-card p-5 shadow-card transition-all hover:shadow-elevated hover:border-primary/30"
+                  className={`group rounded-xl border bg-card p-5 shadow-card transition-all ${
+                    art.aktiv === false 
+                      ? 'border-border/50 opacity-50 grayscale' 
+                      : 'border-border hover:shadow-elevated hover:border-primary/30'
+                  }`}
                 >
                   <div className="flex items-start justify-between">
                     {art.bild_url ? (
@@ -65,11 +69,18 @@ export default function Artikel() {
                         <ClipboardList className="h-5 w-5" />
                       </div>
                     )}
-                    {art.preis != null && (
-                      <span className="text-sm font-semibold text-primary">
-                        €{art.preis.toFixed(2)}
-                      </span>
-                    )}
+                    <div className="flex flex-col items-end gap-1">
+                      {art.aktiv === false && (
+                        <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                          Inaktiv
+                        </span>
+                      )}
+                      {art.preis != null && (
+                        <span className="text-sm font-semibold text-primary">
+                          €{art.preis.toFixed(2)}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   
                   <h3 className="mt-3 font-medium text-card-foreground">
