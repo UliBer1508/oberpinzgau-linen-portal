@@ -113,8 +113,22 @@ export default function Rechnungen() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredRechnungen.map((rechnung) => (
-                      <TableRow key={rechnung.id}>
+                    {filteredRechnungen.map((rechnung) => {
+                      const getRowClassName = (status: RechnungStatus) => {
+                        switch (status) {
+                          case 'offen':
+                            return 'bg-status-pending/10 hover:bg-status-pending/20';
+                          case 'bezahlt':
+                            return 'bg-status-delivered/10 hover:bg-status-delivered/20';
+                          case 'storniert':
+                            return 'bg-destructive/10 hover:bg-destructive/20';
+                          default:
+                            return '';
+                        }
+                      };
+
+                      return (
+                        <TableRow key={rechnung.id} className={getRowClassName(rechnung.status)}>
                         <TableCell className="font-medium">
                           {rechnung.rechnungsnummer}
                         </TableCell>
@@ -146,8 +160,9 @@ export default function Rechnungen() {
                             </Link>
                           </Button>
                         </TableCell>
-                      </TableRow>
-                    ))}
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
