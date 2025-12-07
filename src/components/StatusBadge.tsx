@@ -1,7 +1,10 @@
-import { BestellungStatus } from '@/integrations/supabase/client';
+import { BestellungStatus, RechnungStatus } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
-const statusConfig: Record<BestellungStatus, { label: string; className: string }> = {
+type AllStatus = BestellungStatus | RechnungStatus;
+
+const statusConfig: Record<AllStatus, { label: string; className: string }> = {
+  // Bestellung statuses
   neu: {
     label: 'Neu',
     className: 'bg-status-pending/15 text-status-pending border-status-pending/30',
@@ -26,10 +29,19 @@ const statusConfig: Record<BestellungStatus, { label: string; className: string 
     label: 'Storniert',
     className: 'bg-destructive/15 text-destructive border-destructive/30',
   },
+  // Rechnung statuses
+  offen: {
+    label: 'Offen',
+    className: 'bg-status-pending/15 text-status-pending border-status-pending/30',
+  },
+  bezahlt: {
+    label: 'Bezahlt',
+    className: 'bg-status-delivered/15 text-status-delivered border-status-delivered/30',
+  },
 };
 
 interface StatusBadgeProps {
-  status: BestellungStatus;
+  status: AllStatus;
   className?: string;
 }
 

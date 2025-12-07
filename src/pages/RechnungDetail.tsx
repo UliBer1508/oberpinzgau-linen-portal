@@ -1,0 +1,258 @@
+import { useParams, Link } from 'react-router-dom';
+import { format } from 'date-fns';
+import { de } from 'date-fns/locale';
+import { Printer, Download } from 'lucide-react';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  TableFooter,
+} from '@/components/ui/table';
+import { StatusBadge } from '@/components/StatusBadge';
+import { useRechnung } from '@/hooks/useSupabaseData';
+
+export default function RechnungDetail() {
+  const { id } = useParams<{ id: string }>();
+  const { data: rechnung, isLoading } = useRechnung(id);
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('de-DE', {
+      style: 'currency',
+      currency: 'EUR',
+    }).format(amount);
+  };
+
+  if (isLoading) {
+    return (
+      <MainLayout title="Rechnung" subtitle="Wird geladen...">
+        <div className="flex items-center justify-center py-12">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (!rechnung) {
+    return (
+      <MainLayout title="Rechnung nicht gefunden">
+        <div className="flex flex-col items-center justify-center py-12">
+          <h2 className="text-xl font-semibold">Rechnung nicht gefunden</h2>
+          <Button asChild className="mt-4">
+            <Link to="/rechnungen">Zurück zur Übersicht</Link>
+          </Button>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  return (
+    <MainLayout 
+      title={`Rechnung ${rechnung.rechnungsnummer}`}
+      subtitle={`vom ${format(new Date(rechnung.rechnungsdatum), 'dd. MMMM yyyy', { locale: de })}`}
+      actions={
+        <div className="flex items-center gap-2">
+          <StatusBadge status={rechnung.status} />
+          <Button variant="outline" size="sm">
+            <Printer className="mr-2 h-4 w-4" />
+            Drucken
+          </Button>
+          <Button variant="outline" size="sm">
+            <Download className="mr-2 h-4 w-4" />
+            PDF
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-6">
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Rechnungsdetails */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle>Rechnungsdetails</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Adressen */}
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div>
+                  <h4 className="mb-2 text-sm font-medium text-muted-foreground">Rechnungsempfänger</h4>
+                  <div className="text-sm">
+                    <p className="font-medium">{rechnung.kunde_name}</p>
+                    {rechnung.kunde_firma && <p>{rechnung.kunde_firma}</p>}
+                    {rechnung.kunde_strasse && <p>{rechnung.kunde_strasse}</p>}
+                    {(rechnung.kunde_plz || rechnung.kunde_ort) && (
+                      <p>
+                        {rechnung.kunde_plz} {rechnung.kunde_ort}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="mb-2 text-sm font-medium text-muted-foreground">Rechnungsdaten</h4>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Kundennummer:</span>
+                      <span>{rechnung.kunde_kundennummer || '-'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Rechnungsdatum:</span>
+                      <span>
+                        {format(new Date(rechnung.rechnungsdatum), 'dd.MM.yyyy', { locale: de })}
+                      </span>
+                    </div>
+                    {rechnung.faelligkeitsdatum && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Fällig am:</span>
+                        <span>
+                          {format(new Date(rechnung.faelligkeitsdatum), 'dd.MM.yyyy', { locale: de })}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Positionen */}
+              <div>
+                <h4 className="mb-4 text-sm font-medium">Rechnungspositionen</h4>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Art.-Nr.</TableHead>
+                        <TableHead>Bezeichnung</TableHead>
+                        <TableHead className="text-right">Menge</TableHead>
+                        <TableHead className="text-right">Einzelpreis</TableHead>
+                        <TableHead className="text-right">Gesamt</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {rechnung.positionen?.map((position) => (
+                        <TableRow key={position.id}>
+                          <TableCell className="font-mono text-sm">
+                            {position.artikelnummer}
+                          </TableCell>
+                          <TableCell>{position.bezeichnung}</TableCell>
+                          <TableCell className="text-right">{position.menge}</TableCell>
+                          <TableCell className="text-right">
+                            {formatCurrency(position.einzelpreis)}
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            {formatCurrency(position.gesamtpreis)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                    <TableFooter>
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-right">
+                          Nettobetrag
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {formatCurrency(rechnung.nettobetrag)}
+                        </TableCell>
+                      </TableRow>
+                      {rechnung.bearbeitungsgebuehr > 0 && (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-right">
+                            Bearbeitungsgebühr
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {formatCurrency(rechnung.bearbeitungsgebuehr)}
+                          </TableCell>
+                        </TableRow>
+                      )}
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-right">
+                          MwSt. ({rechnung.mwst_satz}%)
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {formatCurrency(rechnung.mwst_betrag)}
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-right font-semibold">
+                          Bruttobetrag
+                        </TableCell>
+                        <TableCell className="text-right font-semibold">
+                          {formatCurrency(rechnung.bruttobetrag)}
+                        </TableCell>
+                      </TableRow>
+                    </TableFooter>
+                  </Table>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Seitenleiste */}
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Zusammenfassung</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Status</span>
+                  <StatusBadge status={rechnung.status} />
+                </div>
+                <Separator />
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Netto</span>
+                    <span>{formatCurrency(rechnung.nettobetrag)}</span>
+                  </div>
+                  {rechnung.bearbeitungsgebuehr > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Bearbeitungsgebühr</span>
+                      <span>{formatCurrency(rechnung.bearbeitungsgebuehr)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">MwSt. ({rechnung.mwst_satz}%)</span>
+                    <span>{formatCurrency(rechnung.mwst_betrag)}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between font-semibold">
+                    <span>Gesamt</span>
+                    <span>{formatCurrency(rechnung.bruttobetrag)}</span>
+                  </div>
+                </div>
+                {rechnung.bezahlt_am && (
+                  <>
+                    <Separator />
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Bezahlt am</span>
+                      <span>
+                        {format(new Date(rechnung.bezahlt_am), 'dd.MM.yyyy', { locale: de })}
+                      </span>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            {rechnung.notizen && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Notizen</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">{rechnung.notizen}</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+      </div>
+    </MainLayout>
+  );
+}

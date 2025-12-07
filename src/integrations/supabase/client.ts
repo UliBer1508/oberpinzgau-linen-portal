@@ -127,6 +127,62 @@ export interface BestellungPosition {
   notizen: string | null;
 }
 
+// Rechnung types
+export type RechnungStatus = 'offen' | 'bezahlt' | 'storniert';
+
+export interface Rechnung {
+  id: string;
+  rechnungsnummer: string;
+  bestellung_id: string;
+  kunde_id: string;
+  kunde_kundennummer: string | null;
+  kunde_name: string;
+  kunde_firma: string | null;
+  kunde_strasse: string | null;
+  kunde_plz: string | null;
+  kunde_ort: string | null;
+  rechnungsdatum: string;
+  faelligkeitsdatum: string | null;
+  nettobetrag: number;
+  mwst_satz: number;
+  mwst_betrag: number;
+  bruttobetrag: number;
+  bearbeitungsgebuehr: number;
+  status: RechnungStatus;
+  bezahlt_am: string | null;
+  notizen: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Rechnungsposition {
+  id: string;
+  rechnung_id: string;
+  artikelnummer: string;
+  bezeichnung: string;
+  menge: number;
+  einzelpreis: number;
+  gesamtpreis: number;
+}
+
+export interface Rechnungseinstellungen {
+  id: string;
+  mwst_satz: number;
+  bearbeitungsgebuehr: number;
+  firma_name: string | null;
+  firma_bezeichnung: string | null;
+  firma_strasse: string | null;
+  firma_plz: string | null;
+  firma_ort: string | null;
+  firma_telefon: string | null;
+  firma_email: string | null;
+  updated_at: string;
+}
+
+export interface RechnungMitPositionen extends Rechnung {
+  positionen: Rechnungsposition[];
+}
+
 // Extended types with relations
 export interface WaescheSetMitArtikel extends WaescheSet {
   objekt?: Objekt;

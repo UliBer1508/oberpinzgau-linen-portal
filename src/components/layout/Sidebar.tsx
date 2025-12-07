@@ -5,7 +5,8 @@ import {
   ShoppingCart, 
   Package, 
   LogOut,
-  ClipboardList
+  ClipboardList,
+  Receipt
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
@@ -15,6 +16,7 @@ const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/objekte', icon: Building2, label: 'Objekte' },
   { to: '/bestellungen', icon: ShoppingCart, label: 'Bestellungen' },
+  { to: '/rechnungen', icon: Receipt, label: 'Rechnungen' },
   { to: '/waeschesets', icon: Package, label: 'Wäschesets' },
   { to: '/artikel', icon: ClipboardList, label: 'Artikelkatalog' },
 ];
