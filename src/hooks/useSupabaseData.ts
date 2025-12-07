@@ -206,6 +206,10 @@ export function useCreateBestellung() {
       objekt_id: string;
       lieferdatum?: string | null;
       notizen?: string | null;
+      gastname?: string | null;
+      check_in?: string | null;
+      check_out?: string | null;
+      anzahl_personen?: number | null;
       positionen: { artikel_id: string; menge: number }[];
     }) => {
       if (!selectedKundeId) throw new Error('Kein Kunde ausgewählt');
@@ -222,6 +226,10 @@ export function useCreateBestellung() {
           objekt_id: params.objekt_id,
           lieferdatum: params.lieferdatum,
           notizen: params.notizen,
+          gastname: params.gastname,
+          check_in: params.check_in,
+          check_out: params.check_out,
+          anzahl_personen: params.anzahl_personen,
           status: 'neu' as BestellungStatus,
         })
         .select()
