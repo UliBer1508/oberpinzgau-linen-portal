@@ -4,13 +4,14 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { CalendarIcon, Plus, Minus, Loader2, Package, ShoppingCart, ArrowLeft } from 'lucide-react';
+import { CalendarIcon, Plus, Minus, Loader2, Package, ShoppingCart, ArrowLeft, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useKunde, useObjekte, useWaescheSets, useWaescheArtikel, useCreateBestellung } from '@/hooks/useSupabaseData';
 
@@ -36,6 +37,12 @@ export default function NeueBestellung() {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [bemerkungen, setBemerkungen] = useState('');
   const [lieferdatum, setLieferdatum] = useState<Date>();
+  
+  // Buchungsdaten
+  const [gastname, setGastname] = useState('');
+  const [checkIn, setCheckIn] = useState<Date>();
+  const [checkOut, setCheckOut] = useState<Date>();
+  const [anzahlPersonen, setAnzahlPersonen] = useState<number>(1);
 
   const isLoading = kundeLoading || objekteLoading || setsLoading || artikelLoading;
 
@@ -117,6 +124,10 @@ export default function NeueBestellung() {
         objekt_id: selectedObjektId,
         notizen: bemerkungen || null,
         lieferdatum: lieferdatum ? format(lieferdatum, 'yyyy-MM-dd') : null,
+        gastname: gastname || null,
+        check_in: checkIn ? format(checkIn, 'yyyy-MM-dd') : null,
+        check_out: checkOut ? format(checkOut, 'yyyy-MM-dd') : null,
+        anzahl_personen: anzahlPersonen || null,
         positionen: orderItems.map(item => ({
           artikel_id: item.artikel_id,
           menge: item.menge,
@@ -188,11 +199,113 @@ export default function NeueBestellung() {
             </CardContent>
           </Card>
 
+          {/* Buchungsdaten (optional) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">2. Buchungsdaten (optional)</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Gastname</label>
+                <Input
+                  placeholder="Name des Gastes..."
+                  value={gastname}
+                  onChange={(e) => setGastname(e.target.value)}
+                  className="bg-background"
+                />
+              </div>
+              
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Check-In</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          'w-full justify-start text-left font-normal',
+                          !checkIn && 'text-muted-foreground'
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {checkIn ? format(checkIn, 'PPP', { locale: de }) : 'Datum wählen'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 bg-popover border-border z-50" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={checkIn}
+                        onSelect={setCheckIn}
+                        initialFocus
+                        locale={de}
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Check-Out</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          'w-full justify-start text-left font-normal',
+                          !checkOut && 'text-muted-foreground'
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {checkOut ? format(checkOut, 'PPP', { locale: de }) : 'Datum wählen'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 bg-popover border-border z-50" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={checkOut}
+                        onSelect={setCheckOut}
+                        initialFocus
+                        locale={de}
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium mb-2 block">Anzahl Personen</label>
+                <div className="flex items-center gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setAnzahlPersonen(prev => Math.max(1, prev - 1))}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <div className="flex items-center gap-2 min-w-[80px] justify-center">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-lg font-medium">{anzahlPersonen}</span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setAnzahlPersonen(prev => prev + 1)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Wäscheset auswählen (optional) */}
           {waescheSets && waescheSets.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">2. Schnellauswahl: Wäscheset</CardTitle>
+                <CardTitle className="text-lg">3. Schnellauswahl: Wäscheset</CardTitle>
               </CardHeader>
               <CardContent>
                 <Select value={selectedSetId} onValueChange={handleSetSelect}>
@@ -214,7 +327,7 @@ export default function NeueBestellung() {
           {/* Artikel auswählen */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">3. Artikel hinzufügen</CardTitle>
+              <CardTitle className="text-lg">4. Artikel hinzufügen</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {Object.entries(artikelByCategory).map(([category, items]) => (
@@ -245,7 +358,7 @@ export default function NeueBestellung() {
           {/* Zusätzliche Informationen */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">4. Zusätzliche Informationen</CardTitle>
+              <CardTitle className="text-lg">5. Zusätzliche Informationen</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
