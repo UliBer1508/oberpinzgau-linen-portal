@@ -12,11 +12,11 @@ import { useKunde, useBestellungen } from '@/hooks/useSupabaseData';
 
 const statusFilters: { label: string; value: BestellungStatus | 'alle' }[] = [
   { label: 'Alle', value: 'alle' },
-  { label: 'Ausstehend', value: 'ausstehend' },
+  { label: 'Neu', value: 'neu' },
   { label: 'In Bearbeitung', value: 'in_bearbeitung' },
-  { label: 'In Wäscherei', value: 'in_waescherei' },
-  { label: 'Bereit', value: 'bereit' },
-  { label: 'Geliefert', value: 'geliefert' },
+  { label: 'Ausgeliefert', value: 'ausgeliefert' },
+  { label: 'Abgeholt', value: 'abgeholt' },
+  { label: 'Abgeschlossen', value: 'abgeschlossen' },
 ];
 
 export default function Bestellungen() {
@@ -37,7 +37,10 @@ export default function Bestellungen() {
   });
 
   const calculateTotal = (positionen: typeof bestellungen[0]['positionen']) => {
-    return positionen?.reduce((sum, pos) => sum + (pos.preis || 0), 0) || 0;
+    return positionen?.reduce((sum, pos) => {
+      const preis = pos.waescheartikel?.preis || 0;
+      return sum + (preis * pos.menge);
+    }, 0) || 0;
   };
 
   if (isLoading) {
@@ -128,7 +131,7 @@ export default function Bestellungen() {
                       </div>
                       <div>
                         <p className="font-medium text-card-foreground">
-                          #{bestellung.id.slice(-4).toUpperCase()}
+                          #{bestellung.bestellnummer || bestellung.id.slice(-4).toUpperCase()}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           {format(new Date(bestellung.created_at), 'dd.MM.yyyy', { locale: de })}

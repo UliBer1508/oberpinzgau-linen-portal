@@ -39,6 +39,11 @@ export default function NeueBestellung() {
 
   const isLoading = kundeLoading || objekteLoading || setsLoading || artikelLoading;
 
+  // Helper to format address from separate fields
+  const formatAdresse = (objekt: NonNullable<typeof objekte>[0]) => {
+    return [objekt.strasse, objekt.plz, objekt.ort].filter(Boolean).join(', ');
+  };
+
   // Artikel nach Kategorie gruppieren
   const artikelByCategory = useMemo(() => {
     if (!artikel) return {};
@@ -59,14 +64,14 @@ export default function NeueBestellung() {
         artikel_id: a.artikel_id,
         artikel_name: a.waescheartikel?.name || 'Unbekannt',
         menge: a.menge,
-        preis: a.waescheartikel?.preis_pro_stueck || 0,
+        preis: a.waescheartikel?.preis || 0,
       }));
       setOrderItems(newItems);
     }
   };
 
   // Artikel hinzufügen
-  const handleAddArtikel = (art: { id: string; name: string; preis_pro_stueck: number | null }) => {
+  const handleAddArtikel = (art: { id: string; name: string; preis: number | null }) => {
     setOrderItems(prev => {
       const existing = prev.find(item => item.artikel_id === art.id);
       if (existing) {
@@ -76,7 +81,7 @@ export default function NeueBestellung() {
             : item
         );
       }
-      return [...prev, { artikel_id: art.id, artikel_name: art.name, menge: 1, preis: art.preis_pro_stueck || 0 }];
+      return [...prev, { artikel_id: art.id, artikel_name: art.name, menge: 1, preis: art.preis || 0 }];
     });
   };
 
@@ -110,12 +115,11 @@ export default function NeueBestellung() {
     try {
       await createBestellung.mutateAsync({
         objekt_id: selectedObjektId,
-        bemerkungen: bemerkungen || null,
-        gewuenschtes_lieferdatum: lieferdatum ? format(lieferdatum, 'yyyy-MM-dd') : null,
+        notizen: bemerkungen || null,
+        lieferdatum: lieferdatum ? format(lieferdatum, 'yyyy-MM-dd') : null,
         positionen: orderItems.map(item => ({
           artikel_id: item.artikel_id,
           menge: item.menge,
-          einzelpreis: item.preis,
         })),
       });
 
@@ -176,7 +180,7 @@ export default function NeueBestellung() {
                 <SelectContent className="bg-popover border-border z-50">
                   {objekte?.map((objekt) => (
                     <SelectItem key={objekt.id} value={objekt.id}>
-                      {objekt.name} - {objekt.adresse}
+                      {objekt.name} - {formatAdresse(objekt)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -226,7 +230,7 @@ export default function NeueBestellung() {
                         <div>
                           <p className="font-medium text-sm">{art.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {(art.preis_pro_stueck || 0).toFixed(2)} €
+                            {(art.preis || 0).toFixed(2)} €
                           </p>
                         </div>
                         <Plus className="h-4 w-4 text-primary" />

@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useKunde, useObjekte, useWaescheSets, useBestellungen } from '@/hooks/useSupabaseData';
+import { BestellungStatus } from '@/integrations/supabase/client';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -18,8 +19,9 @@ export default function Dashboard() {
   
   const isLoading = kundeLoading || objekteLoading || setsLoading || bestellungenLoading;
   
-  const activeOrders = bestellungen.filter(b => b.status !== 'geliefert').length;
-  const pendingOrders = bestellungen.filter(b => b.status === 'ausstehend').length;
+  // Use correct status values from database
+  const activeOrders = bestellungen.filter(b => b.status !== 'abgeschlossen' && b.status !== 'storniert').length;
+  const pendingOrders = bestellungen.filter(b => b.status === 'neu').length;
   const recentOrders = bestellungen.slice(0, 5);
 
   if (isLoading) {
@@ -61,7 +63,7 @@ export default function Dashboard() {
           icon={<Package className="h-6 w-6" />}
         />
         <StatCard
-          title="Ausstehend"
+          title="Neu"
           value={pendingOrders}
           icon={<ShoppingCart className="h-6 w-6" />}
         />
@@ -94,9 +96,9 @@ export default function Dashboard() {
                 >
                   <div className="flex items-center gap-4">
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                      {bestellung.status === 'geliefert' ? (
+                      {bestellung.status === 'abgeschlossen' ? (
                         <CheckCircle className="h-5 w-5 text-success" />
-                      ) : bestellung.status === 'bereit' ? (
+                      ) : bestellung.status === 'ausgeliefert' || bestellung.status === 'abgeholt' ? (
                         <Truck className="h-5 w-5 text-accent" />
                       ) : (
                         <Package className="h-5 w-5 text-primary" />
@@ -160,13 +162,13 @@ export default function Dashboard() {
             </h2>
             <div className="space-y-3">
               {[
-                { status: 'ausstehend', count: bestellungen.filter(b => b.status === 'ausstehend').length },
-                { status: 'in_bearbeitung', count: bestellungen.filter(b => b.status === 'in_bearbeitung').length },
-                { status: 'in_waescherei', count: bestellungen.filter(b => b.status === 'in_waescherei').length },
-                { status: 'bereit', count: bestellungen.filter(b => b.status === 'bereit').length },
+                { status: 'neu' as BestellungStatus, count: bestellungen.filter(b => b.status === 'neu').length },
+                { status: 'in_bearbeitung' as BestellungStatus, count: bestellungen.filter(b => b.status === 'in_bearbeitung').length },
+                { status: 'ausgeliefert' as BestellungStatus, count: bestellungen.filter(b => b.status === 'ausgeliefert').length },
+                { status: 'abgeholt' as BestellungStatus, count: bestellungen.filter(b => b.status === 'abgeholt').length },
               ].filter(s => s.count > 0).map(({ status, count }) => (
                 <div key={status} className="flex items-center justify-between">
-                  <StatusBadge status={status as any} />
+                  <StatusBadge status={status} />
                   <span className="text-sm font-medium text-muted-foreground">{count}</span>
                 </div>
               ))}

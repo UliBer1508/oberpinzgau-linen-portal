@@ -1,4 +1,4 @@
-import { Building2, MapPin, Home, FileText, Loader2 } from 'lucide-react';
+import { Building2, MapPin, User, FileText, Loader2 } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useNavigate } from 'react-router-dom';
 import { useKunde, useObjekte } from '@/hooks/useSupabaseData';
@@ -9,6 +9,11 @@ export default function Objekte() {
   const { data: objekte = [], isLoading: objekteLoading } = useObjekte(kunde?.id);
   
   const isLoading = kundeLoading || objekteLoading;
+
+  // Helper to format address from separate fields
+  const formatAdresse = (objekt: typeof objekte[0]) => {
+    return [objekt.strasse, objekt.plz, objekt.ort].filter(Boolean).join(', ');
+  };
 
   if (isLoading) {
     return (
@@ -55,14 +60,16 @@ export default function Objekte() {
               </h3>
 
               <div className="mt-3 space-y-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  <span>{objekt.adresse}</span>
-                </div>
-                {objekt.anzahl_zimmer && (
+                {formatAdresse(objekt) && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Home className="h-4 w-4" />
-                    <span>{objekt.anzahl_zimmer} Zimmer</span>
+                    <MapPin className="h-4 w-4" />
+                    <span>{formatAdresse(objekt)}</span>
+                  </div>
+                )}
+                {objekt.ansprechpartner && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <User className="h-4 w-4" />
+                    <span>{objekt.ansprechpartner}</span>
                   </div>
                 )}
                 {objekt.notizen && (

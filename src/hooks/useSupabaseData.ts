@@ -76,6 +76,7 @@ export function useWaescheArtikel() {
       const { data, error } = await supabase
         .from('waescheartikel')
         .select('*')
+        .eq('aktiv', true)
         .order('kategorie, name');
       
       if (error) throw error;
@@ -84,23 +85,37 @@ export function useWaescheArtikel() {
   });
 }
 
-// Fetch laundry sets with articles for customer
+// Fetch laundry sets with articles for customer (via objekte)
 export function useWaescheSets(kundeId: string | undefined) {
   return useQuery({
     queryKey: ['waesche_sets', kundeId],
     queryFn: async () => {
       if (!kundeId) return [];
       
+      // First get objekt IDs for this customer
+      const { data: objekte, error: objekteError } = await supabase
+        .from('objekte')
+        .select('id')
+        .eq('kunde_id', kundeId);
+      
+      if (objekteError) throw objekteError;
+      if (!objekte || objekte.length === 0) return [];
+      
+      const objektIds = objekte.map(o => o.id);
+      
+      // Then get sets for these objects
       const { data, error } = await supabase
         .from('waeschesets')
         .select(`
           *,
+          objekt:objekte(*),
           artikel:waescheset_artikel(
             *,
             waescheartikel(*)
           )
         `)
-        .eq('kunde_id', kundeId)
+        .in('objekt_id', objektIds)
+        .eq('aktiv', true)
         .order('name');
       
       if (error) throw error;
@@ -172,33 +187,36 @@ export function useCreateBestellung() {
   return useMutation({
     mutationFn: async (params: {
       objekt_id: string;
-      gewuenschtes_lieferdatum?: string | null;
-      bemerkungen?: string | null;
-      positionen: { artikel_id: string; menge: number; einzelpreis: number }[];
+      lieferdatum?: string | null;
+      notizen?: string | null;
+      positionen: { artikel_id: string; menge: number }[];
     }) => {
       if (!selectedKundeId) throw new Error('Kein Kunde ausgewählt');
+      
+      // Generate bestellnummer
+      const bestellnummer = `B${Date.now()}`;
       
       // Create order
       const { data: bestellung, error: bestellungError } = await supabase
         .from('waeschebestellungen')
         .insert({
+          bestellnummer,
           kunde_id: selectedKundeId,
           objekt_id: params.objekt_id,
-          gewuenschtes_lieferdatum: params.gewuenschtes_lieferdatum,
-          bemerkungen: params.bemerkungen,
-          status: 'ausstehend' as BestellungStatus,
+          lieferdatum: params.lieferdatum,
+          notizen: params.notizen,
+          status: 'neu' as BestellungStatus,
         })
         .select()
         .single();
       
       if (bestellungError) throw bestellungError;
       
-      // Create order positions
+      // Create order positions (no einzelpreis in database)
       const positionen = params.positionen.map(p => ({
         bestellung_id: bestellung.id,
         artikel_id: p.artikel_id,
         menge: p.menge,
-        einzelpreis: p.einzelpreis,
       }));
       
       const { error: positionenError } = await supabase
@@ -221,16 +239,16 @@ export function useCreateWaescheSet() {
   
   return useMutation({
     mutationFn: async (params: {
-      kundeId: string;
+      objektId: string;
       name: string;
       beschreibung?: string;
-      artikel: { artikelId: string; menge: number }[];
+      artikel: { artikelId: string; menge: number; berechnungsart?: 'pro_buchung' | 'pro_gast' }[];
     }) => {
-      // Create set
+      // Create set with objekt_id (not kunde_id)
       const { data: set, error: setError } = await supabase
         .from('waeschesets')
         .insert({
-          kunde_id: params.kundeId,
+          objekt_id: params.objektId,
           name: params.name,
           beschreibung: params.beschreibung,
         })
@@ -244,6 +262,7 @@ export function useCreateWaescheSet() {
         set_id: set.id,
         artikel_id: a.artikelId,
         menge: a.menge,
+        berechnungsart: a.berechnungsart || 'pro_buchung',
       }));
       
       const { error: artikelError } = await supabase
