@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { Printer, Download } from 'lucide-react';
+import { Printer, Download, Package, ArrowRight } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -239,6 +239,39 @@ export default function RechnungDetail() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Linked Order */}
+            {rechnung.bestellung && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="h-5 w-5" />
+                    Zugehörige Bestellung
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Link 
+                    to={`/bestellungen/${rechnung.bestellung.id}`}
+                    className="block p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                  >
+                    <p className="font-mono font-medium text-primary">
+                      #{rechnung.bestellung.bestellnummer}
+                    </p>
+                    {rechnung.bestellung.objekt?.name && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {rechnung.bestellung.objekt.name}
+                      </p>
+                    )}
+                    {rechnung.bestellung.lieferdatum && (
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                        <ArrowRight className="h-3 w-3" />
+                        <span>{format(new Date(rechnung.bestellung.lieferdatum), 'dd.MM.yyyy', { locale: de })}</span>
+                      </div>
+                    )}
+                  </Link>
+                </CardContent>
+              </Card>
+            )}
 
             {rechnung.notizen && (
               <Card>

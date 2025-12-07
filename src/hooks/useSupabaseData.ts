@@ -169,7 +169,7 @@ export function useBestellungen(kundeId: string | undefined) {
   });
 }
 
-// Fetch single order with details
+// Fetch single order with details and linked invoice
 export function useBestellung(bestellungId: string | undefined) {
   return useQuery({
     queryKey: ['bestellung', bestellungId],
@@ -190,7 +190,16 @@ export function useBestellung(bestellungId: string | undefined) {
         .maybeSingle();
       
       if (error) throw error;
-      return data as BestellungMitDetails | null;
+      if (!data) return null;
+      
+      // Fetch linked invoice
+      const { data: rechnung } = await supabase
+        .from('rechnungen')
+        .select('*')
+        .eq('bestellung_id', bestellungId)
+        .maybeSingle();
+      
+      return { ...data, rechnung } as BestellungMitDetails;
     },
     enabled: !!bestellungId,
   });
@@ -304,7 +313,16 @@ export function useCreateWaescheSet() {
   });
 }
 
-// Fetch all invoices for customer
+// Rechnung with linked Bestellung
+export interface RechnungMitBestellung extends Rechnung {
+  bestellung?: {
+    bestellnummer: string;
+    lieferdatum: string | null;
+    objekt?: { name: string } | null;
+  } | null;
+}
+
+// Fetch all invoices for customer with linked orders
 export function useRechnungen(kundeId: string | undefined) {
   return useQuery({
     queryKey: ['rechnungen', kundeId],
@@ -318,13 +336,35 @@ export function useRechnungen(kundeId: string | undefined) {
         .order('rechnungsdatum', { ascending: false });
       
       if (error) throw error;
-      return data as Rechnung[];
+      if (!data) return [];
+      
+      // Get bestellung_ids
+      const bestellungIds = data
+        .map(r => r.bestellung_id)
+        .filter((id): id is string => !!id);
+      
+      if (bestellungIds.length === 0) {
+        return data.map(r => ({ ...r, bestellung: null })) as RechnungMitBestellung[];
+      }
+      
+      // Fetch linked orders
+      const { data: bestellungen } = await supabase
+        .from('waeschebestellungen')
+        .select('id, bestellnummer, lieferdatum, objekt:objekte(name)')
+        .in('id', bestellungIds);
+      
+      const bestellungenMap = new Map(bestellungen?.map(b => [b.id, b]) || []);
+      
+      return data.map(r => ({
+        ...r,
+        bestellung: r.bestellung_id ? bestellungenMap.get(r.bestellung_id) || null : null,
+      })) as RechnungMitBestellung[];
     },
     enabled: !!kundeId,
   });
 }
 
-// Fetch single invoice with positions
+// Fetch single invoice with positions and linked order
 export function useRechnung(rechnungId: string | undefined) {
   return useQuery({
     queryKey: ['rechnung', rechnungId],
@@ -341,7 +381,22 @@ export function useRechnung(rechnungId: string | undefined) {
         .maybeSingle();
       
       if (error) throw error;
-      return data as RechnungMitPositionen | null;
+      if (!data) return null;
+      
+      // Fetch linked order
+      let bestellung = null;
+      if (data.bestellung_id) {
+        const { data: bestellungData } = await supabase
+          .from('waeschebestellungen')
+          .select('id, bestellnummer, lieferdatum, objekt:objekte(name)')
+          .eq('id', data.bestellung_id)
+          .maybeSingle();
+        bestellung = bestellungData;
+      }
+      
+      return { ...data, bestellung } as RechnungMitPositionen & { 
+        bestellung?: { id: string; bestellnummer: string; lieferdatum: string | null; objekt?: { name: string } | null } | null 
+      };
     },
     enabled: !!rechnungId,
   });
