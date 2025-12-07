@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useKunde, useObjekte, useWaescheSets, useBestellungen, useRechnungen } from '@/hooks/useSupabaseData';
-import { BestellungStatus } from '@/integrations/supabase/client';
+import { BestellungStatus, RechnungStatus } from '@/integrations/supabase/client';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -25,6 +25,20 @@ export default function Dashboard() {
   const offeneRechnungen = rechnungen.filter(r => r.status === 'offen');
   const offenerBetrag = offeneRechnungen.reduce((sum, r) => sum + (r.bruttobetrag || 0), 0);
   const recentOrders = bestellungen.slice(0, 5);
+  const recentRechnungen = rechnungen.slice(0, 5);
+
+  const getRechnungRowClassName = (status: RechnungStatus) => {
+    switch (status) {
+      case 'offen':
+        return 'bg-status-pending/10 hover:bg-status-pending/15';
+      case 'bezahlt':
+        return 'bg-status-delivered/10 hover:bg-status-delivered/15';
+      case 'storniert':
+        return 'bg-destructive/10 hover:bg-destructive/15';
+      default:
+        return 'hover:bg-muted/50';
+    }
+  };
 
   if (isLoading) {
     return (
@@ -116,8 +130,64 @@ export default function Dashboard() {
                         {bestellung.positionen?.length || 0} Artikel · {' '}
                         {format(new Date(bestellung.created_at), 'dd. MMM yyyy', { locale: de })}
                       </p>
+          </div>
+        </div>
+
+        {/* Recent Invoices */}
+        <div className="lg:col-span-2 rounded-xl border border-border bg-card shadow-card">
+          <div className="flex items-center justify-between border-b border-border p-6">
+            <h2 className="text-lg font-semibold text-card-foreground">
+              Aktuelle Rechnungen
+            </h2>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/rechnungen')}>
+              Alle anzeigen
+            </Button>
+          </div>
+          <div className="divide-y divide-border">
+            {recentRechnungen.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <FileText className="h-12 w-12 text-muted-foreground/50" />
+                <p className="mt-4 text-muted-foreground">Noch keine Rechnungen</p>
+              </div>
+            ) : (
+              recentRechnungen.map((rechnung) => (
+                <div
+                  key={rechnung.id}
+                  className={`flex items-center justify-between p-4 transition-colors cursor-pointer ${getRechnungRowClassName(rechnung.status)}`}
+                  onClick={() => navigate(`/rechnungen/${rechnung.id}`)}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
+                      rechnung.status === 'bezahlt' 
+                        ? 'bg-status-delivered/20' 
+                        : rechnung.status === 'storniert'
+                        ? 'bg-destructive/20'
+                        : 'bg-status-pending/20'
+                    }`}>
+                      <FileText className={`h-5 w-5 ${
+                        rechnung.status === 'bezahlt' 
+                          ? 'text-status-delivered' 
+                          : rechnung.status === 'storniert'
+                          ? 'text-destructive'
+                          : 'text-status-pending'
+                      }`} />
+                    </div>
+                    <div>
+                      <p className="font-medium text-card-foreground">
+                        {rechnung.rechnungsnummer}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        €{(rechnung.bruttobetrag || 0).toFixed(2)} · {' '}
+                        {format(new Date(rechnung.rechnungsdatum), 'dd. MMM yyyy', { locale: de })}
+                      </p>
                     </div>
                   </div>
+                  <StatusBadge status={rechnung.status} />
+                </div>
+              ))
+            )}
+          </div>
+        </div>
                   <StatusBadge status={bestellung.status} />
                 </div>
               ))
