@@ -1,4 +1,4 @@
-import { Package, Plus, Edit2, Trash2, Loader2 } from 'lucide-react';
+import { Package, Plus, Edit2, Trash2, Loader2, Building2 } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -28,7 +28,7 @@ export default function WaescheSets() {
 
   const calculateSetPrice = (setArtikel: typeof waescheSets[0]['artikel']) => {
     return setArtikel.reduce((sum, a) => {
-      const preis = a.waescheartikel?.preis_pro_stueck || 0;
+      const preis = a.waescheartikel?.preis || 0;
       return sum + (a.menge * preis);
     }, 0);
   };
@@ -85,8 +85,17 @@ export default function WaescheSets() {
               <h3 className="mt-4 text-lg font-semibold text-card-foreground">
                 {set.name}
               </h3>
+              
+              {/* Show associated object */}
+              {set.objekt && (
+                <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
+                  <Building2 className="h-3 w-3" />
+                  <span>{set.objekt.name}</span>
+                </div>
+              )}
+              
               {set.beschreibung && (
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className="mt-2 text-sm text-muted-foreground">
                   {set.beschreibung}
                 </p>
               )}

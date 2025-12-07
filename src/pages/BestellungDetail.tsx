@@ -1,26 +1,36 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Building2, Calendar, FileText, Package, Truck, CheckCircle, Clock } from 'lucide-react';
+import { ArrowLeft, Building2, Calendar, FileText, Package, Truck, CheckCircle, Clock, Loader2 } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
-import { mockBestellungen } from '@/data/mockData';
+import { useBestellung } from '@/hooks/useSupabaseData';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { BestellungStatus } from '@/types/database';
+import { BestellungStatus } from '@/integrations/supabase/client';
 
 const statusSteps: { status: BestellungStatus; label: string; icon: typeof Clock }[] = [
-  { status: 'ausstehend', label: 'Ausstehend', icon: Clock },
+  { status: 'neu', label: 'Neu', icon: Clock },
   { status: 'in_bearbeitung', label: 'In Bearbeitung', icon: Package },
-  { status: 'in_waescherei', label: 'In Wäscherei', icon: Package },
-  { status: 'bereit', label: 'Bereit zur Abholung', icon: Truck },
-  { status: 'geliefert', label: 'Geliefert', icon: CheckCircle },
+  { status: 'ausgeliefert', label: 'Ausgeliefert', icon: Truck },
+  { status: 'abgeholt', label: 'Abgeholt', icon: CheckCircle },
+  { status: 'abgeschlossen', label: 'Abgeschlossen', icon: CheckCircle },
 ];
 
 export default function BestellungDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
-  const bestellung = mockBestellungen.find(b => b.id === id);
+  const { data: bestellung, isLoading } = useBestellung(id);
+
+  if (isLoading) {
+    return (
+      <MainLayout title="Bestellung laden...">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
 
   if (!bestellung) {
     return (
@@ -36,11 +46,10 @@ export default function BestellungDetail() {
   }
 
   const currentStepIndex = statusSteps.findIndex(s => s.status === bestellung.status);
-  const total = bestellung.positionen.reduce((sum, pos) => sum + (pos.preis || 0), 0);
 
   return (
     <MainLayout 
-      title={`Bestellung #${bestellung.id.slice(-4).toUpperCase()}`}
+      title={`Bestellung #${bestellung.bestellnummer || bestellung.id.slice(-4).toUpperCase()}`}
       subtitle={`Erstellt am ${format(new Date(bestellung.created_at), 'dd. MMMM yyyy', { locale: de })}`}
       actions={
         <Button variant="outline" onClick={() => navigate('/bestellungen')}>
@@ -114,30 +123,22 @@ export default function BestellungDetail() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {bestellung.positionen.map((position, index) => (
+                {bestellung.positionen?.map((position, index) => (
                   <tr key={index}>
                     <td className="px-6 py-4 font-medium text-card-foreground">
-                      {position.artikel_name}
+                      {position.waescheartikel?.name || 'Unbekannter Artikel'}
                     </td>
                     <td className="px-6 py-4 text-center text-muted-foreground">
                       {position.menge}
                     </td>
                     <td className="px-6 py-4 text-right text-card-foreground">
-                      {position.preis ? `€${position.preis.toFixed(2)}` : '—'}
+                      {position.waescheartikel?.preis 
+                        ? `€${(position.waescheartikel.preis * position.menge).toFixed(2)}` 
+                        : '—'}
                     </td>
                   </tr>
                 ))}
               </tbody>
-              <tfoot>
-                <tr className="bg-muted/50">
-                  <td colSpan={2} className="px-6 py-4 font-semibold text-card-foreground">
-                    Gesamt
-                  </td>
-                  <td className="px-6 py-4 text-right font-semibold text-card-foreground">
-                    €{total.toFixed(2)}
-                  </td>
-                </tr>
-              </tfoot>
             </table>
           </div>
         </div>
@@ -156,7 +157,7 @@ export default function BestellungDetail() {
                   Objekt
                 </dt>
                 <dd className="mt-1 font-medium text-card-foreground">
-                  {bestellung.objekt_name}
+                  {bestellung.objekt?.name || '—'}
                 </dd>
               </div>
               <div>
@@ -168,6 +169,16 @@ export default function BestellungDetail() {
                   <StatusBadge status={bestellung.status} />
                 </dd>
               </div>
+              {bestellung.gastname && (
+                <div>
+                  <dt className="flex items-center gap-2 text-sm text-muted-foreground">
+                    Gastname
+                  </dt>
+                  <dd className="mt-1 font-medium text-card-foreground">
+                    {bestellung.gastname}
+                  </dd>
+                </div>
+              )}
               {bestellung.abholdatum && (
                 <div>
                   <dt className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -218,7 +229,7 @@ export default function BestellungDetail() {
               </Button>
             </div>
             <p className="mt-3 text-xs text-muted-foreground text-center">
-              Aktionen werden nach Datenbankanbindung aktiviert
+              Aktionen werden bald verfügbar sein
             </p>
           </div>
         </div>

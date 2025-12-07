@@ -5,7 +5,7 @@ import { useWaescheArtikel } from '@/hooks/useSupabaseData';
 export default function Artikel() {
   const { data: artikel = [], isLoading } = useWaescheArtikel();
   
-  const kategorien = [...new Set(artikel.map(a => a.kategorie))];
+  const kategorien = [...new Set(artikel.map(a => a.kategorie).filter(Boolean))];
 
   if (isLoading) {
     return (
@@ -55,9 +55,9 @@ export default function Artikel() {
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-secondary-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                       <ClipboardList className="h-5 w-5" />
                     </div>
-                    {art.preis_pro_stueck && (
+                    {art.preis != null && (
                       <span className="text-sm font-semibold text-primary">
-                        €{art.preis_pro_stueck.toFixed(2)}
+                        €{art.preis.toFixed(2)}
                       </span>
                     )}
                   </div>
@@ -65,9 +65,14 @@ export default function Artikel() {
                   <h3 className="mt-3 font-medium text-card-foreground">
                     {art.name}
                   </h3>
-                  {art.beschreibung && (
+                  {art.bezeichnung && (
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {art.beschreibung}
+                      {art.bezeichnung}
+                    </p>
+                  )}
+                  {art.groesse && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Größe: {art.groesse}
                     </p>
                   )}
                 </div>

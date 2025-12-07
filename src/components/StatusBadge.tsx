@@ -1,26 +1,30 @@
-import { BestellungStatus } from '@/types/database';
+import { BestellungStatus } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
 const statusConfig: Record<BestellungStatus, { label: string; className: string }> = {
-  ausstehend: {
-    label: 'Ausstehend',
+  neu: {
+    label: 'Neu',
     className: 'bg-status-pending/15 text-status-pending border-status-pending/30',
   },
   in_bearbeitung: {
     label: 'In Bearbeitung',
     className: 'bg-status-processing/15 text-status-processing border-status-processing/30',
   },
-  in_waescherei: {
-    label: 'In Wäscherei',
-    className: 'bg-status-washing/15 text-status-washing border-status-washing/30',
-  },
-  bereit: {
-    label: 'Bereit',
+  ausgeliefert: {
+    label: 'Ausgeliefert',
     className: 'bg-status-ready/15 text-status-ready border-status-ready/30',
   },
-  geliefert: {
-    label: 'Geliefert',
+  abgeholt: {
+    label: 'Abgeholt',
     className: 'bg-status-delivered/15 text-status-delivered border-status-delivered/30',
+  },
+  abgeschlossen: {
+    label: 'Abgeschlossen',
+    className: 'bg-status-delivered/15 text-status-delivered border-status-delivered/30',
+  },
+  storniert: {
+    label: 'Storniert',
+    className: 'bg-destructive/15 text-destructive border-destructive/30',
   },
 };
 

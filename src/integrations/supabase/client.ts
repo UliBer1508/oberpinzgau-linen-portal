@@ -11,47 +11,80 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   },
 });
 
-// Type definitions
+// Type definitions matching exact database schema
+
 export type BestellungStatus = 
-  | 'ausstehend' 
+  | 'neu' 
   | 'in_bearbeitung' 
-  | 'in_waescherei' 
-  | 'bereit' 
-  | 'geliefert';
+  | 'ausgeliefert' 
+  | 'abgeholt' 
+  | 'abgeschlossen'
+  | 'storniert';
+
+export type BestellModus = 'mit_buchung' | 'nur_sets';
+export type BestellArt = 'lieferung' | 'abholung' | 'beides';
+export type BerechnungsArt = 'pro_buchung' | 'pro_gast';
+export type ObjektTyp = 'ferienwohnung' | 'ferienhaus' | 'hotel' | 'pension' | 'sonstige';
 
 export interface Kunde {
   id: string;
+  kundennummer: string;
   name: string;
-  email: string;
+  firma: string | null;
+  strasse: string | null;
+  plz: string | null;
+  ort: string | null;
   telefon: string | null;
-  adresse: string | null;
+  email: string | null;
+  anlieferadresse: string | null;
+  bestellmodus: BestellModus;
+  bestellart: BestellArt | null;
+  notizen: string | null;
+  aktiv: boolean;
   created_at: string;
+  updated_at: string;
 }
 
 export interface Objekt {
   id: string;
   kunde_id: string;
+  objektnummer: string;
   name: string;
-  adresse: string;
-  anzahl_zimmer: number | null;
+  typ: ObjektTyp;
+  strasse: string | null;
+  plz: string | null;
+  ort: string | null;
+  ansprechpartner: string | null;
+  telefon: string | null;
   notizen: string | null;
+  aktiv: boolean;
   created_at: string;
+  updated_at: string;
 }
 
 export interface WaescheArtikel {
   id: string;
+  artikelnummer: string;
   name: string;
-  kategorie: string;
-  beschreibung: string | null;
-  preis_pro_stueck: number | null;
+  bezeichnung: string | null;
+  groesse: string | null;
+  kategorie: string | null;
+  farbe: string | null;
+  preis: number | null;
+  bild_url: string | null;
+  aktiv: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface WaescheSet {
   id: string;
-  kunde_id: string;
+  objekt_id: string;
   name: string;
   beschreibung: string | null;
+  aktiv: boolean;
   created_at: string;
+  updated_at: string;
 }
 
 export interface WaescheSetArtikel {
@@ -59,15 +92,28 @@ export interface WaescheSetArtikel {
   set_id: string;
   artikel_id: string;
   menge: number;
+  berechnungsart: BerechnungsArt;
 }
 
 export interface Bestellung {
   id: string;
+  bestellnummer: string;
   kunde_id: string;
-  objekt_id: string;
+  objekt_id: string | null;
+  waeschekraft_id: string | null;
   status: BestellungStatus;
+  gastname: string | null;
+  check_in: string | null;
+  check_out: string | null;
+  anzahl_personen: number | null;
   lieferdatum: string | null;
+  lieferzeit: string | null;
   abholdatum: string | null;
+  abholzeit: string | null;
+  prioritaet: number | null;
+  reihenfolge: number | null;
+  bearbeitung_deadline: string | null;
+  bearbeitung_notizen: string | null;
   notizen: string | null;
   created_at: string;
   updated_at: string;
@@ -78,15 +124,16 @@ export interface BestellungPosition {
   bestellung_id: string;
   artikel_id: string;
   menge: number;
-  preis: number | null;
+  notizen: string | null;
 }
 
 // Extended types with relations
 export interface WaescheSetMitArtikel extends WaescheSet {
+  objekt?: Objekt;
   artikel: (WaescheSetArtikel & { waescheartikel: WaescheArtikel })[];
 }
 
 export interface BestellungMitDetails extends Bestellung {
-  objekt: Objekt;
+  objekt: Objekt | null;
   positionen: (BestellungPosition & { waescheartikel: WaescheArtikel })[];
 }
