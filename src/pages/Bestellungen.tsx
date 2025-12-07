@@ -1,14 +1,16 @@
-import { useState } from 'react';
-import { ShoppingCart, Search, Plus, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ShoppingCart, Search, Plus, Loader2, FileText, FileX } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { BestellungStatus } from '@/integrations/supabase/client';
+import { BestellungStatus, supabase } from '@/integrations/supabase/client';
 import { useKunde, useBestellungen } from '@/hooks/useSupabaseData';
+import { useQueryClient } from '@tanstack/react-query';
 
 const statusFilters: { label: string; value: BestellungStatus | 'alle' }[] = [
   { label: 'Alle', value: 'alle' },
@@ -19,8 +21,28 @@ const statusFilters: { label: string; value: BestellungStatus | 'alle' }[] = [
   { label: 'Abgeschlossen', value: 'abgeschlossen' },
 ];
 
+// Status-basierte Hintergrundfarben
+const getStatusRowColor = (status: BestellungStatus): string => {
+  switch (status) {
+    case 'neu':
+      return 'bg-status-pending/10';
+    case 'in_bearbeitung':
+      return 'bg-status-processing/10';
+    case 'ausgeliefert':
+    case 'abgeholt':
+      return 'bg-status-ready/10';
+    case 'abgeschlossen':
+      return 'bg-status-delivered/10';
+    case 'storniert':
+      return 'bg-destructive/10';
+    default:
+      return '';
+  }
+};
+
 export default function Bestellungen() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<BestellungStatus | 'alle'>('alle');
   
@@ -28,6 +50,31 @@ export default function Bestellungen() {
   const { data: bestellungen = [], isLoading: bestellungenLoading } = useBestellungen(kunde?.id);
   
   const isLoading = kundeLoading || bestellungenLoading;
+
+  // Realtime subscription for status updates
+  useEffect(() => {
+    if (!kunde?.id) return;
+
+    const channel = supabase
+      .channel('bestellungen-status')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'waeschebestellungen',
+          filter: `kunde_id=eq.${kunde.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['bestellungen', kunde.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [kunde?.id, queryClient]);
 
   const filteredBestellungen = bestellungen.filter((bestellung) => {
     const objektName = bestellung.objekt?.name || '';
@@ -114,13 +161,16 @@ export default function Bestellungen() {
                 <th className="px-6 py-4 text-right text-sm font-medium text-muted-foreground">
                   Summe
                 </th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">
+                  Rechnung
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filteredBestellungen.map((bestellung, index) => (
                 <tr 
                   key={bestellung.id}
-                  className="hover:bg-muted/50 transition-colors cursor-pointer animate-slide-up"
+                  className={`hover:bg-muted/50 transition-colors cursor-pointer animate-slide-up ${getStatusRowColor(bestellung.status)}`}
                   style={{ animationDelay: `${index * 0.05}s` }}
                   onClick={() => navigate(`/bestellungen/${bestellung.id}`)}
                 >
@@ -134,7 +184,7 @@ export default function Bestellungen() {
                           #{bestellung.bestellnummer || bestellung.id.slice(-4).toUpperCase()}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {format(new Date(bestellung.created_at), 'dd.MM.yyyy', { locale: de })}
+                          {format(new Date(bestellung.created_at), 'dd.MM.yyyy HH:mm', { locale: de })}
                         </p>
                       </div>
                     </div>
@@ -156,6 +206,26 @@ export default function Bestellungen() {
                   </td>
                   <td className="px-6 py-4 text-right font-medium text-card-foreground">
                     €{calculateTotal(bestellung.positionen).toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4">
+                    {bestellung.rechnung ? (
+                      <Badge 
+                        variant="outline" 
+                        className="bg-status-delivered/10 text-status-delivered border-status-delivered/30"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/rechnungen/${bestellung.rechnung?.id}`);
+                        }}
+                      >
+                        <FileText className="h-3 w-3 mr-1" />
+                        Erstellt
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="bg-muted text-muted-foreground border-border">
+                        <FileX className="h-3 w-3 mr-1" />
+                        Keine
+                      </Badge>
+                    )}
                   </td>
                 </tr>
               ))}

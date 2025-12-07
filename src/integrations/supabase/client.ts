@@ -192,4 +192,5 @@ export interface WaescheSetMitArtikel extends WaescheSet {
 export interface BestellungMitDetails extends Bestellung {
   objekt: Objekt | null;
   positionen: (BestellungPosition & { waescheartikel: WaescheArtikel })[];
+  rechnung?: Rechnung | null;
 }

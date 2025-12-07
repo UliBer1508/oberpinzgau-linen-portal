@@ -127,14 +127,15 @@ export function useWaescheSets(kundeId: string | undefined) {
   });
 }
 
-// Fetch orders with details for customer
+// Fetch orders with details for customer (including invoice status)
 export function useBestellungen(kundeId: string | undefined) {
   return useQuery({
     queryKey: ['bestellungen', kundeId],
     queryFn: async () => {
       if (!kundeId) return [];
       
-      const { data, error } = await supabase
+      // Fetch orders
+      const { data: bestellungen, error: bestellungenError } = await supabase
         .from('waeschebestellungen')
         .select(`
           *,
@@ -147,8 +148,23 @@ export function useBestellungen(kundeId: string | undefined) {
         .eq('kunde_id', kundeId)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data as BestellungMitDetails[];
+      if (bestellungenError) throw bestellungenError;
+      
+      // Fetch invoices for this customer
+      const { data: rechnungen, error: rechnungenError } = await supabase
+        .from('rechnungen')
+        .select('*')
+        .eq('kunde_id', kundeId);
+      
+      if (rechnungenError) throw rechnungenError;
+      
+      // Map invoices to orders
+      const rechnungenMap = new Map(rechnungen?.map(r => [r.bestellung_id, r]) || []);
+      
+      return (bestellungen || []).map(bestellung => ({
+        ...bestellung,
+        rechnung: rechnungenMap.get(bestellung.id) || null,
+      })) as BestellungMitDetails[];
     },
     enabled: !!kundeId,
   });
