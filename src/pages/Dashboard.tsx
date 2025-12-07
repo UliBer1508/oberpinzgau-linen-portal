@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useKunde, useObjekte, useWaescheSets, useBestellungen, useRechnungen, RechnungMitBestellung } from '@/hooks/useSupabaseData';
-import { RechnungStatus } from '@/integrations/supabase/client';
+import { RechnungStatus, BestellungStatus } from '@/integrations/supabase/client';
 export default function Dashboard() {
   const navigate = useNavigate();
   
@@ -32,6 +32,24 @@ export default function Dashboard() {
       case 'offen':
         return 'bg-status-pending/10 hover:bg-status-pending/15';
       case 'bezahlt':
+        return 'bg-status-delivered/10 hover:bg-status-delivered/15';
+      case 'storniert':
+        return 'bg-destructive/10 hover:bg-destructive/15';
+      default:
+        return 'hover:bg-muted/50';
+    }
+  };
+
+  const getBestellungRowClassName = (status: BestellungStatus): string => {
+    switch (status) {
+      case 'neu':
+        return 'bg-status-pending/10 hover:bg-status-pending/15';
+      case 'in_bearbeitung':
+        return 'bg-status-processing/10 hover:bg-status-processing/15';
+      case 'ausgeliefert':
+      case 'abgeholt':
+        return 'bg-status-ready/10 hover:bg-status-ready/15';
+      case 'abgeschlossen':
         return 'bg-status-delivered/10 hover:bg-status-delivered/15';
       case 'storniert':
         return 'bg-destructive/10 hover:bg-destructive/15';
@@ -119,7 +137,7 @@ export default function Dashboard() {
                 {recentOrders.map((bestellung) => (
                   <TableRow 
                     key={bestellung.id}
-                    className="cursor-pointer"
+                    className={`cursor-pointer ${getBestellungRowClassName(bestellung.status)}`}
                     onClick={() => navigate(`/bestellungen/${bestellung.id}`)}
                   >
                     <TableCell className="font-mono text-sm font-medium text-primary">
