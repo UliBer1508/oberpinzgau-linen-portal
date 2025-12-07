@@ -28,7 +28,7 @@ export default function WaescheSets() {
 
   const calculateSetPrice = (setArtikel: typeof waescheSets[0]['artikel']) => {
     return setArtikel.reduce((sum, a) => {
-      const preis = a.waesche_artikel?.preis_pro_stueck || 0;
+      const preis = a.waescheartikel?.preis_pro_stueck || 0;
       return sum + (a.menge * preis);
     }, 0);
   };
@@ -97,7 +97,7 @@ export default function WaescheSets() {
                     key={setArtikel.id}
                     className="flex items-center justify-between text-sm"
                   >
-                    <span className="text-muted-foreground">{setArtikel.waesche_artikel?.name}</span>
+                    <span className="text-muted-foreground">{setArtikel.waescheartikel?.name}</span>
                     <span className="font-medium text-card-foreground">×{setArtikel.menge}</span>
                   </div>
                 ))}

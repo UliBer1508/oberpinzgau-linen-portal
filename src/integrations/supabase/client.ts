@@ -83,10 +83,10 @@ export interface BestellungPosition {
 
 // Extended types with relations
 export interface WaescheSetMitArtikel extends WaescheSet {
-  artikel: (WaescheSetArtikel & { waesche_artikel: WaescheArtikel })[];
+  artikel: (WaescheSetArtikel & { waescheartikel: WaescheArtikel })[];
 }
 
 export interface BestellungMitDetails extends Bestellung {
   objekt: Objekt;
-  positionen: (BestellungPosition & { waesche_artikel: WaescheArtikel })[];
+  positionen: (BestellungPosition & { waescheartikel: WaescheArtikel })[];
 }
