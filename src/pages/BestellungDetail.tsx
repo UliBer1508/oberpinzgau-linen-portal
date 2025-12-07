@@ -1,5 +1,5 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Building2, Calendar, FileText, Package, Truck, CheckCircle, Clock, Loader2 } from 'lucide-react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { ArrowLeft, Building2, Calendar, FileText, Package, Truck, CheckCircle, Clock, Loader2, Receipt } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
@@ -213,6 +213,39 @@ export default function BestellungDetail() {
                 </div>
               )}
             </dl>
+          </div>
+
+          {/* Linked Invoice */}
+          <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+            <h2 className="text-lg font-semibold text-card-foreground mb-4">
+              <div className="flex items-center gap-2">
+                <Receipt className="h-5 w-5" />
+                Zugehörige Rechnung
+              </div>
+            </h2>
+            {bestellung.rechnung ? (
+              <Link 
+                to={`/rechnungen/${bestellung.rechnung.id}`}
+                className="block p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-card-foreground">
+                      {bestellung.rechnung.rechnungsnummer}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      €{(bestellung.rechnung.bruttobetrag || 0).toFixed(2)}
+                    </p>
+                  </div>
+                  <StatusBadge status={bestellung.rechnung.status} />
+                </div>
+              </Link>
+            ) : (
+              <div className="text-center py-4 text-muted-foreground">
+                <Receipt className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Noch keine Rechnung erstellt</p>
+              </div>
+            )}
           </div>
 
           {/* Actions */}

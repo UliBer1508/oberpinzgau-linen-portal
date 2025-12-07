@@ -1,4 +1,4 @@
-import { ShoppingCart, Package, Building2, Clock, CheckCircle, Truck, Loader2, FileText } from 'lucide-react';
+import { ShoppingCart, Package, Building2, Clock, CheckCircle, Truck, Loader2, FileText, Receipt, ArrowRight } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { StatCard } from '@/components/cards/StatCard';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { useKunde, useObjekte, useWaescheSets, useBestellungen, useRechnungen } from '@/hooks/useSupabaseData';
+import { useKunde, useObjekte, useWaescheSets, useBestellungen, useRechnungen, RechnungMitBestellung } from '@/hooks/useSupabaseData';
 import { BestellungStatus, RechnungStatus } from '@/integrations/supabase/client';
 
 export default function Dashboard() {
@@ -25,7 +25,7 @@ export default function Dashboard() {
   const offeneRechnungen = rechnungen.filter(r => r.status === 'offen');
   const offenerBetrag = offeneRechnungen.reduce((sum, r) => sum + (r.bruttobetrag || 0), 0);
   const recentOrders = bestellungen.slice(0, 5);
-  const recentRechnungen = rechnungen.slice(0, 5);
+  const recentRechnungen = rechnungen.slice(0, 5) as RechnungMitBestellung[];
 
   const getRechnungRowClassName = (status: RechnungStatus) => {
     switch (status) {
@@ -123,13 +123,27 @@ export default function Dashboard() {
                       )}
                     </div>
                     <div>
-                      <p className="font-medium text-card-foreground">
-                        {bestellung.objekt?.name || 'Objekt'}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {bestellung.positionen?.length || 0} Artikel · {' '}
-                        {format(new Date(bestellung.created_at), 'dd. MMM yyyy', { locale: de })}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-mono text-sm font-medium text-primary">
+                          #{bestellung.bestellnummer || bestellung.id.slice(-8)}
+                        </p>
+                        <span className="text-muted-foreground">·</span>
+                        <p className="font-medium text-card-foreground">
+                          {bestellung.objekt?.name || 'Objekt'}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span>{bestellung.positionen?.length || 0} Artikel</span>
+                        {bestellung.lieferdatum && (
+                          <>
+                            <ArrowRight className="h-3 w-3" />
+                            <span>{format(new Date(bestellung.lieferdatum), 'dd.MM.yyyy', { locale: de })}</span>
+                          </>
+                        )}
+                        {bestellung.rechnung && (
+                          <Receipt className="h-3 w-3 text-status-delivered ml-1" />
+                        )}
+                      </div>
                     </div>
                   </div>
                   <StatusBadge status={bestellung.status} />
@@ -182,10 +196,17 @@ export default function Dashboard() {
                       <p className="font-medium text-card-foreground">
                         {rechnung.rechnungsnummer}
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        €{(rechnung.bruttobetrag || 0).toFixed(2)} · {' '}
-                        {format(new Date(rechnung.rechnungsdatum), 'dd. MMM yyyy', { locale: de })}
-                      </p>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span>€{(rechnung.bruttobetrag || 0).toFixed(2)}</span>
+                        <span>·</span>
+                        <span>{format(new Date(rechnung.rechnungsdatum), 'dd.MM.yyyy', { locale: de })}</span>
+                        {rechnung.bestellung && (
+                          <>
+                            <span>·</span>
+                            <span className="font-mono text-xs">#{rechnung.bestellung.bestellnummer}</span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <StatusBadge status={rechnung.status} />
