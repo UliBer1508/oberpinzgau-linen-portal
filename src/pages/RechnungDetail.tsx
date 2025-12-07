@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { Printer, Download, Package, ArrowRight } from 'lucide-react';
+import { Printer, Download, Package, ArrowRight, ArrowLeft } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -58,6 +58,12 @@ export default function RechnungDetail() {
       subtitle={`vom ${format(new Date(rechnung.rechnungsdatum), 'dd. MMMM yyyy', { locale: de })}`}
       actions={
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/rechnungen">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Zurück
+            </Link>
+          </Button>
           <StatusBadge status={rechnung.status} />
           <Button variant="outline" size="sm">
             <Printer className="mr-2 h-4 w-4" />
