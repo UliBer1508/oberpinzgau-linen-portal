@@ -140,8 +140,18 @@ export default function Dashboard() {
                             <span>{format(new Date(bestellung.lieferdatum), 'dd.MM.yyyy', { locale: de })}</span>
                           </>
                         )}
-                        {bestellung.rechnung && (
-                          <Receipt className="h-3 w-3 text-status-delivered ml-1" />
+                        <span className="text-muted-foreground">·</span>
+                        {bestellung.rechnung ? (
+                          <span className={`inline-flex items-center gap-1 text-xs font-medium px-1.5 py-0.5 rounded ${
+                            bestellung.rechnung.status === 'bezahlt' 
+                              ? 'bg-status-delivered/20 text-status-delivered' 
+                              : 'bg-status-pending/20 text-status-pending'
+                          }`}>
+                            <Receipt className="h-3 w-3" />
+                            {bestellung.rechnung.status === 'bezahlt' ? 'Bezahlt' : 'Offen'}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground/60">Keine Rg.</span>
                         )}
                       </div>
                     </div>
