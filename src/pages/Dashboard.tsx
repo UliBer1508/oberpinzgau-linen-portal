@@ -1,14 +1,14 @@
-import { ShoppingCart, Package, Building2, Clock, CheckCircle, Truck, Loader2, FileText, Receipt, ArrowRight } from 'lucide-react';
+import { ShoppingCart, Package, Building2, Clock, Loader2, FileText } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { StatCard } from '@/components/cards/StatCard';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useKunde, useObjekte, useWaescheSets, useBestellungen, useRechnungen, RechnungMitBestellung } from '@/hooks/useSupabaseData';
-import { BestellungStatus, RechnungStatus } from '@/integrations/supabase/client';
-
+import { RechnungStatus } from '@/integrations/supabase/client';
 export default function Dashboard() {
   const navigate = useNavigate();
   
@@ -99,68 +99,59 @@ export default function Dashboard() {
               Alle anzeigen
             </Button>
           </div>
-          <div className="divide-y divide-border">
-            {recentOrders.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <ShoppingCart className="h-12 w-12 text-muted-foreground/50" />
-                <p className="mt-4 text-muted-foreground">Noch keine Bestellungen</p>
-              </div>
-            ) : (
-              recentOrders.map((bestellung) => (
-                <div
-                  key={bestellung.id}
-                  className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors cursor-pointer"
-                  onClick={() => navigate(`/bestellungen/${bestellung.id}`)}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                      {bestellung.status === 'abgeschlossen' ? (
-                        <CheckCircle className="h-5 w-5 text-success" />
-                      ) : bestellung.status === 'ausgeliefert' || bestellung.status === 'abgeholt' ? (
-                        <Truck className="h-5 w-5 text-accent" />
+          {recentOrders.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <ShoppingCart className="h-12 w-12 text-muted-foreground/50" />
+              <p className="mt-4 text-muted-foreground">Noch keine Bestellungen</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Bestellung</TableHead>
+                  <TableHead>Objekt</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Rechnung</TableHead>
+                  <TableHead>Rg.-Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recentOrders.map((bestellung) => (
+                  <TableRow 
+                    key={bestellung.id}
+                    className="cursor-pointer"
+                    onClick={() => navigate(`/bestellungen/${bestellung.id}`)}
+                  >
+                    <TableCell className="font-mono text-sm font-medium text-primary">
+                      #{bestellung.bestellnummer || bestellung.id.slice(-8)}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {bestellung.objekt?.name || 'Objekt'}
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={bestellung.status} />
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">
+                      {bestellung.rechnung?.rechnungsnummer || '—'}
+                    </TableCell>
+                    <TableCell>
+                      {bestellung.rechnung ? (
+                        <span className={`text-xs font-medium px-2 py-1 rounded ${
+                          bestellung.rechnung.status === 'bezahlt' 
+                            ? 'bg-status-delivered/20 text-status-delivered' 
+                            : 'bg-status-pending/20 text-status-pending'
+                        }`}>
+                          {bestellung.rechnung.status === 'bezahlt' ? 'Bezahlt' : 'Offen'}
+                        </span>
                       ) : (
-                        <Package className="h-5 w-5 text-primary" />
+                        <span className="text-muted-foreground">—</span>
                       )}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-mono text-sm font-medium text-primary">
-                          #{bestellung.bestellnummer || bestellung.id.slice(-8)}
-                        </p>
-                        <span className="text-muted-foreground">·</span>
-                        <p className="font-medium text-card-foreground">
-                          {bestellung.objekt?.name || 'Objekt'}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>{bestellung.positionen?.length || 0} Artikel</span>
-                        {bestellung.lieferdatum && (
-                          <>
-                            <ArrowRight className="h-3 w-3" />
-                            <span>{format(new Date(bestellung.lieferdatum), 'dd.MM.yyyy', { locale: de })}</span>
-                          </>
-                        )}
-                        <span className="text-muted-foreground">·</span>
-                        {bestellung.rechnung ? (
-                          <span className={`inline-flex items-center gap-1 text-xs font-medium px-1.5 py-0.5 rounded ${
-                            bestellung.rechnung.status === 'bezahlt' 
-                              ? 'bg-status-delivered/20 text-status-delivered' 
-                              : 'bg-status-pending/20 text-status-pending'
-                          }`}>
-                            <Receipt className="h-3 w-3" />
-                            {bestellung.rechnung.status === 'bezahlt' ? 'Bezahlt' : 'Offen'}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground/60">Keine Rg.</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <StatusBadge status={bestellung.status} />
-                </div>
-              ))
-            )}
-          </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </div>
 
         {/* Recent Invoices */}
