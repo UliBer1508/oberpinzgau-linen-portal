@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { ShoppingCart, Filter, Search, Plus } from 'lucide-react';
+import { ShoppingCart, Search, Plus, Loader2 } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { mockBestellungen } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { BestellungStatus } from '@/types/database';
+import { BestellungStatus } from '@/integrations/supabase/client';
+import { useKunde, useBestellungen } from '@/hooks/useSupabaseData';
 
 const statusFilters: { label: string; value: BestellungStatus | 'alle' }[] = [
   { label: 'Alle', value: 'alle' },
@@ -23,16 +23,32 @@ export default function Bestellungen() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<BestellungStatus | 'alle'>('alle');
+  
+  const { data: kunde, isLoading: kundeLoading } = useKunde();
+  const { data: bestellungen = [], isLoading: bestellungenLoading } = useBestellungen(kunde?.id);
+  
+  const isLoading = kundeLoading || bestellungenLoading;
 
-  const filteredBestellungen = mockBestellungen.filter((bestellung) => {
-    const matchesSearch = bestellung.objekt_name.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredBestellungen = bestellungen.filter((bestellung) => {
+    const objektName = bestellung.objekt?.name || '';
+    const matchesSearch = objektName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'alle' || bestellung.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const calculateTotal = (positionen: typeof mockBestellungen[0]['positionen']) => {
-    return positionen.reduce((sum, pos) => sum + (pos.preis || 0), 0);
+  const calculateTotal = (positionen: typeof bestellungen[0]['positionen']) => {
+    return positionen?.reduce((sum, pos) => sum + (pos.preis || 0), 0) || 0;
   };
+
+  if (isLoading) {
+    return (
+      <MainLayout title="Bestellungen" subtitle="Verwalten Sie Ihre Wäschebestellungen">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout 
@@ -121,13 +137,13 @@ export default function Bestellungen() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <p className="font-medium text-card-foreground">{bestellung.objekt_name}</p>
+                    <p className="font-medium text-card-foreground">{bestellung.objekt?.name || '—'}</p>
                   </td>
                   <td className="px-6 py-4">
                     <StatusBadge status={bestellung.status} />
                   </td>
                   <td className="px-6 py-4 text-muted-foreground">
-                    {bestellung.positionen.length} Positionen
+                    {bestellung.positionen?.length || 0} Positionen
                   </td>
                   <td className="px-6 py-4 text-muted-foreground">
                     {bestellung.lieferdatum 

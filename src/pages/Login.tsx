@@ -26,9 +26,9 @@ export default function Login() {
       return;
     }
 
-    const success = await login(email, password);
+    const { error } = await login(email, password);
     
-    if (success) {
+    if (!error) {
       toast({
         title: 'Willkommen!',
         description: 'Sie wurden erfolgreich angemeldet.',
@@ -37,7 +37,7 @@ export default function Login() {
     } else {
       toast({
         title: 'Anmeldung fehlgeschlagen',
-        description: 'Bitte überprüfen Sie Ihre Zugangsdaten.',
+        description: error,
         variant: 'destructive',
       });
     }
@@ -143,8 +143,8 @@ export default function Login() {
 
           <div className="rounded-lg border border-border bg-muted/50 p-4">
             <p className="text-sm text-muted-foreground">
-              <strong>Entwicklungsmodus:</strong> Geben Sie eine beliebige E-Mail und 
-              ein Passwort ein, um sich anzumelden. Die Datenbankanbindung wird später konfiguriert.
+              <strong>Hinweis:</strong> Bitte verwenden Sie Ihre registrierten Zugangsdaten. 
+              Bei Problemen wenden Sie sich an den Support.
             </p>
           </div>
         </div>

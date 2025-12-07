@@ -1,32 +1,47 @@
-import { useState } from 'react';
-import { Package, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Package, Plus, Edit2, Trash2, Loader2 } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
-import { mockWaescheSets } from '@/data/mockData';
 import { useToast } from '@/hooks/use-toast';
+import { useKunde, useWaescheSets, useWaescheArtikel } from '@/hooks/useSupabaseData';
 
 export default function WaescheSets() {
   const { toast } = useToast();
-  const [sets] = useState(mockWaescheSets);
+  const { data: kunde, isLoading: kundeLoading } = useKunde();
+  const { data: waescheSets = [], isLoading: setsLoading } = useWaescheSets(kunde?.id);
+  const { data: artikel = [] } = useWaescheArtikel();
+  
+  const isLoading = kundeLoading || setsLoading;
 
   const handleEdit = (setId: string) => {
     toast({
       title: 'Bearbeitung',
-      description: 'Die Bearbeitungsfunktion wird nach Datenbankanbindung aktiviert.',
+      description: 'Die Bearbeitungsfunktion wird bald verfügbar sein.',
     });
   };
 
   const handleDelete = (setId: string) => {
     toast({
       title: 'Löschen',
-      description: 'Die Löschfunktion wird nach Datenbankanbindung aktiviert.',
+      description: 'Die Löschfunktion wird bald verfügbar sein.',
     });
   };
 
-  const calculateSetPrice = (artikel: typeof mockWaescheSets[0]['artikel']) => {
-    // This would calculate based on actual prices in production
-    return artikel.reduce((sum, a) => sum + (a.menge * 2), 0);
+  const calculateSetPrice = (setArtikel: typeof waescheSets[0]['artikel']) => {
+    return setArtikel.reduce((sum, a) => {
+      const preis = a.waesche_artikel?.preis_pro_stueck || 0;
+      return sum + (a.menge * preis);
+    }, 0);
   };
+
+  if (isLoading) {
+    return (
+      <MainLayout title="Wäschesets" subtitle="Verwalten Sie Ihre vordefinierten Wäschesets">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout 
@@ -40,7 +55,7 @@ export default function WaescheSets() {
       }
     >
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {sets.map((set, index) => (
+        {waescheSets.map((set, index) => (
           <div
             key={set.id}
             className="group rounded-xl border border-border bg-card shadow-card transition-all hover:shadow-elevated animate-slide-up"
@@ -77,13 +92,13 @@ export default function WaescheSets() {
               )}
 
               <div className="mt-4 space-y-2">
-                {set.artikel.slice(0, 4).map((artikel) => (
+                {set.artikel.slice(0, 4).map((setArtikel) => (
                   <div 
-                    key={artikel.artikel_id}
+                    key={setArtikel.id}
                     className="flex items-center justify-between text-sm"
                   >
-                    <span className="text-muted-foreground">{artikel.artikel_name}</span>
-                    <span className="font-medium text-card-foreground">×{artikel.menge}</span>
+                    <span className="text-muted-foreground">{setArtikel.waesche_artikel?.name}</span>
+                    <span className="font-medium text-card-foreground">×{setArtikel.menge}</span>
                   </div>
                 ))}
                 {set.artikel.length > 4 && (
@@ -112,7 +127,7 @@ export default function WaescheSets() {
           className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border p-6 text-center transition-colors hover:border-primary/50 hover:bg-muted/50 min-h-[280px]"
           onClick={() => toast({
             title: 'Neues Set',
-            description: 'Diese Funktion wird nach Datenbankanbindung aktiviert.',
+            description: 'Diese Funktion wird bald verfügbar sein.',
           })}
         >
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
