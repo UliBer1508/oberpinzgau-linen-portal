@@ -59,7 +59,7 @@ export function Sidebar() {
         {/* User section */}
         <div className="border-t border-sidebar-border p-4">
           <div className="mb-3 px-2">
-            <p className="text-sm font-medium">{user?.name}</p>
+            <p className="text-sm font-medium">{user?.user_metadata?.name || user?.email?.split('@')[0]}</p>
             <p className="text-xs text-sidebar-foreground/60">{user?.email}</p>
           </div>
           <button

@@ -1,19 +1,36 @@
-import { ShoppingCart, Package, Building2, Clock, CheckCircle, Truck } from 'lucide-react';
+import { ShoppingCart, Package, Building2, Clock, CheckCircle, Truck, Loader2 } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { StatCard } from '@/components/cards/StatCard';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
-import { mockBestellungen, mockObjekte, mockWaescheSets } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
+import { useKunde, useObjekte, useWaescheSets, useBestellungen } from '@/hooks/useSupabaseData';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   
-  const activeOrders = mockBestellungen.filter(b => b.status !== 'geliefert').length;
-  const pendingOrders = mockBestellungen.filter(b => b.status === 'ausstehend').length;
-  const recentOrders = mockBestellungen.slice(0, 5);
+  const { data: kunde, isLoading: kundeLoading } = useKunde();
+  const { data: objekte = [], isLoading: objekteLoading } = useObjekte(kunde?.id);
+  const { data: waescheSets = [], isLoading: setsLoading } = useWaescheSets(kunde?.id);
+  const { data: bestellungen = [], isLoading: bestellungenLoading } = useBestellungen(kunde?.id);
+  
+  const isLoading = kundeLoading || objekteLoading || setsLoading || bestellungenLoading;
+  
+  const activeOrders = bestellungen.filter(b => b.status !== 'geliefert').length;
+  const pendingOrders = bestellungen.filter(b => b.status === 'ausstehend').length;
+  const recentOrders = bestellungen.slice(0, 5);
+
+  if (isLoading) {
+    return (
+      <MainLayout title="Dashboard" subtitle="Übersicht über Ihre Bestellungen und Objekte">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout 
@@ -35,12 +52,12 @@ export default function Dashboard() {
         />
         <StatCard
           title="Objekte"
-          value={mockObjekte.length}
+          value={objekte.length}
           icon={<Building2 className="h-6 w-6" />}
         />
         <StatCard
           title="Wäschesets"
-          value={mockWaescheSets.length}
+          value={waescheSets.length}
           icon={<Package className="h-6 w-6" />}
         />
         <StatCard
@@ -63,35 +80,42 @@ export default function Dashboard() {
             </Button>
           </div>
           <div className="divide-y divide-border">
-            {recentOrders.map((bestellung) => (
-              <div
-                key={bestellung.id}
-                className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors cursor-pointer"
-                onClick={() => navigate(`/bestellungen/${bestellung.id}`)}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    {bestellung.status === 'geliefert' ? (
-                      <CheckCircle className="h-5 w-5 text-success" />
-                    ) : bestellung.status === 'bereit' ? (
-                      <Truck className="h-5 w-5 text-accent" />
-                    ) : (
-                      <Package className="h-5 w-5 text-primary" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium text-card-foreground">
-                      {bestellung.objekt_name}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {bestellung.positionen.length} Artikel · {' '}
-                      {format(new Date(bestellung.created_at), 'dd. MMM yyyy', { locale: de })}
-                    </p>
-                  </div>
-                </div>
-                <StatusBadge status={bestellung.status} />
+            {recentOrders.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <ShoppingCart className="h-12 w-12 text-muted-foreground/50" />
+                <p className="mt-4 text-muted-foreground">Noch keine Bestellungen</p>
               </div>
-            ))}
+            ) : (
+              recentOrders.map((bestellung) => (
+                <div
+                  key={bestellung.id}
+                  className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors cursor-pointer"
+                  onClick={() => navigate(`/bestellungen/${bestellung.id}`)}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                      {bestellung.status === 'geliefert' ? (
+                        <CheckCircle className="h-5 w-5 text-success" />
+                      ) : bestellung.status === 'bereit' ? (
+                        <Truck className="h-5 w-5 text-accent" />
+                      ) : (
+                        <Package className="h-5 w-5 text-primary" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium text-card-foreground">
+                        {bestellung.objekt?.name || 'Objekt'}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {bestellung.positionen?.length || 0} Artikel · {' '}
+                        {format(new Date(bestellung.created_at), 'dd. MMM yyyy', { locale: de })}
+                      </p>
+                    </div>
+                  </div>
+                  <StatusBadge status={bestellung.status} />
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -136,16 +160,19 @@ export default function Dashboard() {
             </h2>
             <div className="space-y-3">
               {[
-                { status: 'ausstehend', count: mockBestellungen.filter(b => b.status === 'ausstehend').length },
-                { status: 'in_bearbeitung', count: mockBestellungen.filter(b => b.status === 'in_bearbeitung').length },
-                { status: 'in_waescherei', count: mockBestellungen.filter(b => b.status === 'in_waescherei').length },
-                { status: 'bereit', count: mockBestellungen.filter(b => b.status === 'bereit').length },
+                { status: 'ausstehend', count: bestellungen.filter(b => b.status === 'ausstehend').length },
+                { status: 'in_bearbeitung', count: bestellungen.filter(b => b.status === 'in_bearbeitung').length },
+                { status: 'in_waescherei', count: bestellungen.filter(b => b.status === 'in_waescherei').length },
+                { status: 'bereit', count: bestellungen.filter(b => b.status === 'bereit').length },
               ].filter(s => s.count > 0).map(({ status, count }) => (
                 <div key={status} className="flex items-center justify-between">
                   <StatusBadge status={status as any} />
                   <span className="text-sm font-medium text-muted-foreground">{count}</span>
                 </div>
               ))}
+              {bestellungen.length === 0 && (
+                <p className="text-sm text-muted-foreground">Keine aktiven Bestellungen</p>
+              )}
             </div>
           </div>
         </div>

@@ -1,9 +1,34 @@
-import { ClipboardList, Tag } from 'lucide-react';
+import { ClipboardList, Tag, Loader2 } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { mockArtikel } from '@/data/mockData';
+import { useWaescheArtikel } from '@/hooks/useSupabaseData';
 
 export default function Artikel() {
-  const kategorien = [...new Set(mockArtikel.map(a => a.kategorie))];
+  const { data: artikel = [], isLoading } = useWaescheArtikel();
+  
+  const kategorien = [...new Set(artikel.map(a => a.kategorie))];
+
+  if (isLoading) {
+    return (
+      <MainLayout title="Artikelkatalog" subtitle="Übersicht aller verfügbaren Wäscheartikel">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (artikel.length === 0) {
+    return (
+      <MainLayout title="Artikelkatalog" subtitle="Übersicht aller verfügbaren Wäscheartikel">
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <ClipboardList className="h-12 w-12 text-muted-foreground/50" />
+          <p className="mt-4 text-lg font-medium text-muted-foreground">
+            Keine Artikel gefunden
+          </p>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout 
@@ -21,28 +46,28 @@ export default function Artikel() {
             </div>
             
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {mockArtikel.filter(a => a.kategorie === kategorie).map((artikel) => (
+              {artikel.filter(a => a.kategorie === kategorie).map((art) => (
                 <div
-                  key={artikel.id}
+                  key={art.id}
                   className="group rounded-xl border border-border bg-card p-5 shadow-card transition-all hover:shadow-elevated hover:border-primary/30"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-secondary-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                       <ClipboardList className="h-5 w-5" />
                     </div>
-                    {artikel.preis_pro_stueck && (
+                    {art.preis_pro_stueck && (
                       <span className="text-sm font-semibold text-primary">
-                        €{artikel.preis_pro_stueck.toFixed(2)}
+                        €{art.preis_pro_stueck.toFixed(2)}
                       </span>
                     )}
                   </div>
                   
                   <h3 className="mt-3 font-medium text-card-foreground">
-                    {artikel.name}
+                    {art.name}
                   </h3>
-                  {artikel.beschreibung && (
+                  {art.beschreibung && (
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {artikel.beschreibung}
+                      {art.beschreibung}
                     </p>
                   )}
                 </div>
