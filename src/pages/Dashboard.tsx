@@ -164,57 +164,49 @@ export default function Dashboard() {
               Alle anzeigen
             </Button>
           </div>
-          <div className="divide-y divide-border">
-            {recentRechnungen.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <FileText className="h-12 w-12 text-muted-foreground/50" />
-                <p className="mt-4 text-muted-foreground">Noch keine Rechnungen</p>
-              </div>
-            ) : (
-              recentRechnungen.map((rechnung) => (
-                <div
-                  key={rechnung.id}
-                  className={`flex items-center justify-between p-4 transition-colors cursor-pointer ${getRechnungRowClassName(rechnung.status)}`}
-                  onClick={() => navigate(`/rechnungen/${rechnung.id}`)}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
-                      rechnung.status === 'bezahlt' 
-                        ? 'bg-status-delivered/20' 
-                        : rechnung.status === 'storniert'
-                        ? 'bg-destructive/20'
-                        : 'bg-status-pending/20'
-                    }`}>
-                      <FileText className={`h-5 w-5 ${
-                        rechnung.status === 'bezahlt' 
-                          ? 'text-status-delivered' 
-                          : rechnung.status === 'storniert'
-                          ? 'text-destructive'
-                          : 'text-status-pending'
-                      }`} />
-                    </div>
-                    <div>
-                      <p className="font-medium text-card-foreground">
-                        {rechnung.rechnungsnummer}
-                      </p>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>€{(rechnung.bruttobetrag || 0).toFixed(2)}</span>
-                        <span>·</span>
-                        <span>{format(new Date(rechnung.rechnungsdatum), 'dd.MM.yyyy', { locale: de })}</span>
-                        {rechnung.bestellung && (
-                          <>
-                            <span>·</span>
-                            <span className="font-mono text-xs">#{rechnung.bestellung.bestellnummer}</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <StatusBadge status={rechnung.status} />
-                </div>
-              ))
-            )}
-          </div>
+          {recentRechnungen.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <FileText className="h-12 w-12 text-muted-foreground/50" />
+              <p className="mt-4 text-muted-foreground">Noch keine Rechnungen</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Rechnung</TableHead>
+                  <TableHead>Bestellung</TableHead>
+                  <TableHead>Datum</TableHead>
+                  <TableHead className="text-right">Betrag</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recentRechnungen.map((rechnung) => (
+                  <TableRow 
+                    key={rechnung.id}
+                    className={`cursor-pointer ${getRechnungRowClassName(rechnung.status)}`}
+                    onClick={() => navigate(`/rechnungen/${rechnung.id}`)}
+                  >
+                    <TableCell className="font-mono text-sm font-medium text-primary">
+                      {rechnung.rechnungsnummer}
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">
+                      {rechnung.bestellung?.bestellnummer ? `#${rechnung.bestellung.bestellnummer}` : '—'}
+                    </TableCell>
+                    <TableCell>
+                      {format(new Date(rechnung.rechnungsdatum), 'dd.MM.yyyy', { locale: de })}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      €{(rechnung.bruttobetrag || 0).toFixed(2)}
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={rechnung.status} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </div>
 
         {/* Quick Actions */}
