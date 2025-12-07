@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+
+// ⚠️ ENTWICKLUNGSMODUS - Auf false setzen um Auth zu aktivieren
+const DEV_MODE = true;
 
 interface AuthContextType {
   user: User | null;
@@ -13,13 +15,55 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Mock-User für Entwicklung
+const mockUser = {
+  id: 'dev-user-123',
+  email: 'dev@example.com',
+  app_metadata: {},
+  user_metadata: { name: 'Dev User' },
+  aud: 'authenticated',
+  created_at: new Date().toISOString(),
+} as User;
+
+const mockSession = {
+  access_token: 'dev-token',
+  refresh_token: 'dev-refresh',
+  user: mockUser,
+} as Session;
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  // DEV_MODE: Authentifizierung umgehen
+  if (DEV_MODE) {
+    return (
+      <AuthContext.Provider
+        value={{
+          user: mockUser,
+          session: mockSession,
+          isAuthenticated: true,
+          isLoading: false,
+          login: async () => ({ error: null }),
+          logout: async () => {},
+        }}
+      >
+        {children}
+      </AuthContext.Provider>
+    );
+  }
+
+  // Normaler Auth-Code wird hier nicht erreicht wenn DEV_MODE = true
+  return <AuthProviderReal>{children}</AuthProviderReal>;
+}
+
+// Originaler Auth Provider für Produktion
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+
+function AuthProviderReal({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -28,7 +72,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
