@@ -130,6 +130,12 @@ export default function Dashboard() {
                         {bestellung.positionen?.length || 0} Artikel · {' '}
                         {format(new Date(bestellung.created_at), 'dd. MMM yyyy', { locale: de })}
                       </p>
+                    </div>
+                  </div>
+                  <StatusBadge status={bestellung.status} />
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -183,12 +189,6 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <StatusBadge status={rechnung.status} />
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-                  <StatusBadge status={bestellung.status} />
                 </div>
               ))
             )}
