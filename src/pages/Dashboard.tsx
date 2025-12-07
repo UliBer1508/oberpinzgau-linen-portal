@@ -191,8 +191,8 @@ export default function Dashboard() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Rechnung</TableHead>
                   <TableHead>Bestellung</TableHead>
+                  <TableHead>Rechnung</TableHead>
                   <TableHead>Datum</TableHead>
                   <TableHead className="text-right">Betrag</TableHead>
                   <TableHead>Status</TableHead>
@@ -206,10 +206,10 @@ export default function Dashboard() {
                     onClick={() => navigate(`/rechnungen/${rechnung.id}`)}
                   >
                     <TableCell className="font-mono text-sm font-medium text-primary">
-                      {rechnung.rechnungsnummer}
+                      {rechnung.bestellung?.bestellnummer ? `#${rechnung.bestellung.bestellnummer}` : '—'}
                     </TableCell>
                     <TableCell className="font-mono text-sm">
-                      {rechnung.bestellung?.bestellnummer ? `#${rechnung.bestellung.bestellnummer}` : '—'}
+                      {rechnung.rechnungsnummer}
                     </TableCell>
                     <TableCell>
                       {format(new Date(rechnung.rechnungsdatum), 'dd.MM.yyyy', { locale: de })}
