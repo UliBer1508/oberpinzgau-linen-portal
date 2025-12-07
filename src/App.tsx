@@ -13,6 +13,8 @@ import Objekte from "./pages/Objekte";
 import Bestellungen from "./pages/Bestellungen";
 import BestellungDetail from "./pages/BestellungDetail";
 import NeueBestellung from "./pages/NeueBestellung";
+import Rechnungen from "./pages/Rechnungen";
+import RechnungDetail from "./pages/RechnungDetail";
 import WaescheSets from "./pages/WaescheSets";
 import Artikel from "./pages/Artikel";
 import NotFound from "./pages/NotFound";
@@ -48,6 +50,12 @@ const App = () => (
             } />
             <Route path="/bestellungen/:id" element={
               <ProtectedRoute><BestellungDetail /></ProtectedRoute>
+            } />
+            <Route path="/rechnungen" element={
+              <ProtectedRoute><Rechnungen /></ProtectedRoute>
+            } />
+            <Route path="/rechnungen/:id" element={
+              <ProtectedRoute><RechnungDetail /></ProtectedRoute>
             } />
             <Route path="/waeschesets" element={
               <ProtectedRoute><WaescheSets /></ProtectedRoute>

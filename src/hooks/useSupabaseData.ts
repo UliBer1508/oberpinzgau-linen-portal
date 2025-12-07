@@ -6,7 +6,9 @@ import {
   WaescheArtikel, 
   WaescheSetMitArtikel, 
   BestellungMitDetails,
-  BestellungStatus 
+  BestellungStatus,
+  Rechnung,
+  RechnungMitPositionen
 } from '@/integrations/supabase/client';
 import { useKundeContext } from '@/contexts/KundeContext';
 
@@ -276,5 +278,48 @@ export function useCreateWaescheSet() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['waesche_sets'] });
     },
+  });
+}
+
+// Fetch all invoices for customer
+export function useRechnungen(kundeId: string | undefined) {
+  return useQuery({
+    queryKey: ['rechnungen', kundeId],
+    queryFn: async () => {
+      if (!kundeId) return [];
+      
+      const { data, error } = await supabase
+        .from('rechnungen')
+        .select('*')
+        .eq('kunde_id', kundeId)
+        .order('rechnungsdatum', { ascending: false });
+      
+      if (error) throw error;
+      return data as Rechnung[];
+    },
+    enabled: !!kundeId,
+  });
+}
+
+// Fetch single invoice with positions
+export function useRechnung(rechnungId: string | undefined) {
+  return useQuery({
+    queryKey: ['rechnung', rechnungId],
+    queryFn: async () => {
+      if (!rechnungId) return null;
+      
+      const { data, error } = await supabase
+        .from('rechnungen')
+        .select(`
+          *,
+          positionen:rechnungspositionen(*)
+        `)
+        .eq('id', rechnungId)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data as RechnungMitPositionen | null;
+    },
+    enabled: !!rechnungId,
   });
 }
