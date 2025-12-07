@@ -8,24 +8,43 @@ import {
   BestellungMitDetails,
   BestellungStatus 
 } from '@/integrations/supabase/client';
+import { useKundeContext } from '@/contexts/KundeContext';
 
-// Fetch current customer based on auth user
-export function useKunde() {
+// Alle Kunden für die Auswahl (Entwicklung)
+export function useAlleKunden() {
   return useQuery({
-    queryKey: ['kunde'],
+    queryKey: ['alle_kunden'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
+      const { data, error } = await supabase
+        .from('kunden')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      return data as Kunde[];
+    },
+  });
+}
+
+// Ausgewählter Kunde
+export function useKunde() {
+  const { selectedKundeId } = useKundeContext();
+  
+  return useQuery({
+    queryKey: ['kunde', selectedKundeId],
+    queryFn: async () => {
+      if (!selectedKundeId) return null;
       
       const { data, error } = await supabase
         .from('kunden')
         .select('*')
-        .eq('email', user.email)
+        .eq('id', selectedKundeId)
         .maybeSingle();
       
       if (error) throw error;
       return data as Kunde | null;
     },
+    enabled: !!selectedKundeId,
   });
 }
 
@@ -148,23 +167,25 @@ export function useBestellung(bestellungId: string | undefined) {
 // Create new order
 export function useCreateBestellung() {
   const queryClient = useQueryClient();
+  const { selectedKundeId } = useKundeContext();
   
   return useMutation({
     mutationFn: async (params: {
-      kundeId: string;
-      objektId: string;
-      lieferdatum?: string;
-      notizen?: string;
-      positionen: { artikelId: string; menge: number; preis?: number }[];
+      objekt_id: string;
+      gewuenschtes_lieferdatum?: string | null;
+      bemerkungen?: string | null;
+      positionen: { artikel_id: string; menge: number; einzelpreis: number }[];
     }) => {
+      if (!selectedKundeId) throw new Error('Kein Kunde ausgewählt');
+      
       // Create order
       const { data: bestellung, error: bestellungError } = await supabase
         .from('bestellungen')
         .insert({
-          kunde_id: params.kundeId,
-          objekt_id: params.objektId,
-          lieferdatum: params.lieferdatum,
-          notizen: params.notizen,
+          kunde_id: selectedKundeId,
+          objekt_id: params.objekt_id,
+          gewuenschtes_lieferdatum: params.gewuenschtes_lieferdatum,
+          bemerkungen: params.bemerkungen,
           status: 'ausstehend' as BestellungStatus,
         })
         .select()
@@ -175,9 +196,9 @@ export function useCreateBestellung() {
       // Create order positions
       const positionen = params.positionen.map(p => ({
         bestellung_id: bestellung.id,
-        artikel_id: p.artikelId,
+        artikel_id: p.artikel_id,
         menge: p.menge,
-        preis: p.preis,
+        einzelpreis: p.einzelpreis,
       }));
       
       const { error: positionenError } = await supabase
