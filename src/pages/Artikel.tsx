@@ -52,9 +52,19 @@ export default function Artikel() {
                   className="group rounded-xl border border-border bg-card p-5 shadow-card transition-all hover:shadow-elevated hover:border-primary/30"
                 >
                   <div className="flex items-start justify-between">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-secondary-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                      <ClipboardList className="h-5 w-5" />
-                    </div>
+                    {art.bild_url ? (
+                      <div className="h-16 w-16 overflow-hidden rounded-lg bg-secondary">
+                        <img 
+                          src={art.bild_url} 
+                          alt={art.name}
+                          className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-secondary-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                        <ClipboardList className="h-5 w-5" />
+                      </div>
+                    )}
                     {art.preis != null && (
                       <span className="text-sm font-semibold text-primary">
                         €{art.preis.toFixed(2)}
