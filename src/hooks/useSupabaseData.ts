@@ -74,7 +74,7 @@ export function useWaescheArtikel() {
     queryKey: ['waesche_artikel'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('waesche_artikel')
+        .from('waescheartikel')
         .select('*')
         .order('kategorie, name');
       
@@ -92,12 +92,12 @@ export function useWaescheSets(kundeId: string | undefined) {
       if (!kundeId) return [];
       
       const { data, error } = await supabase
-        .from('waesche_sets')
+        .from('waeschesets')
         .select(`
           *,
-          artikel:waesche_set_artikel(
+          artikel:waescheset_artikel(
             *,
-            waesche_artikel(*)
+            waescheartikel(*)
           )
         `)
         .eq('kunde_id', kundeId)
@@ -118,13 +118,13 @@ export function useBestellungen(kundeId: string | undefined) {
       if (!kundeId) return [];
       
       const { data, error } = await supabase
-        .from('bestellungen')
+        .from('waeschebestellungen')
         .select(`
           *,
           objekt:objekte(*),
-          positionen:bestellung_positionen(
+          positionen:bestellpositionen(
             *,
-            waesche_artikel(*)
+            waescheartikel(*)
           )
         `)
         .eq('kunde_id', kundeId)
@@ -145,13 +145,13 @@ export function useBestellung(bestellungId: string | undefined) {
       if (!bestellungId) return null;
       
       const { data, error } = await supabase
-        .from('bestellungen')
+        .from('waeschebestellungen')
         .select(`
           *,
           objekt:objekte(*),
-          positionen:bestellung_positionen(
+          positionen:bestellpositionen(
             *,
-            waesche_artikel(*)
+            waescheartikel(*)
           )
         `)
         .eq('id', bestellungId)
@@ -180,7 +180,7 @@ export function useCreateBestellung() {
       
       // Create order
       const { data: bestellung, error: bestellungError } = await supabase
-        .from('bestellungen')
+        .from('waeschebestellungen')
         .insert({
           kunde_id: selectedKundeId,
           objekt_id: params.objekt_id,
@@ -202,7 +202,7 @@ export function useCreateBestellung() {
       }));
       
       const { error: positionenError } = await supabase
-        .from('bestellung_positionen')
+        .from('bestellpositionen')
         .insert(positionen);
       
       if (positionenError) throw positionenError;
@@ -228,7 +228,7 @@ export function useCreateWaescheSet() {
     }) => {
       // Create set
       const { data: set, error: setError } = await supabase
-        .from('waesche_sets')
+        .from('waeschesets')
         .insert({
           kunde_id: params.kundeId,
           name: params.name,
@@ -247,7 +247,7 @@ export function useCreateWaescheSet() {
       }));
       
       const { error: artikelError } = await supabase
-        .from('waesche_set_artikel')
+        .from('waescheset_artikel')
         .insert(artikel);
       
       if (artikelError) throw artikelError;

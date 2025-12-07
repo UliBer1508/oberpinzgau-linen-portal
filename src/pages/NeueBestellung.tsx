@@ -57,9 +57,9 @@ export default function NeueBestellung() {
     if (selectedSet?.artikel) {
       const newItems: OrderItem[] = selectedSet.artikel.map(a => ({
         artikel_id: a.artikel_id,
-        artikel_name: a.waesche_artikel?.name || 'Unbekannt',
+        artikel_name: a.waescheartikel?.name || 'Unbekannt',
         menge: a.menge,
-        preis: a.waesche_artikel?.preis_pro_stueck || 0,
+        preis: a.waescheartikel?.preis_pro_stueck || 0,
       }));
       setOrderItems(newItems);
     }
