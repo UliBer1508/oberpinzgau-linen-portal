@@ -1,4 +1,4 @@
-import { ShoppingCart, Package, Building2, Clock, CheckCircle, Truck, Loader2 } from 'lucide-react';
+import { ShoppingCart, Package, Building2, Clock, CheckCircle, Truck, Loader2, FileText } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { StatCard } from '@/components/cards/StatCard';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { useKunde, useObjekte, useWaescheSets, useBestellungen } from '@/hooks/useSupabaseData';
+import { useKunde, useObjekte, useWaescheSets, useBestellungen, useRechnungen } from '@/hooks/useSupabaseData';
 import { BestellungStatus } from '@/integrations/supabase/client';
 
 export default function Dashboard() {
@@ -16,12 +16,14 @@ export default function Dashboard() {
   const { data: objekte = [], isLoading: objekteLoading } = useObjekte(kunde?.id);
   const { data: waescheSets = [], isLoading: setsLoading } = useWaescheSets(kunde?.id);
   const { data: bestellungen = [], isLoading: bestellungenLoading } = useBestellungen(kunde?.id);
+  const { data: rechnungen = [], isLoading: rechnungenLoading } = useRechnungen(kunde?.id);
   
-  const isLoading = kundeLoading || objekteLoading || setsLoading || bestellungenLoading;
+  const isLoading = kundeLoading || objekteLoading || setsLoading || bestellungenLoading || rechnungenLoading;
   
   // Use correct status values from database
   const activeOrders = bestellungen.filter(b => b.status !== 'abgeschlossen' && b.status !== 'storniert').length;
-  const pendingOrders = bestellungen.filter(b => b.status === 'neu').length;
+  const offeneRechnungen = rechnungen.filter(r => r.status === 'offen');
+  const offenerBetrag = offeneRechnungen.reduce((sum, r) => sum + (r.bruttobetrag || 0), 0);
   const recentOrders = bestellungen.slice(0, 5);
 
   if (isLoading) {
@@ -63,9 +65,11 @@ export default function Dashboard() {
           icon={<Package className="h-6 w-6" />}
         />
         <StatCard
-          title="Neu"
-          value={pendingOrders}
-          icon={<ShoppingCart className="h-6 w-6" />}
+          title="Offene Rechnungen"
+          value={offeneRechnungen.length}
+          subtitle={`€${offenerBetrag.toFixed(2)} offen`}
+          icon={<FileText className="h-6 w-6" />}
+          onClick={() => navigate('/rechnungen')}
         />
       </div>
 
