@@ -1,101 +1,157 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Building2, Package, Plus, Minus, ShoppingCart } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { mockObjekte, mockArtikel, mockWaescheSets } from '@/data/mockData';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
+import { de } from 'date-fns/locale';
+import { CalendarIcon, Plus, Minus, Loader2, Package, ShoppingCart, ArrowLeft } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useKunde, useObjekte, useWaescheSets, useWaescheArtikel, useCreateBestellung } from '@/hooks/useSupabaseData';
 
 interface OrderItem {
   artikel_id: string;
   artikel_name: string;
   menge: number;
+  preis: number;
 }
 
 export default function NeueBestellung() {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  const [selectedObjekt, setSelectedObjekt] = useState('');
-  const [selectedSet, setSelectedSet] = useState('');
+  const { data: kunde, isLoading: kundeLoading } = useKunde();
+  const { data: objekte, isLoading: objekteLoading } = useObjekte(kunde?.id);
+  const { data: waescheSets, isLoading: setsLoading } = useWaescheSets(kunde?.id);
+  const { data: artikel, isLoading: artikelLoading } = useWaescheArtikel();
+  const createBestellung = useCreateBestellung();
+  
+  const [selectedObjektId, setSelectedObjektId] = useState<string>('');
+  const [selectedSetId, setSelectedSetId] = useState<string>('');
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
-  const [notizen, setNotizen] = useState('');
-  const [lieferdatum, setLieferdatum] = useState('');
+  const [bemerkungen, setBemerkungen] = useState('');
+  const [lieferdatum, setLieferdatum] = useState<Date>();
 
+  const isLoading = kundeLoading || objekteLoading || setsLoading || artikelLoading;
+
+  // Artikel nach Kategorie gruppieren
+  const artikelByCategory = useMemo(() => {
+    if (!artikel) return {};
+    return artikel.reduce((acc, art) => {
+      const category = art.kategorie || 'Sonstige';
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(art);
+      return acc;
+    }, {} as Record<string, typeof artikel>);
+  }, [artikel]);
+
+  // Set auswählen und Artikel hinzufügen
   const handleSetSelect = (setId: string) => {
-    setSelectedSet(setId);
-    const waescheSet = mockWaescheSets.find(s => s.id === setId);
-    if (waescheSet) {
-      setOrderItems(waescheSet.artikel.map(a => ({
+    setSelectedSetId(setId);
+    const selectedSet = waescheSets?.find(s => s.id === setId);
+    if (selectedSet?.artikel) {
+      const newItems: OrderItem[] = selectedSet.artikel.map(a => ({
         artikel_id: a.artikel_id,
-        artikel_name: a.artikel_name,
+        artikel_name: a.waesche_artikel?.name || 'Unbekannt',
         menge: a.menge,
-      })));
+        preis: a.waesche_artikel?.preis_pro_stueck || 0,
+      }));
+      setOrderItems(newItems);
     }
   };
 
-  const handleAddArtikel = (artikel: typeof mockArtikel[0]) => {
-    const existing = orderItems.find(item => item.artikel_id === artikel.id);
-    if (existing) {
-      setOrderItems(orderItems.map(item =>
-        item.artikel_id === artikel.id
-          ? { ...item, menge: item.menge + 1 }
-          : item
-      ));
-    } else {
-      setOrderItems([...orderItems, {
-        artikel_id: artikel.id,
-        artikel_name: artikel.name,
-        menge: 1,
-      }]);
-    }
-  };
-
-  const handleQuantityChange = (artikelId: string, delta: number) => {
-    setOrderItems(orderItems.map(item => {
-      if (item.artikel_id === artikelId) {
-        const newMenge = Math.max(0, item.menge + delta);
-        return newMenge === 0 ? null : { ...item, menge: newMenge };
+  // Artikel hinzufügen
+  const handleAddArtikel = (art: { id: string; name: string; preis_pro_stueck: number | null }) => {
+    setOrderItems(prev => {
+      const existing = prev.find(item => item.artikel_id === art.id);
+      if (existing) {
+        return prev.map(item =>
+          item.artikel_id === art.id
+            ? { ...item, menge: item.menge + 1 }
+            : item
+        );
       }
-      return item;
-    }).filter(Boolean) as OrderItem[]);
-  };
-
-  const handleSubmit = () => {
-    if (!selectedObjekt) {
-      toast({
-        title: 'Fehler',
-        description: 'Bitte wählen Sie ein Objekt aus.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (orderItems.length === 0) {
-      toast({
-        title: 'Fehler',
-        description: 'Bitte fügen Sie mindestens einen Artikel hinzu.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    // Mock submission
-    toast({
-      title: 'Bestellung erstellt',
-      description: 'Ihre Bestellung wurde erfolgreich aufgegeben. (Demo-Modus)',
+      return [...prev, { artikel_id: art.id, artikel_name: art.name, menge: 1, preis: art.preis_pro_stueck || 0 }];
     });
-    navigate('/bestellungen');
   };
 
-  const kategorien = [...new Set(mockArtikel.map(a => a.kategorie))];
+  // Menge ändern
+  const handleQuantityChange = (artikelId: string, delta: number) => {
+    setOrderItems(prev =>
+      prev
+        .map(item =>
+          item.artikel_id === artikelId
+            ? { ...item, menge: Math.max(0, item.menge + delta) }
+            : item
+        )
+        .filter(item => item.menge > 0)
+    );
+  };
+
+  // Gesamtpreis berechnen
+  const totalPrice = orderItems.reduce((sum, item) => sum + item.preis * item.menge, 0);
+
+  // Bestellung absenden
+  const handleSubmit = async () => {
+    if (!selectedObjektId) {
+      toast({ title: 'Fehler', description: 'Bitte wählen Sie ein Objekt aus.', variant: 'destructive' });
+      return;
+    }
+    if (orderItems.length === 0) {
+      toast({ title: 'Fehler', description: 'Bitte fügen Sie mindestens einen Artikel hinzu.', variant: 'destructive' });
+      return;
+    }
+
+    try {
+      await createBestellung.mutateAsync({
+        objekt_id: selectedObjektId,
+        bemerkungen: bemerkungen || null,
+        gewuenschtes_lieferdatum: lieferdatum ? format(lieferdatum, 'yyyy-MM-dd') : null,
+        positionen: orderItems.map(item => ({
+          artikel_id: item.artikel_id,
+          menge: item.menge,
+          einzelpreis: item.preis,
+        })),
+      });
+
+      toast({ title: 'Erfolg', description: 'Bestellung wurde erfolgreich erstellt.' });
+      navigate('/bestellungen');
+    } catch (error) {
+      toast({ title: 'Fehler', description: 'Bestellung konnte nicht erstellt werden.', variant: 'destructive' });
+    }
+  };
+
+  if (!kunde) {
+    return (
+      <MainLayout title="Neue Bestellung">
+        <div className="flex h-64 items-center justify-center">
+          <div className="text-center text-muted-foreground">
+            <Package className="mx-auto h-12 w-12 mb-4 opacity-50" />
+            <p>Bitte wählen Sie zuerst einen Kunden aus.</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <MainLayout title="Neue Bestellung">
+        <div className="flex h-64 items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout 
-      title="Neue Bestellung"
+      title="Neue Bestellung" 
       subtitle="Erstellen Sie eine neue Wäschebestellung"
       actions={
         <Button variant="outline" onClick={() => navigate('/bestellungen')}>
@@ -105,187 +161,201 @@ export default function NeueBestellung() {
       }
     >
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left: Order Form */}
+        {/* Linke Spalte: Formular */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Object Selection */}
-          <div className="rounded-xl border border-border bg-card p-6 shadow-card">
-            <h2 className="text-lg font-semibold text-card-foreground mb-4 flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-primary" />
-              Objekt auswählen
-            </h2>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {mockObjekte.map((objekt) => (
-                <button
-                  key={objekt.id}
-                  onClick={() => setSelectedObjekt(objekt.id)}
-                  className={`
-                    flex items-center gap-3 rounded-lg border p-4 text-left transition-all
-                    ${selectedObjekt === objekt.id 
-                      ? 'border-primary bg-primary/5 ring-2 ring-primary/20' 
-                      : 'border-border hover:border-primary/50 hover:bg-muted/50'
-                    }
-                  `}
-                >
-                  <Building2 className={`h-5 w-5 ${selectedObjekt === objekt.id ? 'text-primary' : 'text-muted-foreground'}`} />
-                  <div>
-                    <p className="font-medium text-card-foreground">{objekt.name}</p>
-                    <p className="text-sm text-muted-foreground">{objekt.anzahl_zimmer} Zimmer</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* Objekt auswählen */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">1. Objekt auswählen</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Select value={selectedObjektId} onValueChange={setSelectedObjektId}>
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Objekt wählen..." />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border z-50">
+                  {objekte?.map((objekt) => (
+                    <SelectItem key={objekt.id} value={objekt.id}>
+                      {objekt.name} - {objekt.adresse}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
 
-          {/* Quick Set Selection */}
-          <div className="rounded-xl border border-border bg-card p-6 shadow-card">
-            <h2 className="text-lg font-semibold text-card-foreground mb-4 flex items-center gap-2">
-              <Package className="h-5 w-5 text-primary" />
-              Schnellauswahl: Wäscheset
-            </h2>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {mockWaescheSets.map((set) => (
-                <button
-                  key={set.id}
-                  onClick={() => handleSetSelect(set.id)}
-                  className={`
-                    rounded-lg border p-4 text-left transition-all
-                    ${selectedSet === set.id 
-                      ? 'border-accent bg-accent/5 ring-2 ring-accent/20' 
-                      : 'border-border hover:border-accent/50 hover:bg-muted/50'
-                    }
-                  `}
-                >
-                  <p className="font-medium text-card-foreground">{set.name}</p>
-                  <p className="text-sm text-muted-foreground">{set.artikel.length} Artikel</p>
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* Wäscheset auswählen (optional) */}
+          {waescheSets && waescheSets.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">2. Schnellauswahl: Wäscheset</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Select value={selectedSetId} onValueChange={handleSetSelect}>
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder="Set auswählen (optional)..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border-border z-50">
+                    {waescheSets.map((set) => (
+                      <SelectItem key={set.id} value={set.id}>
+                        {set.name} ({set.artikel?.length || 0} Artikel)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
+          )}
 
-          {/* Article Selection */}
-          <div className="rounded-xl border border-border bg-card p-6 shadow-card">
-            <h2 className="text-lg font-semibold text-card-foreground mb-4">
-              Artikel hinzufügen
-            </h2>
-            {kategorien.map((kategorie) => (
-              <div key={kategorie} className="mb-6 last:mb-0">
-                <h3 className="text-sm font-medium text-muted-foreground mb-3">{kategorie}</h3>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {mockArtikel.filter(a => a.kategorie === kategorie).map((artikel) => {
-                    const inOrder = orderItems.find(i => i.artikel_id === artikel.id);
-                    return (
+          {/* Artikel auswählen */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">3. Artikel hinzufügen</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {Object.entries(artikelByCategory).map(([category, items]) => (
+                <div key={category}>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-2">{category}</h4>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {items.map((art) => (
                       <button
-                        key={artikel.id}
-                        onClick={() => handleAddArtikel(artikel)}
-                        className={`
-                          flex items-center justify-between rounded-lg border p-3 text-left transition-all
-                          ${inOrder 
-                            ? 'border-primary/50 bg-primary/5' 
-                            : 'border-border hover:border-primary/30 hover:bg-muted/50'
-                          }
-                        `}
+                        key={art.id}
+                        onClick={() => handleAddArtikel(art)}
+                        className="flex items-center justify-between rounded-lg border border-border bg-card p-3 text-left transition-colors hover:bg-accent"
                       >
-                        <span className="text-sm font-medium text-card-foreground">{artikel.name}</span>
-                        <div className="flex items-center gap-2">
-                          {artikel.preis_pro_stueck && (
-                            <span className="text-xs text-muted-foreground">
-                              €{artikel.preis_pro_stueck.toFixed(2)}
-                            </span>
-                          )}
-                          <Plus className="h-4 w-4 text-primary" />
+                        <div>
+                          <p className="font-medium text-sm">{art.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {(art.preis_pro_stueck || 0).toFixed(2)} €
+                          </p>
                         </div>
+                        <Plus className="h-4 w-4 text-primary" />
                       </button>
-                    );
-                  })}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </CardContent>
+          </Card>
 
-          {/* Additional Info */}
-          <div className="rounded-xl border border-border bg-card p-6 shadow-card">
-            <h2 className="text-lg font-semibold text-card-foreground mb-4">
-              Zusätzliche Informationen
-            </h2>
-            <div className="space-y-4">
+          {/* Zusätzliche Informationen */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">4. Zusätzliche Informationen</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="lieferdatum">Gewünschtes Lieferdatum</Label>
-                <Input
-                  id="lieferdatum"
-                  type="date"
-                  value={lieferdatum}
-                  onChange={(e) => setLieferdatum(e.target.value)}
-                  className="mt-1"
-                />
+                <label className="text-sm font-medium mb-2 block">Gewünschtes Lieferdatum</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        'w-full justify-start text-left font-normal',
+                        !lieferdatum && 'text-muted-foreground'
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {lieferdatum ? format(lieferdatum, 'PPP', { locale: de }) : 'Datum auswählen'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 bg-popover border-border z-50" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={lieferdatum}
+                      onSelect={setLieferdatum}
+                      initialFocus
+                      locale={de}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
+              
               <div>
-                <Label htmlFor="notizen">Notizen</Label>
+                <label className="text-sm font-medium mb-2 block">Bemerkungen</label>
                 <Textarea
-                  id="notizen"
-                  placeholder="Besondere Anweisungen oder Hinweise..."
-                  value={notizen}
-                  onChange={(e) => setNotizen(e.target.value)}
-                  className="mt-1"
-                  rows={3}
+                  placeholder="Besondere Hinweise oder Wünsche..."
+                  value={bemerkungen}
+                  onChange={(e) => setBemerkungen(e.target.value)}
+                  className="bg-background"
                 />
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Right: Order Summary */}
-        <div>
-          <div className="sticky top-24 rounded-xl border border-border bg-card p-6 shadow-card">
-            <h2 className="text-lg font-semibold text-card-foreground mb-4 flex items-center gap-2">
-              <ShoppingCart className="h-5 w-5 text-primary" />
-              Bestellübersicht
-            </h2>
-
-            {orderItems.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                Noch keine Artikel ausgewählt
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {orderItems.map((item) => (
-                  <div key={item.artikel_id} className="flex items-center justify-between">
-                    <span className="text-sm text-card-foreground flex-1">{item.artikel_name}</span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleQuantityChange(item.artikel_id, -1)}
-                        className="flex h-7 w-7 items-center justify-center rounded-md border border-border hover:bg-muted"
-                      >
-                        <Minus className="h-3 w-3" />
-                      </button>
-                      <span className="w-8 text-center text-sm font-medium">{item.menge}</span>
-                      <button
-                        onClick={() => handleQuantityChange(item.artikel_id, 1)}
-                        className="flex h-7 w-7 items-center justify-center rounded-md border border-border hover:bg-muted"
-                      >
-                        <Plus className="h-3 w-3" />
-                      </button>
+        {/* Rechte Spalte: Bestellübersicht */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ShoppingCart className="h-5 w-5" />
+                  Bestellübersicht
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {orderItems.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    Noch keine Artikel ausgewählt
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {orderItems.map((item) => (
+                      <div key={item.artikel_id} className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{item.artikel_name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {item.preis.toFixed(2)} € × {item.menge}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => handleQuantityChange(item.artikel_id, -1)}
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <span className="w-6 text-center text-sm">{item.menge}</span>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => handleQuantityChange(item.artikel_id, 1)}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <div className="border-t border-border pt-3 mt-4">
+                      <div className="flex justify-between font-medium">
+                        <span>Gesamt</span>
+                        <span>{totalPrice.toFixed(2)} €</span>
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                )}
 
-            <div className="mt-6 border-t border-border pt-4">
-              <div className="flex items-center justify-between mb-4">
-                <span className="font-medium text-card-foreground">Gesamt Artikel</span>
-                <span className="font-semibold text-card-foreground">
-                  {orderItems.reduce((sum, item) => sum + item.menge, 0)}
-                </span>
-              </div>
-              <Button 
-                variant="hero" 
-                className="w-full" 
-                onClick={handleSubmit}
-                disabled={orderItems.length === 0 || !selectedObjekt}
-              >
-                Bestellung aufgeben
-              </Button>
-            </div>
+                <Button
+                  className="w-full mt-6"
+                  onClick={handleSubmit}
+                  disabled={orderItems.length === 0 || !selectedObjektId || createBestellung.isPending}
+                >
+                  {createBestellung.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Wird erstellt...
+                    </>
+                  ) : (
+                    'Bestellung aufgeben'
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

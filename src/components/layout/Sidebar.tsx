@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import { KundenAuswahl } from '@/components/KundenAuswahl';
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -33,6 +34,11 @@ export function Sidebar() {
             <span className="text-sm font-semibold">Wäsche Oberpinzgau</span>
             <span className="text-xs text-sidebar-foreground/60">Kundenportal</span>
           </div>
+        </div>
+
+        {/* Kundenauswahl für Entwicklung */}
+        <div className="border-b border-sidebar-border py-3">
+          <KundenAuswahl />
         </div>
 
         {/* Navigation */}
