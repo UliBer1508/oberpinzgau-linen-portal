@@ -217,60 +217,35 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="space-y-6">
-          <div className="rounded-xl border border-border bg-card p-6 shadow-card">
-            <h2 className="text-lg font-semibold text-card-foreground mb-4">
-              Schnellaktionen
-            </h2>
-            <div className="space-y-3">
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => navigate('/bestellungen/neu')}
-              >
-                <ShoppingCart className="h-4 w-4" />
-                Neue Bestellung erstellen
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => navigate('/waeschesets')}
-              >
-                <Package className="h-4 w-4" />
-                Wäscheset verwalten
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => navigate('/objekte')}
-              >
-                <Building2 className="h-4 w-4" />
-                Objekte anzeigen
-              </Button>
-            </div>
-          </div>
-
-          {/* Status Overview */}
-          <div className="rounded-xl border border-border bg-card p-6 shadow-card">
-            <h2 className="text-lg font-semibold text-card-foreground mb-4">
-              Bestellstatus
-            </h2>
-            <div className="space-y-3">
-              {[
-                { status: 'neu' as BestellungStatus, count: bestellungen.filter(b => b.status === 'neu').length },
-                { status: 'in_bearbeitung' as BestellungStatus, count: bestellungen.filter(b => b.status === 'in_bearbeitung').length },
-                { status: 'ausgeliefert' as BestellungStatus, count: bestellungen.filter(b => b.status === 'ausgeliefert').length },
-                { status: 'abgeholt' as BestellungStatus, count: bestellungen.filter(b => b.status === 'abgeholt').length },
-              ].filter(s => s.count > 0).map(({ status, count }) => (
-                <div key={status} className="flex items-center justify-between">
-                  <StatusBadge status={status} />
-                  <span className="text-sm font-medium text-muted-foreground">{count}</span>
-                </div>
-              ))}
-              {bestellungen.length === 0 && (
-                <p className="text-sm text-muted-foreground">Keine aktiven Bestellungen</p>
-              )}
-            </div>
+        <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <h2 className="text-lg font-semibold text-card-foreground mb-4">
+            Schnellaktionen
+          </h2>
+          <div className="space-y-3">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => navigate('/bestellungen/neu')}
+            >
+              <ShoppingCart className="h-4 w-4" />
+              Neue Bestellung erstellen
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => navigate('/waeschesets')}
+            >
+              <Package className="h-4 w-4" />
+              Wäscheset verwalten
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => navigate('/objekte')}
+            >
+              <Building2 className="h-4 w-4" />
+              Objekte anzeigen
+            </Button>
           </div>
         </div>
       </div>
