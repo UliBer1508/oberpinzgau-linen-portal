@@ -38,6 +38,10 @@ const statusConfig: Record<AllStatus, { label: string; className: string }> = {
     label: 'Bezahlt',
     className: 'bg-status-delivered/15 text-status-delivered border-status-delivered/30',
   },
+  mahnung: {
+    label: 'Mahnung',
+    className: 'bg-destructive/15 text-destructive border-destructive/30',
+  },
 };
 
 interface StatusBadgeProps {

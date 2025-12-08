@@ -23,6 +23,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { StatusBadge } from '@/components/StatusBadge';
+import { OverdueBadge } from '@/components/OverdueBadge';
 import { useRechnungen } from '@/hooks/useSupabaseData';
 import { useKundeContext } from '@/contexts/KundeContext';
 import { RechnungStatus } from '@/integrations/supabase/client';
@@ -77,6 +78,7 @@ export default function Rechnungen() {
                   <SelectContent>
                     <SelectItem value="alle">Alle Status</SelectItem>
                     <SelectItem value="offen">Offen</SelectItem>
+                    <SelectItem value="mahnung">Mahnung</SelectItem>
                     <SelectItem value="bezahlt">Bezahlt</SelectItem>
                     <SelectItem value="storniert">Storniert</SelectItem>
                   </SelectContent>
@@ -118,10 +120,12 @@ export default function Rechnungen() {
                         switch (status) {
                           case 'offen':
                             return 'bg-status-pending/10 hover:bg-status-pending/20';
+                          case 'mahnung':
+                            return 'bg-destructive/10 hover:bg-destructive/20';
                           case 'bezahlt':
                             return 'bg-status-delivered/10 hover:bg-status-delivered/20';
                           case 'storniert':
-                            return 'bg-destructive/10 hover:bg-destructive/20';
+                            return 'bg-muted/50 hover:bg-muted/70';
                           default:
                             return '';
                         }
@@ -151,7 +155,13 @@ export default function Rechnungen() {
                           {formatCurrency(rechnung.bruttobetrag)}
                         </TableCell>
                         <TableCell>
-                          <StatusBadge status={rechnung.status} />
+                          <div className="flex items-center gap-2">
+                            <StatusBadge status={rechnung.status} />
+                            <OverdueBadge 
+                              faelligkeitsdatum={rechnung.faelligkeitsdatum} 
+                              status={rechnung.status} 
+                            />
+                          </div>
                         </TableCell>
                         <TableCell className="text-right">
                           <Button variant="ghost" size="sm" asChild>

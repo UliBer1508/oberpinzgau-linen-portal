@@ -16,7 +16,9 @@ import {
   TableFooter,
 } from '@/components/ui/table';
 import { StatusBadge } from '@/components/StatusBadge';
+import { OverdueBadge } from '@/components/OverdueBadge';
 import { useRechnung } from '@/hooks/useSupabaseData';
+import { cn } from '@/lib/utils';
 
 export default function RechnungDetail() {
   const { id } = useParams<{ id: string }>();
@@ -65,6 +67,10 @@ export default function RechnungDetail() {
             </Link>
           </Button>
           <StatusBadge status={rechnung.status} />
+          <OverdueBadge 
+            faelligkeitsdatum={rechnung.faelligkeitsdatum} 
+            status={rechnung.status} 
+          />
           <Button variant="outline" size="sm">
             <Printer className="mr-2 h-4 w-4" />
             Drucken
@@ -115,7 +121,11 @@ export default function RechnungDetail() {
                     {rechnung.faelligkeitsdatum && (
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Fällig am:</span>
-                        <span>
+                        <span className={cn(
+                          rechnung.status === 'offen' && new Date() > new Date(rechnung.faelligkeitsdatum)
+                            ? 'text-destructive font-medium'
+                            : ''
+                        )}>
                           {format(new Date(rechnung.faelligkeitsdatum), 'dd.MM.yyyy', { locale: de })}
                         </span>
                       </div>
@@ -279,16 +289,6 @@ export default function RechnungDetail() {
               </Card>
             )}
 
-            {rechnung.notizen && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Notizen</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">{rechnung.notizen}</p>
-                </CardContent>
-              </Card>
-            )}
           </div>
         </div>
       </div>
