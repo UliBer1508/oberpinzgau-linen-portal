@@ -128,7 +128,7 @@ export interface BestellungPosition {
 }
 
 // Rechnung types
-export type RechnungStatus = 'offen' | 'bezahlt' | 'storniert';
+export type RechnungStatus = 'offen' | 'bezahlt' | 'storniert' | 'mahnung';
 
 export interface Rechnung {
   id: string;
