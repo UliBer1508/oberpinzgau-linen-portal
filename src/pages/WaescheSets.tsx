@@ -1,10 +1,13 @@
-import { Package, Plus, Edit2, Trash2, Loader2, Building2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Package, Plus, Edit2, Trash2, Loader2, Building2, Users, Calendar } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useKunde, useWaescheSets, useWaescheArtikel } from '@/hooks/useSupabaseData';
 
 export default function WaescheSets() {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { data: kunde, isLoading: kundeLoading } = useKunde();
   const { data: waescheSets = [], isLoading: setsLoading } = useWaescheSets(kunde?.id);
@@ -48,7 +51,7 @@ export default function WaescheSets() {
       title="Wäschesets" 
       subtitle="Verwalten Sie Ihre vordefinierten Wäschesets"
       actions={
-        <Button variant="hero" disabled>
+        <Button variant="hero" onClick={() => navigate('/waeschesets/neu')}>
           <Plus className="h-4 w-4" />
           Neues Set erstellen
         </Button>
@@ -106,7 +109,20 @@ export default function WaescheSets() {
                     key={setArtikel.id}
                     className="flex items-center justify-between text-sm"
                   >
-                    <span className="text-muted-foreground">{setArtikel.waescheartikel?.name}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">{setArtikel.waescheartikel?.name}</span>
+                      {setArtikel.berechnungsart === 'pro_gast' ? (
+                        <Badge variant="outline" className="text-xs h-5">
+                          <Users className="h-3 w-3 mr-1" />
+                          Pro Gast
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-xs h-5">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          Pro Buchung
+                        </Badge>
+                      )}
+                    </div>
                     <span className="font-medium text-card-foreground">×{setArtikel.menge}</span>
                   </div>
                 ))}
@@ -134,10 +150,7 @@ export default function WaescheSets() {
         {/* Add New Set Card */}
         <button
           className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border p-6 text-center transition-colors hover:border-primary/50 hover:bg-muted/50 min-h-[280px]"
-          onClick={() => toast({
-            title: 'Neues Set',
-            description: 'Diese Funktion wird bald verfügbar sein.',
-          })}
+          onClick={() => navigate('/waeschesets/neu')}
         >
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
             <Plus className="h-6 w-6 text-muted-foreground" />
