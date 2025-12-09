@@ -8,12 +8,36 @@ import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { CalendarIcon, Plus, Minus, Loader2, Package, ShoppingCart, ArrowLeft, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useKunde, useObjekte, useWaescheSets, useWaescheArtikel, useCreateBestellung } from '@/hooks/useSupabaseData';
+
+// Farb-Styles für Artikel-Badges
+const FARB_STYLES: Record<string, string> = {
+  "Weiß": "bg-white border border-gray-300 text-gray-800",
+  "Weiß gestreift": "bg-white border border-gray-300 text-gray-800",
+  "Grau": "bg-gray-400 text-white",
+  "Grau gestreift": "bg-gray-400 text-white",
+  "Braun": "bg-amber-700 text-white",
+  "Bunt": "bg-gradient-to-r from-red-400 via-yellow-400 to-blue-400 text-white"
+};
+
+const getFarbStyle = (farbe: string | null) => {
+  if (!farbe) return 'bg-muted text-muted-foreground';
+  return FARB_STYLES[farbe] || 'bg-muted text-muted-foreground';
+};
+
+const formatPreis = (preis: number | null) => {
+  if (preis === null || preis === undefined) return '-';
+  return new Intl.NumberFormat('de-DE', {
+    style: 'currency',
+    currency: 'EUR'
+  }).format(preis);
+};
 
 interface OrderItem {
   artikel_id: string;
@@ -334,21 +358,60 @@ export default function NeueBestellung() {
                 <div key={category}>
                   <h4 className="text-sm font-medium text-muted-foreground mb-2">{category}</h4>
                   <div className="grid gap-2 sm:grid-cols-2">
-                    {items.map((art) => (
-                      <button
-                        key={art.id}
-                        onClick={() => handleAddArtikel(art)}
-                        className="flex items-center justify-between rounded-lg border border-border bg-card p-3 text-left transition-colors hover:bg-accent"
-                      >
-                        <div>
-                          <p className="font-medium text-sm">{art.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {(art.preis || 0).toFixed(2)} €
-                          </p>
-                        </div>
-                        <Plus className="h-4 w-4 text-primary" />
-                      </button>
-                    ))}
+                    {items.map((art) => {
+                      const inOrder = orderItems.find(item => item.artikel_id === art.id);
+                      return (
+                        <button
+                          key={art.id}
+                          onClick={() => handleAddArtikel(art)}
+                          className={cn(
+                            "flex items-center gap-3 p-3 rounded-lg border text-left transition-all hover:shadow-md",
+                            inOrder
+                              ? 'border-primary bg-primary/5' 
+                              : 'border-border hover:border-primary/50'
+                          )}
+                        >
+                          {/* Artikel-Bild oder Platzhalter */}
+                          {art.bild_url ? (
+                            <img 
+                              src={art.bild_url} 
+                              alt={art.name} 
+                              className="w-12 h-12 rounded object-cover shrink-0"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded bg-muted flex items-center justify-center shrink-0">
+                              <Package className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                          )}
+                          
+                          <div className="flex-1 min-w-0">
+                            {/* Name mit Menge-Badge wenn bereits in Bestellung */}
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-sm truncate">{art.name}</span>
+                              {inOrder && (
+                                <Badge variant="secondary" className="shrink-0">
+                                  {inOrder.menge}×
+                                </Badge>
+                              )}
+                            </div>
+                            {/* Artikelnummer + Farbe */}
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs text-muted-foreground">{art.artikelnummer}</span>
+                              {art.farbe && (
+                                <Badge variant="outline" className={cn("text-xs px-1.5 py-0", getFarbStyle(art.farbe))}>
+                                  {art.farbe}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Preis */}
+                          <div className="text-right shrink-0">
+                            <span className="text-sm font-medium">{formatPreis(art.preis)}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
