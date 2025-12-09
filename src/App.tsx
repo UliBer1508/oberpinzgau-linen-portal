@@ -17,6 +17,7 @@ import NeueBestellung from "./pages/NeueBestellung";
 import Rechnungen from "./pages/Rechnungen";
 import RechnungDetail from "./pages/RechnungDetail";
 import WaescheSets from "./pages/WaescheSets";
+import NeuesWaescheSet from "./pages/NeuesWaescheSet";
 import Artikel from "./pages/Artikel";
 import NotFound from "./pages/NotFound";
 
@@ -61,6 +62,9 @@ const App = () => (
             } />
             <Route path="/waeschesets" element={
               <ProtectedRoute><WaescheSets /></ProtectedRoute>
+            } />
+            <Route path="/waeschesets/neu" element={
+              <ProtectedRoute><NeuesWaescheSet /></ProtectedRoute>
             } />
             <Route path="/artikel" element={
               <ProtectedRoute><Artikel /></ProtectedRoute>
