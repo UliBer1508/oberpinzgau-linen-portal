@@ -1,82 +1,45 @@
-## Ziel
+## Problem
 
-1. App auf externe Supabase-DB (`pkpnowevagxmhyqlawng`, Wäscheportal Oberpinzgau) umstellen
-2. **Zusätzlich:** Bestehende Daten aus der aktuellen Lovable-Cloud-DB (`uzworhojxcxbtsbttstp`) in die Ziel-DB übernehmen (Kunden, Objekte, Wäscheartikel, Sets, Bestellungen, Rechnungen, Zahlungen)
+Du bist eingeloggt, aber beim Speichern kommt **„Kein Kunde ausgewählt"**. Ursache:
 
----
+- Der `KundeContext` sucht den Kunden über `kunden.auth_user_id == auth.uid()`.
+- In der **Ziel-DB existiert die Spalte `auth_user_id` auf `kunden` nicht**. Die Teuni-App verknüpft Auth-User und Kunde stattdessen über die Tabelle **`profiles`** (`profiles.id == auth.uid()`, `profiles.email`).
+- Da `auth_user_id` nicht existiert, kommt `kunde = null` zurück → `selectedKundeId = null` → Insert wird mit `kunde_id = null` versucht.
 
-## Teil A — Code-Umstellung auf externen Client
-
-### A.1 Externer Supabase-Client
-- `src/integrations/external/client.ts` mit URL/Anon-Key hardcoded
-- Optionen: `persistSession`, `autoRefreshToken`, `storage: localStorage`, `storageKey: 'sb-pkpnowev-auth'`
-- Export als benannter `supabase`
-
-### A.2 Minimale Typen
-- `src/integrations/external/types.ts` mit `Database`-Interface
-- Tabellen: `kunden`, `objekte`, `waeschebestellungen`, `bestellpositionen`, `waeschesets`, `waescheset_artikel`, `waescheartikel`, `rechnungen`, `rechnungspositionen`, `user_roles`, `profiles` jeweils `{ Row: any; Insert: any; Update: any }`
-
-### A.3 Imports umstellen
-- `@/integrations/supabase/client` → `@/integrations/external/client` in:
-  - `AuthContext.tsx`, `KundeContext.tsx`, `useSupabaseData.ts`
-  - alle Pages (`Login`, `ResetPassword`, `NeueBestellung`, `NeuesObjekt`, `NeuesWaescheSet`, `Objekte`, `ObjektDetail`, `Bestellungen`, `BestellungDetail`, `Rechnungen`, `RechnungDetail`, `WaescheSets`, `Artikel`, `Dashboard`, `Index`)
-  - `KundenAuswahl.tsx`
-- Alter Lovable-Cloud-Client bleibt liegen (nicht referenziert)
-
-### A.4 Auth & Rollen
-- `onAuthStateChange` vor `getSession()` registrieren (bestehende Reihenfolge übernehmen)
-- Helper `src/lib/roles.ts` mit `hasRole(userId, role)` via `supabase.rpc('has_role', { _user_id, _role })`
-
-### A.5 Verifikation
-- Build grün; Network-Tab zeigt Calls an `pkpnowevagxmhyqlawng.supabase.co`
-- Test-Query auf `kunden` lädt Daten
+Zusätzlich hat die Ziel-DB jetzt **zwei Kunden mit `uli.berresheim@hotmail.de`**:
+- `fe41904f-…` (Teuni-Original mit vollständiger Adresse, Anlieferadresse, Bestellart) — **das ist der richtige**
+- `bcdf0e0e-…` (von der Migration angelegt, fast leer) — **Duplikat, sollte weg**
 
 ---
 
-## Teil B — Datenmigration (alte DB → Ziel-DB)
+## Plan
 
-### B.1 Datenexport aus Quell-DB
-Aus `uzworhojxcxbtsbttstp` exportieren (per `supabase--read_query` als JSON):
-- `kunden`, `objekte`, `waescheartikel`, `waeschesets`, `waescheset_artikel`
-- `waeschebestellungen`, `bestellpositionen`
-- `rechnungen`, `rechnungspositionen`, `rechnungseinstellungen`
-- `zahlungen`
-- `user_roles`
+### 1. Duplikat-Kunde aus der Migration entfernen
+- Vorher prüfen: gibt es Referenzen (`objekte.kunde_id`, `waeschebestellungen.kunde_id`, `rechnungen.kunde_id`) auf `bcdf0e0e-…`?
+  - Das migrierte Objekt `9f4afb1d-…` zeigt darauf → **vorher umhängen** auf `fe41904f-…`.
+- Dann den Duplikat-Kunden `bcdf0e0e-…` löschen.
 
-### B.2 Import-Skript in Ziel-DB
-- Da die Ziel-DB ein anderes Projekt ist, NICHT über das Lovable-Migrations-Tool (das schreibt nur in `uzworhojxcxbtsbttstp`).
-- Stattdessen ein Node-Skript `scripts/migrate-data.ts` ausführen, das mit dem Anon-Key (RLS in Ziel-DB ist deaktiviert) per `supabase-js` direkt in die Ziel-DB schreibt.
-- Reihenfolge wegen Referenzen:
-  1. `kunden` (mit Original-IDs erhalten)
-  2. `objekte`
-  3. `waescheartikel`
-  4. `waeschesets` → `waescheset_artikel`
-  5. `waeschebestellungen` → `bestellpositionen`
-  6. `rechnungen` → `rechnungspositionen`
-  7. `zahlungen`
-  8. `rechnungseinstellungen` (nur falls in Ziel-DB leer)
-  9. `user_roles` (sofern auth_user_ids in Ziel-DB existieren — sonst überspringen)
-- IDs werden 1:1 übernommen (`upsert` mit `onConflict: 'id'`), damit alle Referenzen erhalten bleiben.
+### 2. `KundeContext` umstellen: Auth-User → Kunde via Profile/Email
+Neue Auflösungs-Logik (in dieser Reihenfolge):
+1. **Profile laden:** `profiles` per `id = auth.uid()` → liefert `email`, `name`.
+2. **Kunde matchen:** `kunden` per `email = profile.email AND aktiv = true` → ersten Treffer nehmen.
+3. **Fallback:** wenn kein Profile existiert, direkt `kunden.email = auth.user.email` matchen.
+4. **Wenn nichts gefunden:** klare Meldung im UI („Kein Kundendatensatz für diese E-Mail gefunden").
 
-### B.3 auth.users-Behandlung
-- `auth.users`-Einträge werden **nicht** automatisch übertragen (verschiedene Auth-Schemas, Passwörter sind Hashes).
-- `kunden.auth_user_id` wird beim Import auf `NULL` gesetzt, falls die User-ID in der Ziel-DB nicht existiert.
-- Nach der Migration: User in der Ziel-DB neu registrieren und manuell mit dem passenden `kunden`-Datensatz verknüpfen (entweder per UI oder kurzem SQL-Update).
+### 3. Optional: Sicherstellen, dass beim Signup ein Profile angelegt wird
+- Bei neuem Login/Signup: prüfen ob `profiles` für `auth.uid()` existiert; falls nicht, einen Eintrag mit `email` und `name` (aus `user_metadata`) anlegen (upsert auf `id`).
+- So bleibt die Verknüpfung mit der Teuni-App-Logik konsistent.
 
-### B.4 Konflikte mit bereits vorhandenen Daten
-- Vorab prüfen, ob in der Ziel-DB schon Kunden/Objekte mit gleichen IDs oder Kundennummern existieren.
-- Bei Konflikt: `upsert` mit `onConflict: 'id'` überschreibt; alternativ Skript-Flag für Dry-Run.
-
-### B.5 Verifikation der Datenmigration
-- Counts pro Tabelle vorher/nachher vergleichen
-- In der UI (jetzt gegen Ziel-DB): Kunden, Objekte, Bestellungen sichtbar
+### 4. Verifikation
+- Nach Login: in der Sidebar/im Header wird der korrekte Kundenname `Uli Berresheim` angezeigt.
+- Objekt anlegen unter `/objekte/neu` → wird mit `kunde_id = fe41904f-…` gespeichert (nicht mehr „Kein Kunde ausgewählt").
+- Bestellungen, Rechnungen etc. zeigen die echten Daten aus der gemeinsamen DB.
 
 ---
 
 ## Hinweise / offene Punkte
 
-- **Alter Lovable-Cloud-Client und `.env`** bleiben unangetastet (für spätere Edge-Function-Migration)
-- **Storage-Dateien** (Bilder in Bucket `objekt-bilder` der alten DB) werden in diesem Schritt **nicht** kopiert — `bild_url`-Felder zeigen weiterhin auf die alte URL. Bei Bedarf separater Schritt: Dateien herunterladen und in Ziel-Bucket hochladen.
-- **Edge Functions** dieser App nicht migrieren (separate Folgeaufgabe, wie vom User bestätigt).
+- **`user_roles` ist in der Ziel-DB leer** — Rollen-Checks via `has_role` liefern aktuell überall `false`. Falls du Admin-Rechte brauchst, muss in der Ziel-DB ein Eintrag `(user_id = auth.uid(), role = 'admin')` angelegt werden. (Das mache ich nur, wenn du es willst.)
+- Die Ziel-DB hat **keine `auth_user_id`** auf `kunden`. Deshalb ist Email-Matching der pragmatischste Weg, ohne das Ziel-Schema zu ändern. Falls in Zukunft mehrere unterschiedliche Kunden dieselbe Email haben (unüblich, aber möglich), bräuchten wir entweder eine Spalte auf `kunden` oder einen Auswahl-Dropdown.
 
-Soll ich vor dem Datenexport noch prüfen, ob die Ziel-DB bereits Daten enthält (um Überschreibungen zu vermeiden)?
+Soll ich Schritt 3 (automatische Profile-Anlage beim Login) gleich mitmachen, oder weglassen, weil die Teuni-App das ohnehin macht?
