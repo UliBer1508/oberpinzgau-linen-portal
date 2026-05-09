@@ -168,7 +168,37 @@ export default function ObjektDetail() {
         />
 
         {/* Stammdaten mit Bild links */}
-        <div className="rounded-2xl border border-border/60 bg-card p-4 md:p-6 shadow-card">
+        <div className="relative rounded-2xl border border-border/60 bg-card p-4 md:p-6 shadow-card">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                disabled={deleting}
+                className="absolute top-2 right-2 h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                aria-label="Objekt löschen"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Objekt löschen?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  „{objekt.name}" wird endgültig entfernt. Das geht nur, wenn keine Bestellungen oder Wäschesets mehr daran hängen.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDelete}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Löschen
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <div className="flex gap-4">
             {/* Bild links */}
             <div className="shrink-0">
