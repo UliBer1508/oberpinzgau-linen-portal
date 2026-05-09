@@ -311,45 +311,78 @@ export default function Dashboard() {
               <p className="mt-4 text-muted-foreground">Noch keine Rechnungen</p>
             </div>
           ) : (
-            <div className="overflow-x-auto"><Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Bestellung</TableHead>
-                  <TableHead>Rechnung</TableHead>
-                  <TableHead>Datum</TableHead>
-                  <TableHead className="text-right">Betrag</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Mobile: kompakte Listen-Ansicht */}
+              <div className="md:hidden divide-y divide-border/60">
                 {recentRechnungen.map((rechnung) => (
-                  <TableRow
+                  <button
                     key={rechnung.id}
-                    className={`cursor-pointer ${getRechnungRowClassName(rechnung.status)}`}
                     onClick={() => navigate(`/rechnungen/${rechnung.id}`)}
+                    className={`w-full text-left p-3 ${getRechnungRowClassName(rechnung.status)}`}
                   >
-                    <TableCell className="font-mono text-sm font-medium text-primary">
-                      {rechnung.bestellung?.bestellnummer ? `#${rechnung.bestellung.bestellnummer}` : '—'}
-                    </TableCell>
-                    <TableCell className="font-mono text-sm">
-                      {rechnung.rechnungsnummer}
-                    </TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono text-sm font-medium text-primary truncate">
+                        {rechnung.rechnungsnummer}
+                      </span>
+                      <StatusBadge status={rechnung.status} />
+                    </div>
+                    <div className="mt-1 flex items-center justify-between gap-2 text-xs">
+                      <span className="inline-flex items-center gap-1.5 text-muted-foreground truncate min-w-0">
+                        {rechnung.bestellung?.bestellnummer && (
+                          <span className="font-mono">#{rechnung.bestellung.bestellnummer}</span>
+                        )}
+                        <Clock className="h-3 w-3 shrink-0" />
                         {format(new Date(rechnung.rechnungsdatum), 'dd.MM.yyyy', { locale: de })}
                       </span>
-                    </TableCell>
-                    <TableCell className="text-right font-semibold">
-                      €{(rechnung.bruttobetrag || 0).toFixed(2)}
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={rechnung.status} />
-                    </TableCell>
-                  </TableRow>
+                      <span className="font-semibold text-sm shrink-0 text-foreground">
+                        €{(rechnung.bruttobetrag || 0).toFixed(2)}
+                      </span>
+                    </div>
+                  </button>
                 ))}
-              </TableBody>
-            </Table></div>
+              </div>
+
+              {/* Desktop: volle Tabelle */}
+              <div className="hidden md:block"><Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Bestellung</TableHead>
+                    <TableHead>Rechnung</TableHead>
+                    <TableHead>Datum</TableHead>
+                    <TableHead className="text-right">Betrag</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recentRechnungen.map((rechnung) => (
+                    <TableRow
+                      key={rechnung.id}
+                      className={`cursor-pointer ${getRechnungRowClassName(rechnung.status)}`}
+                      onClick={() => navigate(`/rechnungen/${rechnung.id}`)}
+                    >
+                      <TableCell className="font-mono text-sm font-medium text-primary">
+                        {rechnung.bestellung?.bestellnummer ? `#${rechnung.bestellung.bestellnummer}` : '—'}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm">
+                        {rechnung.rechnungsnummer}
+                      </TableCell>
+                      <TableCell>
+                        <span className="inline-flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          {format(new Date(rechnung.rechnungsdatum), 'dd.MM.yyyy', { locale: de })}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right font-semibold">
+                        €{(rechnung.bruttobetrag || 0).toFixed(2)}
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={rechnung.status} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table></div>
+            </>
           )}
         </div>
       </div>
