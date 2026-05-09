@@ -177,11 +177,25 @@ export default function Dashboard() {
                 <span className="truncate">Bestellungen</span>
                 <ChevronDown className={cn('h-4 w-4 transition-transform shrink-0', ordersOpen && 'rotate-180')} />
               </CollapsibleTrigger>
-              <div className="flex items-center gap-2 shrink-0">
-                {!ordersOpen && recentOrders.length > 0 && (
-                  <span className="px-2 py-0.5 rounded-full bg-info/15 text-info text-xs font-medium">
-                    {recentOrders.length} Best.
-                  </span>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {!ordersOpen && (
+                  <>
+                    {bestellungen.filter(b => b.status === 'neu').length > 0 && (
+                      <span className="px-2 py-0.5 rounded-full bg-status-pending/15 text-status-pending text-xs font-medium">
+                        {bestellungen.filter(b => b.status === 'neu').length} Neu
+                      </span>
+                    )}
+                    {bestellungen.filter(b => b.status === 'in_bearbeitung').length > 0 && (
+                      <span className="px-2 py-0.5 rounded-full bg-status-processing/15 text-status-processing text-xs font-medium">
+                        {bestellungen.filter(b => b.status === 'in_bearbeitung').length} In Bearb.
+                      </span>
+                    )}
+                    {bestellungen.filter(b => b.status === 'ausgeliefert').length > 0 && (
+                      <span className="px-2 py-0.5 rounded-full bg-status-ready/15 text-status-ready text-xs font-medium">
+                        {bestellungen.filter(b => b.status === 'ausgeliefert').length} Ausgel.
+                      </span>
+                    )}
+                  </>
                 )}
                 <Button variant="ghost" size="sm" onClick={() => navigate('/bestellungen')}>
                   Alle <ArrowRight className="h-4 w-4" />
