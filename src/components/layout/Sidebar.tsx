@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Building2, 
@@ -6,7 +6,8 @@ import {
   Package, 
   LogOut,
   ClipboardList,
-  Receipt
+  Receipt,
+  UserCog
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -36,6 +37,7 @@ const navItems = [
 export function AppSidebar() {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
 
@@ -85,12 +87,26 @@ export function AppSidebar() {
       {/* User section */}
       <SidebarFooter className="border-t border-sidebar-border">
         {!isCollapsed && (
-          <div className="px-2 py-2">
+          <button
+            type="button"
+            onClick={() => navigate('/profil')}
+            className="w-full px-2 py-2 text-left rounded-md hover:bg-sidebar-accent transition-colors"
+          >
             <p className="truncate text-sm font-medium">{user?.user_metadata?.name || user?.email?.split('@')[0]}</p>
             <p className="truncate text-xs text-sidebar-foreground/60">{user?.email}</p>
-          </div>
+          </button>
         )}
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() => navigate('/profil')}
+              isActive={location.pathname === '/profil'}
+              tooltip="Profil"
+            >
+              <UserCog className="h-5 w-5" />
+              <span>Profil</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton onClick={logout} tooltip="Abmelden">
               <LogOut className="h-5 w-5" />
