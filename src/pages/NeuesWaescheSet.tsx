@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -48,6 +48,8 @@ const NeuesWaescheSet = () => {
   const [selectedObjektId, setSelectedObjektId] = useState<string>('');
   const [beschreibung, setBeschreibung] = useState('');
   const [pendingArtikel, setPendingArtikel] = useState<PendingSetArtikel[]>([]);
+  const [setName, setSetName] = useState('');
+  const [setNameTouched, setSetNameTouched] = useState(false);
 
   const selectedObjekt = objekte?.find(o => o.id === selectedObjektId);
 
@@ -65,6 +67,11 @@ const NeuesWaescheSet = () => {
     if (count <= 0) return baseName;
     return `${baseName} ${count + 1}`;
   }, [kunde, selectedObjekt, existingSets, selectedObjektId]);
+
+  // Vorschlag übernehmen, solange Nutzer das Feld nicht selbst bearbeitet hat
+  useEffect(() => {
+    if (!setNameTouched) setSetName(autoSetName);
+  }, [autoSetName, setNameTouched]);
 
   // Artikel nach Kategorie gruppieren
   const artikelByKategorie = useMemo(() => {
@@ -163,7 +170,7 @@ const NeuesWaescheSet = () => {
     try {
       await createWaescheSet.mutateAsync({
         objektId: selectedObjektId,
-        name: autoSetName,
+        name: setName.trim() || autoSetName,
         beschreibung: beschreibung || undefined,
         artikel: pendingArtikel.map(a => ({
           artikelId: a.artikel_id,
@@ -260,8 +267,27 @@ const NeuesWaescheSet = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label>Set-Name (automatisch generiert)</Label>
-                  <Input value={autoSetName} disabled className="bg-muted" />
+                  <Label>Set-Name</Label>
+                  <Input
+                    value={setName}
+                    onChange={e => {
+                      setSetName(e.target.value);
+                      setSetNameTouched(true);
+                    }}
+                    placeholder={autoSetName || 'Set-Name eingeben...'}
+                  />
+                  {setNameTouched && setName !== autoSetName && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSetName(autoSetName);
+                        setSetNameTouched(false);
+                      }}
+                      className="text-xs text-muted-foreground hover:text-primary mt-1"
+                    >
+                      Vorschlag übernehmen
+                    </button>
+                  )}
                 </div>
                 <div>
                   <Label>Beschreibung (optional)</Label>
