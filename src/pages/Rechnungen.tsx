@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { FileText, Search, Filter } from 'lucide-react';
@@ -29,6 +29,7 @@ import { useKundeContext } from '@/contexts/KundeContext';
 import type { RechnungStatus } from '@/types/database';
 
 export default function Rechnungen() {
+  const navigate = useNavigate();
   const { selectedKundeId } = useKundeContext();
   const { data: rechnungen = [], isLoading } = useRechnungen(selectedKundeId);
   const [search, setSearch] = useState('');
@@ -111,7 +112,6 @@ export default function Rechnungen() {
                       <TableHead>Kunde</TableHead>
                       <TableHead className="text-right">Betrag</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Aktionen</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -132,7 +132,19 @@ export default function Rechnungen() {
                       };
 
                       return (
-                        <TableRow key={rechnung.id} className={getRowClassName(rechnung.status)}>
+                        <TableRow
+                          key={rechnung.id}
+                          className={`cursor-pointer ${getRowClassName(rechnung.status)}`}
+                          onClick={() => navigate(`/rechnungen/${rechnung.id}`)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              navigate(`/rechnungen/${rechnung.id}`);
+                            }
+                          }}
+                        >
                         <TableCell className="font-medium">
                           {rechnung.rechnungsnummer}
                         </TableCell>
@@ -157,18 +169,11 @@ export default function Rechnungen() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <StatusBadge status={rechnung.status} />
-                            <OverdueBadge 
-                              faelligkeitsdatum={rechnung.faelligkeitsdatum} 
-                              status={rechnung.status} 
+                            <OverdueBadge
+                              faelligkeitsdatum={rechnung.faelligkeitsdatum}
+                              status={rechnung.status}
                             />
                           </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="sm" asChild>
-                            <Link to={`/rechnungen/${rechnung.id}`}>
-                              Anzeigen
-                            </Link>
-                          </Button>
                         </TableCell>
                         </TableRow>
                       );
