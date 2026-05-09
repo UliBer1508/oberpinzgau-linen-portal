@@ -12,9 +12,20 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { CalendarIcon, Plus, Minus, Loader2, Package, ShoppingCart, ArrowLeft, Users, Trash2 } from 'lucide-react';
+import { CalendarIcon, Plus, Minus, Loader2, Package, ShoppingCart, ArrowLeft, Users, Trash2, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useKunde, useObjekte, useWaescheSets, useWaescheArtikel, useCreateBestellung } from '@/hooks/useSupabaseData';
+import { useKunde, useObjekte, useWaescheSets, useWaescheArtikel, useCreateBestellung, useDeleteWaescheSet } from '@/hooks/useSupabaseData';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { WaescheSetFormDialog } from '@/components/waescheset/WaescheSetFormDialog';
 
 // Farb-Styles für Artikel-Badges
 const FARB_STYLES: Record<string, string> = {
@@ -67,6 +78,28 @@ export default function NeueBestellung() {
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
   const [anzahlPersonen, setAnzahlPersonen] = useState<number>(1);
+
+  // Wäscheset Dialog State
+  const [setDialogOpen, setSetDialogOpen] = useState(false);
+  const [editingSet, setEditingSet] = useState<any | null>(null);
+  const [setToDelete, setSetToDelete] = useState<any | null>(null);
+  const deleteWaescheSet = useDeleteWaescheSet();
+
+  const handleDeleteSet = async () => {
+    if (!setToDelete) return;
+    try {
+      await deleteWaescheSet.mutateAsync(setToDelete.id);
+      if (selectedSetId === setToDelete.id) {
+        setSelectedSetId('');
+        setOrderItems([]);
+      }
+      toast({ title: 'Erfolg', description: 'Set gelöscht.' });
+    } catch (err: any) {
+      toast({ title: 'Fehler', description: err?.message ?? 'Konnte Set nicht löschen.', variant: 'destructive' });
+    } finally {
+      setSetToDelete(null);
+    }
+  };
 
   const isLoading = kundeLoading || objekteLoading || setsLoading || artikelLoading;
 
@@ -330,54 +363,154 @@ export default function NeueBestellung() {
             </CardContent>
           </Card>
 
-          {/* Wäscheset auswählen (optional) */}
+          {/* Wäscheset verwalten & auswählen */}
           {(() => {
             const filteredSets = selectedObjektId
               ? waescheSets?.filter((s: any) => s.objekt_id === selectedObjektId) ?? []
-              : waescheSets ?? [];
-            if (!filteredSets.length) return null;
+              : [];
             return (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">3. Schnellauswahl: Wäscheset</CardTitle>
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-lg">3. Wäschesets</CardTitle>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={!selectedObjektId}
+                      onClick={() => {
+                        setEditingSet(null);
+                        setSetDialogOpen(true);
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Neues Set
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    {filteredSets.map((set: any) => {
-                      const active = selectedSetId === set.id;
-                      return (
-                        <button
-                          key={set.id}
-                          type="button"
-                          onClick={() => handleSetSelect(set.id)}
-                          className={cn(
-                            'text-left p-3 rounded-lg border transition-all',
-                            active
-                              ? 'border-primary bg-primary/5 shadow-sm'
-                              : 'border-border hover:border-primary/40 hover:bg-muted/30'
-                          )}
-                        >
-                          <div className="flex items-center gap-2 mb-1">
-                            <Package className="h-4 w-4 text-primary shrink-0" />
-                            <div className="font-medium text-sm truncate">{set.name}</div>
-                          </div>
-                          {set.beschreibung && (
-                            <div className="text-xs text-muted-foreground line-clamp-2 mb-1">
-                              {set.beschreibung}
+                  {!selectedObjektId ? (
+                    <p className="text-sm text-muted-foreground italic">
+                      Bitte zuerst ein Objekt auswählen.
+                    </p>
+                  ) : filteredSets.length === 0 ? (
+                    <div className="text-center py-6 border-2 border-dashed border-border rounded-lg">
+                      <Package className="h-8 w-8 mx-auto text-muted-foreground mb-2 opacity-60" />
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Noch keine Wäschesets für dieses Objekt.
+                      </p>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => {
+                          setEditingSet(null);
+                          setSetDialogOpen(true);
+                        }}
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Erstes Set anlegen
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {filteredSets.map((set: any) => {
+                        const active = selectedSetId === set.id;
+                        return (
+                          <div
+                            key={set.id}
+                            className={cn(
+                              'relative rounded-lg border transition-all',
+                              active
+                                ? 'border-primary bg-primary/5 shadow-sm'
+                                : 'border-border hover:border-primary/40 hover:bg-muted/30',
+                            )}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => handleSetSelect(set.id)}
+                              className="w-full text-left p-3 pr-16"
+                            >
+                              <div className="flex items-center gap-2 mb-1">
+                                <Package className="h-4 w-4 text-primary shrink-0" />
+                                <div className="font-medium text-sm truncate">{set.name}</div>
+                              </div>
+                              {set.beschreibung && (
+                                <div className="text-xs text-muted-foreground line-clamp-2 mb-1">
+                                  {set.beschreibung}
+                                </div>
+                              )}
+                              <div className="text-xs text-muted-foreground">
+                                {set.artikel?.length || 0} Artikel
+                              </div>
+                            </button>
+                            <div className="absolute top-1.5 right-1.5 flex gap-0.5">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingSet(set);
+                                  setSetDialogOpen(true);
+                                }}
+                                aria-label="Set bearbeiten"
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSetToDelete(set);
+                                }}
+                                aria-label="Set löschen"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
                             </div>
-                          )}
-                          <div className="text-xs text-muted-foreground">
-                            {set.artikel?.length || 0} Artikel
-                            {!selectedObjektId && set.objekt?.name ? ` · ${set.objekt.name}` : ''}
                           </div>
-                        </button>
-                      );
-                    })}
-                  </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             );
           })()}
+
+          <WaescheSetFormDialog
+            open={setDialogOpen}
+            onClose={() => {
+              setSetDialogOpen(false);
+              setEditingSet(null);
+            }}
+            objektId={selectedObjektId}
+            setToEdit={editingSet}
+          />
+
+          <AlertDialog open={!!setToDelete} onOpenChange={(o) => !o && setSetToDelete(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Wäscheset löschen?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  „{setToDelete?.name}" wird endgültig entfernt.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDeleteSet}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Löschen
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           {/* Artikel auswählen */}
           <Card>
