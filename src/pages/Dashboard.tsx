@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   ShoppingCart,
   Package,
@@ -10,20 +11,32 @@ import {
   Wallet,
   Inbox,
   Sparkles,
+  ChevronDown,
 } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { StatCard } from '@/components/cards/StatCard';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 import { useKunde, useObjekte, useWaescheSets, useBestellungen, useRechnungen, RechnungMitBestellung } from '@/hooks/useSupabaseData';
 import { QuickOrderTiles } from '@/components/QuickOrderTiles';
 import type { RechnungStatus, BestellungStatus } from '@/types/database';
 export default function Dashboard() {
   const navigate = useNavigate();
+  const [statsOpen, setStatsOpen] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    const v = localStorage.getItem('dashboard_stats_open');
+    return v === null ? true : v === 'true';
+  });
+  const handleStatsOpenChange = (open: boolean) => {
+    setStatsOpen(open);
+    try { localStorage.setItem('dashboard_stats_open', String(open)); } catch {}
+  };
   
   const { data: kunde, isLoading: kundeLoading } = useKunde();
   const { data: objekte = [], isLoading: objekteLoading } = useObjekte(kunde?.id);
@@ -92,38 +105,57 @@ export default function Dashboard() {
         </Button>
       }
     >
-      {/* Stats Grid */}
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Aktive Bestellungen"
-          value={activeOrders}
-          variant="info"
-          icon={<Clock className="h-6 w-6" />}
-          onClick={() => navigate('/bestellungen')}
-        />
-        <StatCard
-          title="Objekte"
-          value={objekte.length}
-          variant="primary"
-          icon={<Building2 className="h-6 w-6" />}
-          onClick={() => navigate('/objekte')}
-        />
-        <StatCard
-          title="Wäschesets"
-          value={waescheSets.length}
-          variant="accent"
-          icon={<Package className="h-6 w-6" />}
-          onClick={() => navigate('/waeschesets')}
-        />
-        <StatCard
-          title="Offene Rechnungen"
-          value={offeneRechnungen.length}
-          subtitle={`€${offenerBetrag.toFixed(2)} offen`}
-          variant={offeneRechnungen.length > 0 ? 'warning' : 'success'}
-          icon={<Wallet className="h-6 w-6" />}
-          onClick={() => navigate('/rechnungen')}
-        />
-      </div>
+      {/* Stats Section (collapsible) */}
+      <Collapsible open={statsOpen} onOpenChange={handleStatsOpenChange}>
+        <div className="flex items-center justify-between mb-2">
+          <CollapsibleTrigger className="flex items-center gap-2 h-10 px-2 -ml-2 rounded-lg hover:bg-muted/60 text-sm font-medium text-muted-foreground transition-colors">
+            <Sparkles className="h-4 w-4 text-accent" />
+            Übersicht
+            <ChevronDown className={cn('h-4 w-4 transition-transform', statsOpen && 'rotate-180')} />
+          </CollapsibleTrigger>
+          {!statsOpen && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground overflow-x-auto">
+              <span className="px-2 py-0.5 rounded-full bg-info/15 text-info font-medium">{activeOrders} Best.</span>
+              <span className="px-2 py-0.5 rounded-full bg-primary/15 text-primary font-medium">{objekte.length} Obj.</span>
+              <span className="px-2 py-0.5 rounded-full bg-accent/15 text-accent font-medium">{waescheSets.length} Sets</span>
+              <span className={cn('px-2 py-0.5 rounded-full font-medium', offeneRechnungen.length > 0 ? 'bg-warning/15 text-warning' : 'bg-success/15 text-success')}>{offeneRechnungen.length} Rg.</span>
+            </div>
+          )}
+        </div>
+        <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+          <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              title="Aktive Bestellungen"
+              value={activeOrders}
+              variant="info"
+              icon={<Clock className="h-6 w-6" />}
+              onClick={() => navigate('/bestellungen')}
+            />
+            <StatCard
+              title="Objekte"
+              value={objekte.length}
+              variant="primary"
+              icon={<Building2 className="h-6 w-6" />}
+              onClick={() => navigate('/objekte')}
+            />
+            <StatCard
+              title="Wäschesets"
+              value={waescheSets.length}
+              variant="accent"
+              icon={<Package className="h-6 w-6" />}
+              onClick={() => navigate('/waeschesets')}
+            />
+            <StatCard
+              title="Offene Rechnungen"
+              value={offeneRechnungen.length}
+              subtitle={`€${offenerBetrag.toFixed(2)} offen`}
+              variant={offeneRechnungen.length > 0 ? 'warning' : 'success'}
+              icon={<Wallet className="h-6 w-6" />}
+              onClick={() => navigate('/rechnungen')}
+            />
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* Recent Orders & Quick Actions */}
       <div className="mt-4 md:mt-8 grid gap-4 md:gap-6 lg:grid-cols-3">
