@@ -12,7 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useKunde, useObjekte, useWaescheArtikel, useWaescheSets, useCreateWaescheSet } from '@/hooks/useSupabaseData';
 import { Loader2, Plus, Minus, X, Package, ArrowLeft, Users, Calendar } from 'lucide-react';
-import type { WaescheArtikel, Objekt, BerechnungsArt } from '@/integrations/supabase/client';
+import type { WaescheArtikel, Objekt, BerechnungsArt } from '@/types/database';
 
 interface PendingSetArtikel {
   id: string;
