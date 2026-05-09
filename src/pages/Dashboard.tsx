@@ -37,6 +37,15 @@ export default function Dashboard() {
     setStatsOpen(open);
     try { localStorage.setItem('dashboard_stats_open', String(open)); } catch {}
   };
+  const [ordersOpen, setOrdersOpen] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    const v = localStorage.getItem('dashboard.ordersOpen');
+    return v === null ? true : v === 'true';
+  });
+  const handleOrdersOpenChange = (open: boolean) => {
+    setOrdersOpen(open);
+    try { localStorage.setItem('dashboard.ordersOpen', String(open)); } catch {}
+  };
   
   const { data: kunde, isLoading: kundeLoading } = useKunde();
   const { data: objekte = [], isLoading: objekteLoading } = useObjekte(kunde?.id);
