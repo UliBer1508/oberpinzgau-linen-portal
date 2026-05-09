@@ -22,6 +22,7 @@ import RechnungDetail from "./pages/RechnungDetail";
 import WaescheSets from "./pages/WaescheSets";
 import NeuesWaescheSet from "./pages/NeuesWaescheSet";
 import Artikel from "./pages/Artikel";
+import Profil from "./pages/Profil";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -75,6 +76,9 @@ const App = () => (
             } />
             <Route path="/artikel" element={
               <ProtectedRoute><Artikel /></ProtectedRoute>
+            } />
+            <Route path="/profil" element={
+              <ProtectedRoute><Profil /></ProtectedRoute>
             } />
             
             <Route path="*" element={<NotFound />} />
