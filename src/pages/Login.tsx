@@ -143,16 +143,24 @@ export default function Login() {
                 <Label htmlFor="login-email">E-Mail</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                  <Input id="login-email" type="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10 h-12" placeholder="ihre@email.at" />
+                  <Input id="login-email" type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10 h-12" placeholder="ihre@email.at" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="login-password">Passwort</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                  <Input id="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 h-12" placeholder="••••••••" />
+                  <Input id="login-password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 h-12" placeholder="••••••••" />
                 </div>
               </div>
+              <label htmlFor="remember-me" className="flex items-center gap-2 cursor-pointer select-none">
+                <Checkbox
+                  id="remember-me"
+                  checked={rememberMe}
+                  onCheckedChange={(v) => setRememberMe(v === true)}
+                />
+                <span className="text-sm">Passwort speichern</span>
+              </label>
               <Button type="submit" variant="hero" size="xl" className="w-full" disabled={loading}>
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Anmelden'}
               </Button>
