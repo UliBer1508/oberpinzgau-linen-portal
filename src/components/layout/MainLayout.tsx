@@ -20,7 +20,7 @@ export function MainLayout({ children, title, subtitle, actions }: MainLayoutPro
         </div>
 
         <SidebarInset className="bg-transparent min-w-0 w-full overflow-x-hidden">
-          <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <header className="sticky top-0 z-30 border-b border-sidebar-border bg-sidebar/85 backdrop-blur supports-[backdrop-filter]:bg-sidebar/70">
             <div className="flex h-14 md:h-16 items-center gap-3 px-3 md:px-8">
               <div className="flex-1 min-w-0">
                 <h1 className="font-display text-base md:text-2xl font-bold text-foreground truncate leading-tight">
