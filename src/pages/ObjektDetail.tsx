@@ -115,8 +115,8 @@ export default function ObjektDetail() {
 
   return (
     <MainLayout
-      title={objekt.name}
-      subtitle={TYP_LABEL[objekt.typ] || objekt.typ}
+      title="Ihre Objekte"
+      subtitle="Detailansicht"
       actions={
         <Button variant="ghost" size="sm" onClick={() => navigate('/objekte')}>
           <ArrowLeft className="h-4 w-4" />
