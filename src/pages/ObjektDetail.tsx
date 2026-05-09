@@ -151,31 +151,6 @@ export default function ObjektDetail() {
       subtitle="Detailansicht"
       actions={
         <div className="flex items-center gap-1">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="sm" disabled={deleting} className="text-destructive hover:text-destructive">
-                <Trash2 className="h-4 w-4" />
-                <span className="hidden sm:inline">Löschen</span>
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Objekt löschen?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  „{objekt.name}" wird endgültig entfernt. Das geht nur, wenn keine Bestellungen oder Wäschesets mehr daran hängen.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleDelete}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
-                  Löschen
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
           <Button variant="ghost" size="sm" onClick={() => navigate('/objekte')}>
             <ArrowLeft className="h-4 w-4" />
             <span className="hidden sm:inline">Zurück</span>
