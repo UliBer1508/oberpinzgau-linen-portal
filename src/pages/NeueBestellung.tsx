@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { CalendarIcon, Plus, Minus, Loader2, Package, ShoppingCart, ArrowLeft, Users } from 'lucide-react';
+import { CalendarIcon, Plus, Minus, Loader2, Package, ShoppingCart, ArrowLeft, Users, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useKunde, useObjekte, useWaescheSets, useWaescheArtikel, useCreateBestellung } from '@/hooks/useSupabaseData';
 
@@ -127,6 +127,11 @@ export default function NeueBestellung() {
         )
         .filter(item => item.menge > 0)
     );
+  };
+
+  // Artikel komplett entfernen
+  const handleRemoveArtikel = (artikelId: string) => {
+    setOrderItems(prev => prev.filter(item => item.artikel_id !== artikelId));
   };
 
   // Gesamtpreis berechnen
@@ -417,6 +422,15 @@ export default function NeueBestellung() {
                                 onClick={() => handleQuantityChange(art.id, 1)}
                               >
                                 <Plus className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-destructive hover:text-destructive"
+                                onClick={() => handleRemoveArtikel(art.id)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
                               </Button>
                             </div>
                           ) : (
