@@ -132,7 +132,19 @@ export default function Rechnungen() {
                       };
 
                       return (
-                        <TableRow key={rechnung.id} className={getRowClassName(rechnung.status)}>
+                        <TableRow
+                          key={rechnung.id}
+                          className={`cursor-pointer ${getRowClassName(rechnung.status)}`}
+                          onClick={() => navigate(`/rechnungen/${rechnung.id}`)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              navigate(`/rechnungen/${rechnung.id}`);
+                            }
+                          }}
+                        >
                         <TableCell className="font-medium">
                           {rechnung.rechnungsnummer}
                         </TableCell>
@@ -157,18 +169,11 @@ export default function Rechnungen() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <StatusBadge status={rechnung.status} />
-                            <OverdueBadge 
-                              faelligkeitsdatum={rechnung.faelligkeitsdatum} 
-                              status={rechnung.status} 
+                            <OverdueBadge
+                              faelligkeitsdatum={rechnung.faelligkeitsdatum}
+                              status={rechnung.status}
                             />
                           </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="sm" asChild>
-                            <Link to={`/rechnungen/${rechnung.id}`}>
-                              Anzeigen
-                            </Link>
-                          </Button>
                         </TableCell>
                         </TableRow>
                       );
