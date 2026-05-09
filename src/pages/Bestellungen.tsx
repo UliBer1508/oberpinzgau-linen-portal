@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/external/client';
 import type { BestellungStatus } from '@/types/database';
 import { useKunde, useBestellungen } from '@/hooks/useSupabaseData';
 import { useQueryClient } from '@tanstack/react-query';
