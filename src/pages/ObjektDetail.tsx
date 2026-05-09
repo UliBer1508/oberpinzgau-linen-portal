@@ -125,27 +125,6 @@ export default function ObjektDetail() {
       }
     >
       <div className="max-w-2xl mx-auto space-y-4">
-        {/* Hero image */}
-        <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-card aspect-video">
-          {objekt.bild_url ? (
-            <img
-              src={objekt.bild_url}
-              alt={objekt.name}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-muted-foreground">
-              <ImageOff className="h-10 w-10" />
-              <p className="text-sm">Noch kein Bild</p>
-            </div>
-          )}
-          {uploading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          )}
-        </div>
-
         <input
           ref={fileInputRef}
           type="file"
@@ -154,62 +133,82 @@ export default function ObjektDetail() {
           onChange={handleFileChange}
         />
 
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Button
-            variant="hero"
-            className="flex-1 rounded-2xl"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-          >
-            <Camera className="h-4 w-4" />
-            {objekt.bild_url ? 'Bild ändern' : 'Bild hochladen'}
-          </Button>
-          {objekt.bild_url && (
-            <Button
-              variant="outline"
-              className="rounded-2xl"
-              onClick={handleRemove}
-              disabled={uploading}
-            >
-              <Trash2 className="h-4 w-4" />
-              Entfernen
-            </Button>
-          )}
-        </div>
-
-        {/* Stammdaten */}
+        {/* Stammdaten mit Bild links */}
         <div className="rounded-2xl border border-border/60 bg-card p-4 md:p-6 shadow-card">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/15 text-primary">
-              <Building2 className="h-5 w-5" />
-            </div>
-            <h2 className="font-display text-lg font-bold">Stammdaten</h2>
-          </div>
-
-          <dl className="space-y-3 text-sm">
-            <InfoRow icon={<MapPin className="h-4 w-4" />} label="Adresse">
-              {[objekt.strasse, [objekt.plz, objekt.ort].filter(Boolean).join(' ')]
-                .filter(Boolean)
-                .join(', ') || '—'}
-            </InfoRow>
-            <InfoRow icon={<User className="h-4 w-4" />} label="Ansprechpartner">
-              {objekt.ansprechpartner || '—'}
-            </InfoRow>
-            <InfoRow icon={<Phone className="h-4 w-4" />} label="Telefon">
-              {objekt.telefon ? (
-                <a href={`tel:${objekt.telefon}`} className="text-primary hover:underline">
-                  {objekt.telefon}
-                </a>
-              ) : (
-                '—'
+          <div className="flex gap-4">
+            {/* Bild links */}
+            <div className="shrink-0">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="relative block h-24 w-24 sm:h-32 sm:w-32 overflow-hidden rounded-2xl border border-border/60 bg-muted transition hover:opacity-90"
+                aria-label={objekt.bild_url ? 'Bild ändern' : 'Bild hochladen'}
+              >
+                {objekt.bild_url ? (
+                  <img src={objekt.bild_url} alt={objekt.name} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-muted-foreground">
+                    <ImageOff className="h-6 w-6" />
+                    <span className="text-[10px]">Kein Bild</span>
+                  </div>
+                )}
+                {uploading ? (
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm">
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  </div>
+                ) : (
+                  <div className="absolute bottom-1 right-1 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground shadow">
+                    <Camera className="h-3.5 w-3.5" />
+                  </div>
+                )}
+              </button>
+              {objekt.bild_url && (
+                <button
+                  type="button"
+                  onClick={handleRemove}
+                  disabled={uploading}
+                  className="mt-2 flex w-full items-center justify-center gap-1 text-[11px] text-muted-foreground hover:text-destructive transition"
+                >
+                  <Trash2 className="h-3 w-3" />
+                  Entfernen
+                </button>
               )}
-            </InfoRow>
-            {objekt.notizen && (
-              <InfoRow icon={<StickyNote className="h-4 w-4" />} label="Notizen">
-                <span className="whitespace-pre-wrap">{objekt.notizen}</span>
-              </InfoRow>
-            )}
-          </dl>
+            </div>
+
+            {/* Stammdaten rechts */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-3">
+                <Building2 className="h-4 w-4 text-primary" />
+                <h2 className="font-display text-base font-bold">Stammdaten</h2>
+              </div>
+
+              <dl className="space-y-3 text-sm">
+                <InfoRow icon={<MapPin className="h-4 w-4" />} label="Adresse">
+                  {[objekt.strasse, [objekt.plz, objekt.ort].filter(Boolean).join(' ')]
+                    .filter(Boolean)
+                    .join(', ') || '—'}
+                </InfoRow>
+                <InfoRow icon={<User className="h-4 w-4" />} label="Ansprechpartner">
+                  {objekt.ansprechpartner || '—'}
+                </InfoRow>
+                <InfoRow icon={<Phone className="h-4 w-4" />} label="Telefon">
+                  {objekt.telefon ? (
+                    <a href={`tel:${objekt.telefon}`} className="text-primary hover:underline">
+                      {objekt.telefon}
+                    </a>
+                  ) : (
+                    '—'
+                  )}
+                </InfoRow>
+                {objekt.notizen && (
+                  <InfoRow icon={<StickyNote className="h-4 w-4" />} label="Notizen">
+                    <span className="whitespace-pre-wrap">{objekt.notizen}</span>
+                  </InfoRow>
+                )}
+              </dl>
+            </div>
+          </div>
         </div>
       </div>
     </MainLayout>
