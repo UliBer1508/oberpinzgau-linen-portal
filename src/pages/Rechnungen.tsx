@@ -103,84 +103,132 @@ export default function Rechnungen() {
                 </p>
               </div>
             ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Rechnungsnummer</TableHead>
-                      <TableHead>Datum</TableHead>
-                      <TableHead>Kunde</TableHead>
-                      <TableHead className="text-right">Betrag</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredRechnungen.map((rechnung) => {
-                      const getRowClassName = (status: RechnungStatus) => {
-                        switch (status) {
-                          case 'offen':
-                            return 'bg-status-pending/10 hover:bg-status-pending/20';
-                          case 'mahnung':
-                            return 'bg-destructive/10 hover:bg-destructive/20';
-                          case 'bezahlt':
-                            return 'bg-status-delivered/10 hover:bg-status-delivered/20';
-                          case 'storniert':
-                            return 'bg-muted/50 hover:bg-muted/70';
-                          default:
-                            return '';
-                        }
-                      };
-
-                      return (
-                        <TableRow
-                          key={rechnung.id}
-                          className={`cursor-pointer ${getRowClassName(rechnung.status)}`}
-                          onClick={() => navigate(`/rechnungen/${rechnung.id}`)}
-                          role="button"
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault();
-                              navigate(`/rechnungen/${rechnung.id}`);
-                            }
-                          }}
-                        >
-                        <TableCell className="font-medium">
-                          {rechnung.rechnungsnummer}
-                        </TableCell>
-                        <TableCell>
-                          {format(new Date(rechnung.rechnungsdatum), 'dd.MM.yyyy', {
-                            locale: de,
-                          })}
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">{rechnung.kunde_name}</p>
-                            {rechnung.kunde_firma && (
-                              <p className="text-sm text-muted-foreground">
-                                {rechnung.kunde_firma}
-                              </p>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
-                          {formatCurrency(rechnung.bruttobetrag)}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
+              <>
+                {/* Mobile: kompakte Listen-Ansicht */}
+                <div className="md:hidden -mx-6 divide-y divide-border/60 border-y">
+                  {filteredRechnungen.map((rechnung) => {
+                    const getRowClassName = (status: RechnungStatus) => {
+                      switch (status) {
+                        case 'offen': return 'bg-status-pending/10';
+                        case 'mahnung': return 'bg-destructive/10';
+                        case 'bezahlt': return 'bg-status-delivered/10';
+                        case 'storniert': return 'bg-muted/50';
+                        default: return '';
+                      }
+                    };
+                    return (
+                      <button
+                        key={rechnung.id}
+                        onClick={() => navigate(`/rechnungen/${rechnung.id}`)}
+                        className={`w-full text-left p-3 ${getRowClassName(rechnung.status)}`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-mono text-sm font-medium text-primary truncate">
+                            {rechnung.rechnungsnummer}
+                          </span>
+                          <div className="flex items-center gap-1.5 shrink-0">
                             <StatusBadge status={rechnung.status} />
                             <OverdueBadge
                               faelligkeitsdatum={rechnung.faelligkeitsdatum}
                               status={rechnung.status}
                             />
                           </div>
-                        </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
+                        </div>
+                        <div className="mt-1 flex items-center justify-between gap-2">
+                          <span className="text-xs text-muted-foreground truncate min-w-0">
+                            {format(new Date(rechnung.rechnungsdatum), 'dd.MM.yyyy', { locale: de })}
+                            {' · '}
+                            <span className="text-foreground font-medium">{rechnung.kunde_firma || rechnung.kunde_name}</span>
+                          </span>
+                          <span className="font-semibold text-sm shrink-0">
+                            {formatCurrency(rechnung.bruttobetrag)}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Desktop: volle Tabelle */}
+                <div className="hidden md:block rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Rechnungsnummer</TableHead>
+                        <TableHead>Datum</TableHead>
+                        <TableHead>Kunde</TableHead>
+                        <TableHead className="text-right">Betrag</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredRechnungen.map((rechnung) => {
+                        const getRowClassName = (status: RechnungStatus) => {
+                          switch (status) {
+                            case 'offen':
+                              return 'bg-status-pending/10 hover:bg-status-pending/20';
+                            case 'mahnung':
+                              return 'bg-destructive/10 hover:bg-destructive/20';
+                            case 'bezahlt':
+                              return 'bg-status-delivered/10 hover:bg-status-delivered/20';
+                            case 'storniert':
+                              return 'bg-muted/50 hover:bg-muted/70';
+                            default:
+                              return '';
+                          }
+                        };
+
+                        return (
+                          <TableRow
+                            key={rechnung.id}
+                            className={`cursor-pointer ${getRowClassName(rechnung.status)}`}
+                            onClick={() => navigate(`/rechnungen/${rechnung.id}`)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                navigate(`/rechnungen/${rechnung.id}`);
+                              }
+                            }}
+                          >
+                          <TableCell className="font-medium">
+                            {rechnung.rechnungsnummer}
+                          </TableCell>
+                          <TableCell>
+                            {format(new Date(rechnung.rechnungsdatum), 'dd.MM.yyyy', {
+                              locale: de,
+                            })}
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{rechnung.kunde_name}</p>
+                              {rechnung.kunde_firma && (
+                                <p className="text-sm text-muted-foreground">
+                                  {rechnung.kunde_firma}
+                                </p>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            {formatCurrency(rechnung.bruttobetrag)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <StatusBadge status={rechnung.status} />
+                              <OverdueBadge
+                                faelligkeitsdatum={rechnung.faelligkeitsdatum}
+                                status={rechnung.status}
+                              />
+                            </div>
+                          </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
