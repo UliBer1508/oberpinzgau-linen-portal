@@ -291,39 +291,74 @@ const NeuesWaescheSet = () => {
                   {Object.entries(artikelByKategorie).map(([kategorie, arts]) => (
                     <div key={kategorie}>
                       <h4 className="font-medium text-sm text-muted-foreground mb-3">{kategorie}</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div className="space-y-2">
                         {arts.map(art => {
                           const inSet = pendingArtikel.find(p => p.artikel_id === art.id);
                           return (
-                            <button
+                            <div
                               key={art.id}
-                              onClick={() => addArtikel(art)}
-                              className={`flex items-center gap-3 p-3 rounded-lg border text-left transition-all hover:shadow-md ${
-                                inSet ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
+                              className={`rounded-md border transition ${
+                                inSet ? 'border-primary bg-primary/5' : 'border-border'
                               }`}
                             >
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium truncate">{art.name}</span>
-                                  {inSet && (
-                                    <Badge variant="secondary" className="shrink-0">
-                                      {inSet.menge}×
-                                    </Badge>
-                                  )}
+                              <button
+                                type="button"
+                                onClick={() => !inSet && addArtikel(art)}
+                                className="w-full flex items-center gap-2 p-3 text-left min-h-14"
+                              >
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium text-sm truncate">{art.name}</div>
+                                  <div className="flex items-center gap-1.5 mt-0.5">
+                                    <span className="text-[11px] text-muted-foreground">{art.artikelnummer}</span>
+                                    {art.farbe && (
+                                      <Badge variant="outline" className={`text-[10px] px-1 ${getFarbStyle(art.farbe)}`}>
+                                        {art.farbe}
+                                      </Badge>
+                                    )}
+                                  </div>
                                 </div>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <span className="text-xs text-muted-foreground">{art.artikelnummer}</span>
-                                  {art.farbe && (
-                                    <Badge variant="outline" className={`text-xs ${getFarbStyle(art.farbe)}`}>
-                                      {art.farbe}
-                                    </Badge>
-                                  )}
+                                <span className="text-xs font-medium shrink-0">{formatPreis(art.preis)}</span>
+                              </button>
+
+                              {inSet && (
+                                <div className="px-3 pb-3 pt-0 space-y-2 border-t border-primary/20">
+                                  <div className="flex items-center justify-between gap-2 pt-2">
+                                    <div className="flex items-center gap-1">
+                                      <Button type="button" variant="outline" size="icon" className="h-10 w-10" onClick={() => updateMenge(art.id, -1)}>
+                                        <Minus className="h-4 w-4" />
+                                      </Button>
+                                      <span className="w-10 text-center text-base font-semibold">{inSet.menge}</span>
+                                      <Button type="button" variant="outline" size="icon" className="h-10 w-10" onClick={() => updateMenge(art.id, 1)}>
+                                        <Plus className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                    <Button type="button" variant="ghost" size="icon" className="h-10 w-10 text-destructive hover:text-destructive" onClick={() => removeArtikel(art.id)} aria-label="Entfernen">
+                                      <X className="h-5 w-5" />
+                                    </Button>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-1 rounded-md bg-muted p-1">
+                                    <Button
+                                      type="button"
+                                      variant={inSet.berechnungsart === 'pro_buchung' ? 'default' : 'ghost'}
+                                      size="sm"
+                                      className="h-10 text-sm"
+                                      onClick={() => inSet.berechnungsart !== 'pro_buchung' && toggleBerechnungsart(art.id)}
+                                    >
+                                      <Calendar className="h-4 w-4 mr-1.5" /> Pro Buchung
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant={inSet.berechnungsart === 'pro_gast' ? 'default' : 'ghost'}
+                                      size="sm"
+                                      className="h-10 text-sm"
+                                      onClick={() => inSet.berechnungsart !== 'pro_gast' && toggleBerechnungsart(art.id)}
+                                    >
+                                      <Users className="h-4 w-4 mr-1.5" /> Pro Gast
+                                    </Button>
+                                  </div>
                                 </div>
-                              </div>
-                              <div className="text-right shrink-0">
-                                <span className="text-sm font-medium">{formatPreis(art.preis)}</span>
-                              </div>
-                            </button>
+                              )}
+                            </div>
                           );
                         })}
                       </div>
