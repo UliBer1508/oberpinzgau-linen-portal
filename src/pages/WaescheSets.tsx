@@ -13,8 +13,21 @@ export default function WaescheSets() {
   const { data: kunde, isLoading: kundeLoading } = useKunde();
   const { data: waescheSets = [], isLoading: setsLoading } = useWaescheSets(kunde?.id);
   const { data: artikel = [] } = useWaescheArtikel();
-  
+  const { data: objekte = [] } = useObjekte(kunde?.id);
+  const setSchnellbestellung = useSetSchnellbestellungSet();
+
   const isLoading = kundeLoading || setsLoading;
+
+  const handleToggleSchnell = async (setId: string, objektId: string, isActive: boolean) => {
+    try {
+      await setSchnellbestellung.mutateAsync({ objektId, setId: isActive ? null : setId });
+      toast({
+        title: isActive ? 'Schnellbestellung entfernt' : 'Als Schnellbestellung gesetzt',
+      });
+    } catch (e: any) {
+      toast({ title: 'Fehler', description: e?.message ?? 'Konnte nicht gespeichert werden.', variant: 'destructive' });
+    }
+  };
 
   const handleEdit = (setId: string) => {
     toast({
