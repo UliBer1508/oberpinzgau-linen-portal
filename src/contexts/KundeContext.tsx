@@ -20,10 +20,27 @@ export function KundeProvider({ children }: { children: React.ReactNode }) {
     queryKey: ['current_kunde', user?.id],
     queryFn: async () => {
       if (!user) return null;
+
+      // Ziel-DB: kunden hat KEIN auth_user_id. Verknüpfung läuft über Email
+      // (optional via profiles.email, fallback auf auth.user.email).
+      let email: string | null = user.email ?? null;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (profile?.email) email = profile.email;
+
+      if (!email) return null;
+
       const { data, error } = await supabase
         .from('kunden')
         .select('*')
-        .eq('auth_user_id', user.id)
+        .eq('email', email)
+        .eq('aktiv', true)
+        .order('created_at', { ascending: true })
+        .limit(1)
         .maybeSingle();
       if (error) throw error;
       return (data as unknown as Kunde) ?? null;
