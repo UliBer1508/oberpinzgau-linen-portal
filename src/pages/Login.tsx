@@ -30,9 +30,18 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [vorname, setVorname] = useState('');
   const [nachname, setNachname] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    const saved = localStorage.getItem('login_email');
+    if (saved) {
+      setEmail(saved);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +56,11 @@ export default function Login() {
     if (error) {
       toast({ title: 'Anmeldung fehlgeschlagen', description: error, variant: 'destructive' });
       return;
+    }
+    if (rememberMe) {
+      localStorage.setItem('login_email', parsed.data.email);
+    } else {
+      localStorage.removeItem('login_email');
     }
     toast({ title: 'Willkommen zurück!' });
     navigate('/dashboard');
