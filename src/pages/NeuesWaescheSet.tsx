@@ -68,6 +68,11 @@ const NeuesWaescheSet = () => {
     return `${baseName} ${count + 1}`;
   }, [kunde, selectedObjekt, existingSets, selectedObjektId]);
 
+  // Vorschlag übernehmen, solange Nutzer das Feld nicht selbst bearbeitet hat
+  useEffect(() => {
+    if (!setNameTouched) setSetName(autoSetName);
+  }, [autoSetName, setNameTouched]);
+
   // Artikel nach Kategorie gruppieren
   const artikelByKategorie = useMemo(() => {
     if (!artikel) return {};
