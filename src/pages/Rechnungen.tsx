@@ -29,6 +29,7 @@ import { useKundeContext } from '@/contexts/KundeContext';
 import type { RechnungStatus } from '@/types/database';
 
 export default function Rechnungen() {
+  const navigate = useNavigate();
   const { selectedKundeId } = useKundeContext();
   const { data: rechnungen = [], isLoading } = useRechnungen(selectedKundeId);
   const [search, setSearch] = useState('');
