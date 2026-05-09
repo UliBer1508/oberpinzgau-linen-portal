@@ -38,22 +38,22 @@ export function StatCard({
   return (
     <div
       className={cn(
-        'group rounded-2xl border border-border/60 bg-card p-5 shadow-card transition-all hover:shadow-soft hover:-translate-y-0.5',
+        'group rounded-2xl border border-border/60 bg-card p-3 sm:p-5 shadow-card transition-all hover:shadow-soft hover:-translate-y-0.5',
         onClick && 'cursor-pointer',
         className
       )}
       onClick={onClick}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      <div className="flex items-start justify-between gap-2 sm:gap-4">
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] sm:text-xs font-medium uppercase tracking-wide text-muted-foreground leading-tight">
             {title}
           </p>
-          <p className="mt-2 font-display text-3xl font-bold text-card-foreground">
+          <p className="mt-1 sm:mt-2 font-display text-2xl sm:text-3xl font-bold text-card-foreground">
             {value}
           </p>
           {subtitle && (
-            <p className="mt-1 text-sm text-muted-foreground truncate">{subtitle}</p>
+            <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-muted-foreground truncate">{subtitle}</p>
           )}
           {trend && (
             <p
@@ -69,7 +69,7 @@ export function StatCard({
         </div>
         <div
           className={cn(
-            'flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-transform group-hover:scale-110',
+            'flex h-9 w-9 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl transition-transform group-hover:scale-110',
             variantStyles[variant]
           )}
         >
