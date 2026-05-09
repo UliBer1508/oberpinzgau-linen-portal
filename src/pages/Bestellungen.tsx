@@ -102,34 +102,35 @@ export default function Bestellungen() {
   }
 
   return (
-    <MainLayout 
-      title="Bestellungen" 
-      subtitle="Verwalten Sie Ihre Wäschebestellungen"
+    <MainLayout
+      title="Bestellungen"
+      subtitle="Ihre Wäschebestellungen"
       actions={
-        <Button variant="hero" onClick={() => navigate('/bestellungen/neu')}>
+        <Button variant="hero" size="sm" className="rounded-2xl" onClick={() => navigate('/bestellungen/neu')}>
           <Plus className="h-4 w-4" />
-          Neue Bestellung
+          <span className="hidden sm:inline">Neue Bestellung</span>
         </Button>
       }
     >
       {/* Filters */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative flex-1 max-w-md">
+      <div className="mb-4 flex flex-col gap-3">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Bestellungen durchsuchen..."
+            placeholder="Suchen…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pl-10 rounded-2xl"
           />
         </div>
-        
-        <div className="flex flex-wrap gap-2">
+
+        <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 -mx-1 px-1">
           {statusFilters.map((filter) => (
             <Button
               key={filter.value}
               variant={statusFilter === filter.value ? 'default' : 'outline'}
               size="sm"
+              className="rounded-full shrink-0"
               onClick={() => setStatusFilter(filter.value)}
             >
               {filter.label}
@@ -139,79 +140,80 @@ export default function Bestellungen() {
       </div>
 
       {/* Orders Table */}
-      <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
+      <div className="rounded-2xl border border-border/60 bg-card shadow-card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">
+                <th className="px-3 md:px-6 py-3 text-left font-medium text-muted-foreground">
                   Bestellung
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">
+                <th className="hidden sm:table-cell px-3 md:px-6 py-3 text-left font-medium text-muted-foreground">
                   Objekt
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">
+                <th className="px-3 md:px-6 py-3 text-left font-medium text-muted-foreground">
                   Status
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">
+                <th className="hidden md:table-cell px-3 md:px-6 py-3 text-left font-medium text-muted-foreground">
                   Artikel
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">
+                <th className="hidden lg:table-cell px-3 md:px-6 py-3 text-left font-medium text-muted-foreground">
                   Lieferdatum
                 </th>
-                <th className="px-6 py-4 text-right text-sm font-medium text-muted-foreground">
+                <th className="px-3 md:px-6 py-3 text-right font-medium text-muted-foreground">
                   Summe
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">
+                <th className="hidden md:table-cell px-3 md:px-6 py-3 text-left font-medium text-muted-foreground">
                   Rechnung
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filteredBestellungen.map((bestellung, index) => (
-                <tr 
+                <tr
                   key={bestellung.id}
                   className={`hover:bg-muted/50 transition-colors cursor-pointer animate-slide-up ${getStatusRowColor(bestellung.status)}`}
                   style={{ animationDelay: `${index * 0.05}s` }}
                   onClick={() => navigate(`/bestellungen/${bestellung.id}`)}
                 >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                        <ShoppingCart className="h-5 w-5 text-primary" />
+                  <td className="px-3 md:px-6 py-3">
+                    <div className="flex items-center gap-2 md:gap-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                        <ShoppingCart className="h-4 w-4 text-primary" />
                       </div>
-                      <div>
-                        <p className="font-medium text-card-foreground">
+                      <div className="min-w-0">
+                        <p className="font-medium text-card-foreground truncate">
                           #{bestellung.bestellnummer || bestellung.id.slice(-4).toUpperCase()}
                         </p>
-                        <p className="text-sm text-muted-foreground">
-                          {format(new Date(bestellung.created_at), 'dd.MM.yyyy HH:mm', { locale: de })}
+                        <p className="text-xs text-muted-foreground truncate">
+                          {format(new Date(bestellung.created_at), 'dd.MM.yy', { locale: de })}
+                          <span className="sm:hidden"> · {bestellung.objekt?.name || '—'}</span>
                         </p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="hidden sm:table-cell px-3 md:px-6 py-3">
                     <p className="font-medium text-card-foreground">{bestellung.objekt?.name || '—'}</p>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 md:px-6 py-3">
                     <StatusBadge status={bestellung.status} />
                   </td>
-                  <td className="px-6 py-4 text-muted-foreground">
-                    {bestellung.positionen?.length || 0} Positionen
+                  <td className="hidden md:table-cell px-3 md:px-6 py-3 text-muted-foreground">
+                    {bestellung.positionen?.length || 0} Pos.
                   </td>
-                  <td className="px-6 py-4 text-muted-foreground">
-                    {bestellung.lieferdatum 
+                  <td className="hidden lg:table-cell px-3 md:px-6 py-3 text-muted-foreground">
+                    {bestellung.lieferdatum
                       ? format(new Date(bestellung.lieferdatum), 'dd.MM.yyyy', { locale: de })
                       : '—'
                     }
                   </td>
-                  <td className="px-6 py-4 text-right font-medium text-card-foreground">
+                  <td className="px-3 md:px-6 py-3 text-right font-semibold text-card-foreground whitespace-nowrap">
                     €{calculateTotal(bestellung.positionen).toFixed(2)}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="hidden md:table-cell px-3 md:px-6 py-3">
                     {bestellung.rechnung ? (
-                      <Badge 
-                        variant="outline" 
+                      <Badge
+                        variant="outline"
                         className="bg-status-delivered/10 text-status-delivered border-status-delivered/30"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -235,14 +237,20 @@ export default function Bestellungen() {
         </div>
 
         {filteredBestellungen.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <ShoppingCart className="h-12 w-12 text-muted-foreground/50" />
-            <p className="mt-4 text-lg font-medium text-muted-foreground">
+          <div className="flex flex-col items-center justify-center py-12 text-center px-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-muted">
+              <ShoppingCart className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <p className="mt-4 text-base font-medium text-foreground">
               Keine Bestellungen gefunden
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Passen Sie Ihre Filter an oder erstellen Sie eine neue Bestellung.
+              Filter anpassen oder neue Bestellung erstellen.
             </p>
+            <Button variant="hero" size="sm" className="mt-4 rounded-2xl" onClick={() => navigate('/bestellungen/neu')}>
+              <Plus className="h-4 w-4" />
+              Neue Bestellung
+            </Button>
           </div>
         )}
       </div>
