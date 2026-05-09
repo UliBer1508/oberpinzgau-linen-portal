@@ -59,11 +59,11 @@ export default function RechnungDetail() {
       title={`Rechnung ${rechnung.rechnungsnummer}`}
       subtitle={`vom ${format(new Date(rechnung.rechnungsdatum), 'dd. MMMM yyyy', { locale: de })}`}
       actions={
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" asChild>
             <Link to="/rechnungen">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Zurück
+              <ArrowLeft className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Zurück</span>
             </Link>
           </Button>
           <StatusBadge status={rechnung.status} />
@@ -72,12 +72,12 @@ export default function RechnungDetail() {
             status={rechnung.status} 
           />
           <Button variant="outline" size="sm">
-            <Printer className="mr-2 h-4 w-4" />
-            Drucken
+            <Printer className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Drucken</span>
           </Button>
           <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            PDF
+            <Download className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">PDF</span>
           </Button>
         </div>
       }
