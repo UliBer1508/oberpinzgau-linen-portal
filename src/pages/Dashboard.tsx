@@ -128,7 +128,7 @@ export default function Dashboard() {
       <div className="mt-4 md:mt-8 grid gap-4 md:gap-6 lg:grid-cols-3">
         {/* Recent Orders */}
         <div className="lg:col-span-2 rounded-2xl border border-border/60 bg-card shadow-card overflow-hidden">
-          <div className="flex items-center justify-between border-b border-border/60 p-5">
+          <div className="flex items-center justify-between border-b border-border/60 p-3 md:p-5">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-info/15 text-info">
                 <ShoppingCart className="h-5 w-5" />
@@ -152,7 +152,7 @@ export default function Dashboard() {
               </Button>
             </div>
           ) : (
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Bestellung</TableHead>
@@ -201,7 +201,7 @@ export default function Dashboard() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </Table></div>
           )}
         </div>
 
@@ -252,7 +252,7 @@ export default function Dashboard() {
 
         {/* Recent Invoices */}
         <div className="lg:col-span-3 rounded-2xl border border-border/60 bg-card shadow-card overflow-hidden">
-          <div className="flex items-center justify-between border-b border-border/60 p-5">
+          <div className="flex items-center justify-between border-b border-border/60 p-3 md:p-5">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-warning/15 text-warning">
                 <FileText className="h-5 w-5" />
@@ -273,7 +273,7 @@ export default function Dashboard() {
               <p className="mt-4 text-muted-foreground">Noch keine Rechnungen</p>
             </div>
           ) : (
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Bestellung</TableHead>
@@ -311,7 +311,7 @@ export default function Dashboard() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </Table></div>
           )}
         </div>
       </div>
