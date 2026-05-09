@@ -304,6 +304,70 @@ export function useCreateWaescheSet() {
   });
 }
 
+// Update existing laundry set (replace name/description and articles)
+export function useUpdateWaescheSet() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: {
+      setId: string;
+      name: string;
+      beschreibung?: string;
+      artikel: { artikelId: string; menge: number; berechnungsart?: 'pro_buchung' | 'pro_gast' }[];
+    }) => {
+      const { error: updErr } = await supabase
+        .from('waeschesets')
+        .update({ name: params.name, beschreibung: params.beschreibung ?? null })
+        .eq('id', params.setId);
+      if (updErr) throw updErr;
+
+      const { error: delErr } = await supabase
+        .from('waescheset_artikel')
+        .delete()
+        .eq('set_id', params.setId);
+      if (delErr) throw delErr;
+
+      if (params.artikel.length > 0) {
+        const rows = params.artikel.map(a => ({
+          set_id: params.setId,
+          artikel_id: a.artikelId,
+          menge: a.menge,
+          berechnungsart: a.berechnungsart || 'pro_buchung',
+        }));
+        const { error: insErr } = await supabase.from('waescheset_artikel').insert(rows);
+        if (insErr) throw insErr;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['waesche_sets'] });
+    },
+  });
+}
+
+// Delete laundry set (and its articles)
+export function useDeleteWaescheSet() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (setId: string) => {
+      const { error: delArtErr } = await supabase
+        .from('waescheset_artikel')
+        .delete()
+        .eq('set_id', setId);
+      if (delArtErr) throw delArtErr;
+
+      const { error: delSetErr } = await supabase
+        .from('waeschesets')
+        .delete()
+        .eq('id', setId);
+      if (delSetErr) throw delSetErr;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['waesche_sets'] });
+    },
+  });
+}
+
 // Rechnung with linked Bestellung
 export interface RechnungMitBestellung extends Rechnung {
   bestellung?: {
