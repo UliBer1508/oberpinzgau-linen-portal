@@ -129,6 +129,11 @@ export default function NeueBestellung() {
     );
   };
 
+  // Artikel komplett entfernen
+  const handleRemoveArtikel = (artikelId: string) => {
+    setOrderItems(prev => prev.filter(item => item.artikel_id !== artikelId));
+  };
+
   // Gesamtpreis berechnen
   const totalPrice = orderItems.reduce((sum, item) => sum + item.preis * item.menge, 0);
 
