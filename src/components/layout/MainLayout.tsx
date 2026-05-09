@@ -1,7 +1,10 @@
 import { ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { UserCog } from 'lucide-react';
 import { AppSidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
 
 interface MainLayoutProps {
   children: ReactNode;
