@@ -20,6 +20,7 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useKunde, useObjekte, useWaescheSets, useBestellungen, useRechnungen, RechnungMitBestellung } from '@/hooks/useSupabaseData';
+import { QuickOrderTiles } from '@/components/QuickOrderTiles';
 import type { RechnungStatus, BestellungStatus } from '@/types/database';
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -243,50 +244,8 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Quick Actions */}
-        <div className="rounded-2xl border border-border/60 bg-gradient-to-br from-primary/5 to-accent/5 p-4 md:p-5 shadow-card">
-          <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="h-5 w-5 text-accent" />
-            <h2 className="font-display text-lg font-bold text-card-foreground">
-              Schnellaktionen
-            </h2>
-          </div>
-          <div className="space-y-2">
-            <Button
-              variant="outline"
-              className="w-full justify-start rounded-2xl bg-card hover:bg-primary/5 hover:border-primary/40"
-              onClick={() => navigate('/bestellungen/neu')}
-            >
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-info/15 text-info">
-                <Plus className="h-4 w-4" />
-              </span>
-              Neue Bestellung
-              <ArrowRight className="h-4 w-4 ml-auto opacity-50" />
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full justify-start rounded-2xl bg-card hover:bg-primary/5 hover:border-primary/40"
-              onClick={() => navigate('/waeschesets')}
-            >
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-accent/15 text-accent">
-                <Package className="h-4 w-4" />
-              </span>
-              Wäschesets verwalten
-              <ArrowRight className="h-4 w-4 ml-auto opacity-50" />
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full justify-start rounded-2xl bg-card hover:bg-primary/5 hover:border-primary/40"
-              onClick={() => navigate('/objekte')}
-            >
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/15 text-primary">
-                <Building2 className="h-4 w-4" />
-              </span>
-              Objekte anzeigen
-              <ArrowRight className="h-4 w-4 ml-auto opacity-50" />
-            </Button>
-          </div>
-        </div>
+        {/* Quick Order Tiles per Objekt */}
+        <QuickOrderTiles objekte={objekte} waescheSets={waescheSets} />
 
         {/* Recent Invoices */}
         <div className="lg:col-span-3 rounded-2xl border border-border/60 bg-card shadow-card overflow-hidden">

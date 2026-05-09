@@ -1,45 +1,83 @@
-# App installierbar machen
+# Schnellbestellung pro Objekt
 
-## Gute Nachricht: Ist bereits eingerichtet ✅
+## Ziel
+Kunde sieht auf dem Dashboard pro Objekt einen großen, finger-/daumenfreundlichen Button mit dem Objektbild als Hintergrund. Tippen → Lieferdatum wählen → "Bestellen". Fertig.
 
-Deine App ist **schon eine PWA** (Progressive Web App) und kann auf jedem Smartphone, Tablet oder Desktop installiert werden – komplett ohne App Store. Das ist in `vite.config.ts` mit `vite-plugin-pwa` konfiguriert (Manifest, Icons 192/512px, Service Worker, Offline-Cache für Supabase).
+## UX-Flow
 
-## So installieren Nutzer die App heute schon
+```text
+Dashboard "Schnellbestellung"
+  ┌──────────────────┐  ┌──────────────────┐
+  │ [Bild Objekt A]  │  │ [Bild Objekt B]  │
+  │   Objekt A       │  │   Objekt B       │
+  │   Standard-Set ✓ │  │   Standard-Set ✓ │
+  └──────────────────┘  └──────────────────┘
+         │
+         ▼ Tap
+  ┌─────────────────────────┐
+  │  Bestellen für Objekt A │
+  │  Set: "Standard"        │
+  │                         │
+  │  Lieferdatum:           │
+  │  [   Kalender   ]       │
+  │                         │
+  │  [ Abbrechen ][Bestellen]│
+  └─────────────────────────┘
+         │
+         ▼
+  Bestellung erstellt → Toast → bleibt auf Dashboard
+```
 
-**Voraussetzung:** Die App muss **veröffentlicht** sein (Publish-Button oben rechts). Im Editor-Preview funktioniert die Installation nicht.
+## Änderungen im Detail
 
-| Gerät | Anleitung |
-|---|---|
-| **iPhone / iPad (Safari)** | Teilen-Symbol ⬆️ → "Zum Home-Bildschirm" |
-| **Android (Chrome)** | Menü ⋮ → "App installieren" / "Zum Startbildschirm hinzufügen" |
-| **Desktop (Chrome/Edge)** | Install-Icon ⊕ in der Adressleiste |
+### 1. Datenbank
+Neues Feld auf `objekte`:
+- `schnellbestellung_set_id uuid NULL` — Verweis auf das Wäscheset, das per Schnellaktion verwendet wird.
 
-Nach der Installation:
-- Eigenes Icon auf dem Home-Screen
-- Vollbild ohne Browser-Leiste
-- Offline-Fähigkeit für bereits geladene Daten (24h Cache)
-- Fühlt sich an wie eine native App
+Kein FK-Constraint (analog bestehendem Stil), nullable.
 
-## Was noch verbessert werden könnte (optional)
+### 2. Wäschesets-Verwaltung
+In `WaescheSets.tsx` (und/oder `WaescheSetFormDialog`):
+- Pro Set ein Schalter/Stern "Als Schnellbestellung für dieses Objekt verwenden".
+- Aktivieren setzt `objekte.schnellbestellung_set_id = set.id`.
+- Anzeige eines Badges "Schnellbestellung" auf dem aktuell gewählten Set.
+- Pro Objekt nur ein Schnellbestellungs-Set.
 
-Aktuell muss der Nutzer selbst wissen, wie man installiert. Wir könnten zusätzlich folgendes einbauen:
+### 3. Dashboard — neue Sektion "Schnellbestellung"
+Ersetzt den bisherigen Block "Schnellaktionen" (Neue Bestellung / Wäschesets verwalten / Objekte anzeigen).
 
-### Option A – Install-Banner (empfohlen)
-Ein dezentes Banner am unteren Bildschirmrand: *"Installiere Wäsche Portal als App"* mit "Installieren"-Button. Nutzt die native `beforeinstallprompt`-API auf Android/Desktop und zeigt iOS-Nutzern eine Anleitung mit dem Teilen-Symbol.
+- Grid: `grid-cols-2 lg:grid-cols-3 gap-3`.
+- Pro Objekt eine große Kachel (min. Höhe ~160 px mobil, 200 px desktop, `rounded-3xl`):
+  - Hintergrund: `objekt.bild_url` (cover, mit dunklem Gradient-Overlay für Lesbarkeit).
+  - Vordergrund: Objektname groß, darunter Set-Name in kleiner Schrift.
+  - Fallback ohne Bild: kräftiger Farbverlauf + `Building2` Icon.
+- Falls Objekt **kein** Schnellbestellungs-Set hat: Kachel zeigt "Set festlegen" und navigiert zu Wäschesets.
+- Eine zusätzliche kleine Aktion: "Andere Bestellung" → `/bestellungen/neu` (bestehender Flow bleibt erhalten).
 
-### Option B – /install-Seite
-Eigene Route `/install` mit großem Button + bebilderter Anleitung pro Gerätetyp. Verlinkbar (z.B. per QR-Code oder E-Mail an Kunden).
+### 4. Schnellbestellungs-Dialog
+Neue Komponente `QuickOrderDialog`:
+- Öffnet beim Tap auf eine Objekt-Kachel.
+- Zeigt: Objektname, gewähltes Set (read-only).
+- **Pflichtfeld**: Lieferdatum (shadcn `Calendar` inline, große Touch-Targets, `pointer-events-auto`).
+- Zwei große Buttons unten: "Abbrechen" (outline) und "Bestellen" (variant `hero`, full width, `h-14`).
+- "Bestellen" ruft `useCreateBestellung` mit:
+  - `objekt_id`
+  - `lieferdatum`
+  - `positionen` aus `waescheset.artikel` (artikel_id + menge wie definiert)
+  - andere optionale Felder leer.
+- Erfolg: Toast + Dialog schließen + Liste der "Aktuellen Bestellungen" aktualisiert sich automatisch (React Query Invalidation ist vorhanden).
 
-### Option C – Beides kombiniert
-Banner für Erstbesucher + dedizierte Seite für gezielte Verlinkung.
+### 5. Dashboard-Aufräumen
+- Den bisherigen "Schnellaktionen"-Block entfernen.
+- Layout der Top-Sektion bleibt (Stats), aber die rechte Spalte "Schnellaktionen" wird zur "Schnellbestellung" und nimmt mobil/Tablet die volle Breite ein.
 
-## Wenn du eine "echte" native App im App Store willst
+## Technische Notizen
+- Migration: `ALTER TABLE objekte ADD COLUMN schnellbestellung_set_id uuid NULL`.
+- `useObjekte` Hook liefert das Feld automatisch (SELECT *), sonst Anpassung.
+- Im Dialog Wäscheset-Daten via bereits vorhandenem `useWaescheSets(kunde.id)` laden und nach `id` filtern.
+- Touch-Größen: Buttons mindestens `h-12`, Kacheln voll-tappbar (`<button>` als Wrapper).
+- Bilder lazy laden (`loading="lazy"`).
 
-Das ist ein anderer Weg (Capacitor + Apple Developer Account 99 €/Jahr + Google Play 25 € einmalig + Mac mit Xcode für iOS). Sag Bescheid, wenn das später relevant wird – die PWA kann jederzeit parallel weiterlaufen.
-
-## Mein Vorschlag
-
-1. Jetzt: App **publishen** (falls noch nicht geschehen) und auf deinem Handy testen
-2. Danach: **Option A (Install-Banner)** umsetzen, damit Kunden nicht raten müssen
-
-Soll ich Option A direkt einbauen?
+## Außerhalb des Scope
+- Keine Änderung am bestehenden mehrstufigen `/bestellungen/neu` Flow (bleibt für komplexere Fälle).
+- Keine Änderung an Rechnungen/Status.
