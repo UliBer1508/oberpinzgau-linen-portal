@@ -110,6 +110,43 @@ export default function Objekte() {
                     <Building2 className="h-6 w-6" />
                   </div>
                 )}
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      disabled={deletingId === objekt.id}
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                      aria-label="Objekt löschen"
+                    >
+                      {deletingId === objekt.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Objekt löschen?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        „{objekt.name}" wird endgültig entfernt. Das geht nur, wenn keine Bestellungen oder Wäschesets mehr daran hängen.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDelete(objekt.id, objekt.name)}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Löschen
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
 
               <h3 className="mt-4 text-lg font-semibold text-card-foreground">
