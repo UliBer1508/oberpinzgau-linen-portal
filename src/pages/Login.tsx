@@ -67,6 +67,7 @@ export default function Login() {
       return;
     }
     toast({ title: 'E-Mail gesendet', description: 'Prüfen Sie Ihr Postfach für den Link zum Zurücksetzen.' });
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
