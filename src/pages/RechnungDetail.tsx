@@ -139,7 +139,51 @@ export default function RechnungDetail() {
               {/* Positionen */}
               <div>
                 <h4 className="mb-4 text-sm font-medium">Rechnungspositionen</h4>
-                <div className="rounded-md border">
+
+                {/* Mobile: Karten-Liste */}
+                <div className="md:hidden space-y-2">
+                  {rechnung.positionen?.map((position) => (
+                    <div key={position.id} className="rounded-lg border p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm truncate">{position.bezeichnung}</p>
+                          <p className="font-mono text-xs text-muted-foreground">{position.artikelnummer}</p>
+                        </div>
+                        <p className="font-semibold text-sm shrink-0">
+                          {formatCurrency(position.gesamtpreis)}
+                        </p>
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {position.menge} × {formatCurrency(position.einzelpreis)}
+                      </p>
+                    </div>
+                  ))}
+
+                  <div className="mt-3 space-y-1.5 rounded-lg border bg-muted/30 p-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Nettobetrag</span>
+                      <span>{formatCurrency(rechnung.nettobetrag)}</span>
+                    </div>
+                    {rechnung.bearbeitungsgebuehr > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Bearbeitungsgebühr</span>
+                        <span>{formatCurrency(rechnung.bearbeitungsgebuehr)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">MwSt. ({rechnung.mwst_satz}%)</span>
+                      <span>{formatCurrency(rechnung.mwst_betrag)}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between font-semibold pt-1">
+                      <span>Bruttobetrag</span>
+                      <span>{formatCurrency(rechnung.bruttobetrag)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Desktop: Tabelle */}
+                <div className="hidden md:block rounded-md border">
                   <Table>
                     <TableHeader>
                       <TableRow>
