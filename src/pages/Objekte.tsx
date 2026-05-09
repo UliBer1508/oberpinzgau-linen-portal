@@ -1,13 +1,47 @@
-import { Building2, MapPin, User, FileText, Loader2, Plus } from 'lucide-react';
+import { Building2, MapPin, User, FileText, Loader2, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useNavigate } from 'react-router-dom';
 import { useKunde, useObjekte } from '@/hooks/useSupabaseData';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { supabase } from '@/integrations/external/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { useState } from 'react';
 
 export default function Objekte() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: kunde, isLoading: kundeLoading } = useKunde();
   const { data: objekte = [], isLoading: objekteLoading } = useObjekte(kunde?.id);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDelete = async (id: string, name: string) => {
+    setDeletingId(id);
+    const { error } = await supabase.from('objekte').delete().eq('id', id);
+    setDeletingId(null);
+    if (error) {
+      const msg = error.message ?? '';
+      if (msg.toLowerCase().includes('foreign key') || msg.includes('violates')) {
+        toast.error(`„${name}" hat noch verknüpfte Bestellungen oder Sets.`);
+      } else {
+        toast.error('Löschen fehlgeschlagen: ' + msg);
+      }
+      return;
+    }
+    toast.success(`„${name}" gelöscht`);
+    queryClient.invalidateQueries({ queryKey: ['objekte'] });
+  };
   
   const isLoading = kundeLoading || objekteLoading;
 
