@@ -361,21 +361,20 @@ export default function NeueBestellung() {
                     {items.map((art) => {
                       const inOrder = orderItems.find(item => item.artikel_id === art.id);
                       return (
-                        <button
+                        <div
                           key={art.id}
-                          onClick={() => handleAddArtikel(art)}
                           className={cn(
-                            "flex items-center gap-3 p-3 rounded-lg border text-left transition-all hover:shadow-md",
+                            "flex items-center gap-3 p-3 rounded-lg border transition-all",
                             inOrder
-                              ? 'border-primary bg-primary/5' 
-                              : 'border-border hover:border-primary/50'
+                              ? 'border-primary bg-primary/5'
+                              : 'border-border'
                           )}
                         >
                           {/* Artikel-Bild oder Platzhalter */}
                           {art.bild_url ? (
-                            <img 
-                              src={art.bild_url} 
-                              alt={art.name} 
+                            <img
+                              src={art.bild_url}
+                              alt={art.name}
                               className="w-12 h-12 rounded object-cover shrink-0"
                             />
                           ) : (
@@ -383,18 +382,9 @@ export default function NeueBestellung() {
                               <Package className="h-5 w-5 text-muted-foreground" />
                             </div>
                           )}
-                          
+
                           <div className="flex-1 min-w-0">
-                            {/* Name mit Menge-Badge wenn bereits in Bestellung */}
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-sm truncate">{art.name}</span>
-                              {inOrder && (
-                                <Badge variant="secondary" className="shrink-0">
-                                  {inOrder.menge}×
-                                </Badge>
-                              )}
-                            </div>
-                            {/* Artikelnummer + Farbe */}
+                            <div className="font-medium text-sm truncate">{art.name}</div>
                             <div className="flex items-center gap-2 mt-1">
                               <span className="text-xs text-muted-foreground">{art.artikelnummer}</span>
                               {art.farbe && (
@@ -403,13 +393,45 @@ export default function NeueBestellung() {
                                 </Badge>
                               )}
                             </div>
+                            <div className="text-xs text-muted-foreground mt-1">{formatPreis(art.preis)}</div>
                           </div>
-                          
-                          {/* Preis */}
-                          <div className="text-right shrink-0">
-                            <span className="text-sm font-medium">{formatPreis(art.preis)}</span>
-                          </div>
-                        </button>
+
+                          {/* Mengen-Steuerung */}
+                          {inOrder ? (
+                            <div className="flex items-center gap-1 shrink-0">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => handleQuantityChange(art.id, -1)}
+                              >
+                                <Minus className="h-3.5 w-3.5" />
+                              </Button>
+                              <span className="min-w-[2rem] text-center font-medium text-sm">{inOrder.menge}</span>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => handleQuantityChange(art.id, 1)}
+                              >
+                                <Plus className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="shrink-0"
+                              onClick={() => handleAddArtikel(art)}
+                            >
+                              <Plus className="h-4 w-4" />
+                              {anzahlPersonen}
+                            </Button>
+                          )}
+                        </div>
                       );
                     })}
                   </div>
