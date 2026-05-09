@@ -385,80 +385,15 @@ const NeuesWaescheSet = () => {
                   Noch keine Artikel hinzugefügt
                 </p>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {pendingArtikel.map(art => (
-                    <div key={art.id} className="border rounded-lg p-3 space-y-2">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="font-medium text-sm truncate">{art.artikelName}</p>
-                          <p className="text-xs text-muted-foreground">{art.artikelNummer}</p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 shrink-0"
-                          onClick={() => removeArtikel(art.artikel_id)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-
-                      {/* Menge */}
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">Menge:</span>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => updateMenge(art.artikel_id, -1)}
-                          >
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span className="w-8 text-center text-sm font-medium">{art.menge}</span>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => updateMenge(art.artikel_id, 1)}
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Berechnungsart */}
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">Berechnung:</span>
-                        <div className="flex gap-1">
-                          <Button
-                            variant={art.berechnungsart === 'pro_buchung' ? 'default' : 'outline'}
-                            size="sm"
-                            className="h-6 text-xs px-2"
-                            onClick={() => art.berechnungsart !== 'pro_buchung' && toggleBerechnungsart(art.artikel_id)}
-                          >
-                            <Calendar className="h-3 w-3 mr-1" />
-                            Buchung
-                          </Button>
-                          <Button
-                            variant={art.berechnungsart === 'pro_gast' ? 'default' : 'outline'}
-                            size="sm"
-                            className="h-6 text-xs px-2"
-                            onClick={() => art.berechnungsart !== 'pro_gast' && toggleBerechnungsart(art.artikel_id)}
-                          >
-                            <Users className="h-3 w-3 mr-1" />
-                            Gast
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Preis */}
-                      {art.preis && (
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Summe:</span>
-                          <span className="font-medium">{formatPreis(art.menge * art.preis)}</span>
-                        </div>
-                      )}
+                    <div key={art.id} className="flex items-center justify-between gap-2 text-sm">
+                      <span className="truncate flex-1">
+                        <span className="font-medium">{art.menge}×</span> {art.artikelName}
+                      </span>
+                      <Badge variant="outline" className="text-[10px] shrink-0">
+                        {art.berechnungsart === 'pro_gast' ? 'pro Gast' : 'pro Buchung'}
+                      </Badge>
                     </div>
                   ))}
 
@@ -469,8 +404,8 @@ const NeuesWaescheSet = () => {
                     <span className="text-lg">{formatPreis(gesamtpreis)}</span>
                   </div>
 
-                  <Button 
-                    className="w-full mt-4" 
+                  <Button
+                    className="w-full mt-4"
                     size="lg"
                     onClick={handleSubmit}
                     disabled={createWaescheSet.isPending || pendingArtikel.length === 0}
