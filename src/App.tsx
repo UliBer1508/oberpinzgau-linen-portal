@@ -33,7 +33,7 @@ const App = () => (
         <PWAInstallPrompt />
         <BrowserRouter>
           <Routes>
-            <Route path="/login" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             
             <Route path="/dashboard" element={
