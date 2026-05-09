@@ -9,7 +9,6 @@ import {
   Receipt
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { KundenAuswahl } from '@/components/KundenAuswahl';
 import {
   Sidebar,
   SidebarContent,
@@ -20,7 +19,7 @@ import {
   SidebarMenuButton,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarSeparator,
+  
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
@@ -58,15 +57,6 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      {/* Kundenauswahl für Entwicklung */}
-      {!isCollapsed && (
-        <>
-          <div className="py-3">
-            <KundenAuswahl />
-          </div>
-          <SidebarSeparator />
-        </>
-      )}
 
       {/* Navigation */}
       <SidebarContent>
