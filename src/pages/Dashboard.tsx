@@ -1,4 +1,16 @@
-import { ShoppingCart, Package, Building2, Clock, Loader2, FileText } from 'lucide-react';
+import {
+  ShoppingCart,
+  Package,
+  Building2,
+  Clock,
+  Loader2,
+  FileText,
+  Plus,
+  ArrowRight,
+  Wallet,
+  Inbox,
+  Sparkles,
+} from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { StatCard } from '@/components/cards/StatCard';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -80,27 +92,34 @@ export default function Dashboard() {
       }
     >
       {/* Stats Grid */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Aktive Bestellungen"
           value={activeOrders}
+          variant="info"
           icon={<Clock className="h-6 w-6" />}
+          onClick={() => navigate('/bestellungen')}
         />
         <StatCard
           title="Objekte"
           value={objekte.length}
+          variant="primary"
           icon={<Building2 className="h-6 w-6" />}
+          onClick={() => navigate('/objekte')}
         />
         <StatCard
           title="Wäschesets"
           value={waescheSets.length}
+          variant="accent"
           icon={<Package className="h-6 w-6" />}
+          onClick={() => navigate('/waeschesets')}
         />
         <StatCard
           title="Offene Rechnungen"
           value={offeneRechnungen.length}
           subtitle={`€${offenerBetrag.toFixed(2)} offen`}
-          icon={<FileText className="h-6 w-6" />}
+          variant={offeneRechnungen.length > 0 ? 'warning' : 'success'}
+          icon={<Wallet className="h-6 w-6" />}
           onClick={() => navigate('/rechnungen')}
         />
       </div>
@@ -108,19 +127,29 @@ export default function Dashboard() {
       {/* Recent Orders & Quick Actions */}
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
         {/* Recent Orders */}
-        <div className="lg:col-span-2 rounded-xl border border-border bg-card shadow-card">
-          <div className="flex items-center justify-between border-b border-border p-6">
-            <h2 className="text-lg font-semibold text-card-foreground">
-              Aktuelle Bestellungen
-            </h2>
+        <div className="lg:col-span-2 rounded-2xl border border-border/60 bg-card shadow-card overflow-hidden">
+          <div className="flex items-center justify-between border-b border-border/60 p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-info/15 text-info">
+                <ShoppingCart className="h-5 w-5" />
+              </div>
+              <h2 className="font-display text-lg font-bold text-card-foreground">
+                Aktuelle Bestellungen
+              </h2>
+            </div>
             <Button variant="ghost" size="sm" onClick={() => navigate('/bestellungen')}>
-              Alle anzeigen
+              Alle <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
           {recentOrders.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <ShoppingCart className="h-12 w-12 text-muted-foreground/50" />
+            <div className="flex flex-col items-center justify-center py-12 text-center px-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-muted">
+                <Inbox className="h-8 w-8 text-muted-foreground" />
+              </div>
               <p className="mt-4 text-muted-foreground">Noch keine Bestellungen</p>
+              <Button variant="outline" size="sm" className="mt-4" onClick={() => navigate('/bestellungen/neu')}>
+                <Plus className="h-4 w-4" /> Erste Bestellung
+              </Button>
             </div>
           ) : (
             <Table>
@@ -135,7 +164,7 @@ export default function Dashboard() {
               </TableHeader>
               <TableBody>
                 {recentOrders.map((bestellung) => (
-                  <TableRow 
+                  <TableRow
                     key={bestellung.id}
                     className={`cursor-pointer ${getBestellungRowClassName(bestellung.status)}`}
                     onClick={() => navigate(`/bestellungen/${bestellung.id}`)}
@@ -144,7 +173,10 @@ export default function Dashboard() {
                       #{bestellung.bestellnummer || bestellung.id.slice(-8)}
                     </TableCell>
                     <TableCell className="font-medium">
-                      {bestellung.objekt?.name || 'Objekt'}
+                      <span className="inline-flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                        {bestellung.objekt?.name || 'Objekt'}
+                      </span>
                     </TableCell>
                     <TableCell>
                       <StatusBadge status={bestellung.status} />
@@ -154,11 +186,12 @@ export default function Dashboard() {
                     </TableCell>
                     <TableCell>
                       {bestellung.rechnung ? (
-                        <span className={`text-xs font-medium px-2 py-1 rounded ${
-                          bestellung.rechnung.status === 'bezahlt' 
-                            ? 'bg-status-delivered/20 text-status-delivered' 
+                        <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${
+                          bestellung.rechnung.status === 'bezahlt'
+                            ? 'bg-status-delivered/20 text-status-delivered'
                             : 'bg-status-pending/20 text-status-pending'
                         }`}>
+                          {bestellung.rechnung.status === 'bezahlt' ? <Wallet className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
                           {bestellung.rechnung.status === 'bezahlt' ? 'Bezahlt' : 'Offen'}
                         </span>
                       ) : (
@@ -172,19 +205,71 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Recent Invoices */}
-        <div className="lg:col-span-2 rounded-xl border border-border bg-card shadow-card">
-          <div className="flex items-center justify-between border-b border-border p-6">
-            <h2 className="text-lg font-semibold text-card-foreground">
-              Aktuelle Rechnungen
+        {/* Quick Actions */}
+        <div className="rounded-2xl border border-border/60 bg-gradient-to-br from-primary/5 to-accent/5 p-5 shadow-card">
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles className="h-5 w-5 text-accent" />
+            <h2 className="font-display text-lg font-bold text-card-foreground">
+              Schnellaktionen
             </h2>
+          </div>
+          <div className="space-y-2">
+            <Button
+              variant="outline"
+              className="w-full justify-start rounded-2xl bg-card hover:bg-primary/5 hover:border-primary/40"
+              onClick={() => navigate('/bestellungen/neu')}
+            >
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-info/15 text-info">
+                <Plus className="h-4 w-4" />
+              </span>
+              Neue Bestellung
+              <ArrowRight className="h-4 w-4 ml-auto opacity-50" />
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full justify-start rounded-2xl bg-card hover:bg-primary/5 hover:border-primary/40"
+              onClick={() => navigate('/waeschesets')}
+            >
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-accent/15 text-accent">
+                <Package className="h-4 w-4" />
+              </span>
+              Wäschesets verwalten
+              <ArrowRight className="h-4 w-4 ml-auto opacity-50" />
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full justify-start rounded-2xl bg-card hover:bg-primary/5 hover:border-primary/40"
+              onClick={() => navigate('/objekte')}
+            >
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                <Building2 className="h-4 w-4" />
+              </span>
+              Objekte anzeigen
+              <ArrowRight className="h-4 w-4 ml-auto opacity-50" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Recent Invoices */}
+        <div className="lg:col-span-3 rounded-2xl border border-border/60 bg-card shadow-card overflow-hidden">
+          <div className="flex items-center justify-between border-b border-border/60 p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-warning/15 text-warning">
+                <FileText className="h-5 w-5" />
+              </div>
+              <h2 className="font-display text-lg font-bold text-card-foreground">
+                Aktuelle Rechnungen
+              </h2>
+            </div>
             <Button variant="ghost" size="sm" onClick={() => navigate('/rechnungen')}>
-              Alle anzeigen
+              Alle <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
           {recentRechnungen.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <FileText className="h-12 w-12 text-muted-foreground/50" />
+            <div className="flex flex-col items-center justify-center py-12 text-center px-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-muted">
+                <FileText className="h-8 w-8 text-muted-foreground" />
+              </div>
               <p className="mt-4 text-muted-foreground">Noch keine Rechnungen</p>
             </div>
           ) : (
@@ -200,7 +285,7 @@ export default function Dashboard() {
               </TableHeader>
               <TableBody>
                 {recentRechnungen.map((rechnung) => (
-                  <TableRow 
+                  <TableRow
                     key={rechnung.id}
                     className={`cursor-pointer ${getRechnungRowClassName(rechnung.status)}`}
                     onClick={() => navigate(`/rechnungen/${rechnung.id}`)}
@@ -212,9 +297,12 @@ export default function Dashboard() {
                       {rechnung.rechnungsnummer}
                     </TableCell>
                     <TableCell>
-                      {format(new Date(rechnung.rechnungsdatum), 'dd.MM.yyyy', { locale: de })}
+                      <span className="inline-flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        {format(new Date(rechnung.rechnungsdatum), 'dd.MM.yyyy', { locale: de })}
+                      </span>
                     </TableCell>
-                    <TableCell className="text-right font-medium">
+                    <TableCell className="text-right font-semibold">
                       €{(rechnung.bruttobetrag || 0).toFixed(2)}
                     </TableCell>
                     <TableCell>
@@ -225,39 +313,6 @@ export default function Dashboard() {
               </TableBody>
             </Table>
           )}
-        </div>
-
-        {/* Quick Actions */}
-        <div className="rounded-xl border border-border bg-card p-6 shadow-card">
-          <h2 className="text-lg font-semibold text-card-foreground mb-4">
-            Schnellaktionen
-          </h2>
-          <div className="space-y-3">
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => navigate('/bestellungen/neu')}
-            >
-              <ShoppingCart className="h-4 w-4" />
-              Neue Bestellung erstellen
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => navigate('/waeschesets')}
-            >
-              <Package className="h-4 w-4" />
-              Wäscheset verwalten
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => navigate('/objekte')}
-            >
-              <Building2 className="h-4 w-4" />
-              Objekte anzeigen
-            </Button>
-          </div>
         </div>
       </div>
     </MainLayout>
