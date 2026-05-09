@@ -124,13 +124,13 @@ export default function Bestellungen() {
           />
         </div>
 
-        <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+        <div className="flex flex-wrap gap-1.5">
           {statusFilters.map((filter) => (
             <Button
               key={filter.value}
               variant={statusFilter === filter.value ? 'default' : 'outline'}
               size="sm"
-              className="rounded-full shrink-0"
+              className="rounded-full shrink-0 h-8 px-3 text-xs"
               onClick={() => setStatusFilter(filter.value)}
             >
               {filter.label}
