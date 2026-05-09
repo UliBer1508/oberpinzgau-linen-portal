@@ -1,7 +1,8 @@
 import { useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { Printer, Download, Package, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Printer, Download, Package, ArrowRight, ArrowLeft, CreditCard } from 'lucide-react';
+import { toast } from 'sonner';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
