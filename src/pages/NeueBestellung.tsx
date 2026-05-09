@@ -12,9 +12,20 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { CalendarIcon, Plus, Minus, Loader2, Package, ShoppingCart, ArrowLeft, Users, Trash2 } from 'lucide-react';
+import { CalendarIcon, Plus, Minus, Loader2, Package, ShoppingCart, ArrowLeft, Users, Trash2, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useKunde, useObjekte, useWaescheSets, useWaescheArtikel, useCreateBestellung } from '@/hooks/useSupabaseData';
+import { useKunde, useObjekte, useWaescheSets, useWaescheArtikel, useCreateBestellung, useDeleteWaescheSet } from '@/hooks/useSupabaseData';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { WaescheSetFormDialog } from '@/components/waescheset/WaescheSetFormDialog';
 
 // Farb-Styles für Artikel-Badges
 const FARB_STYLES: Record<string, string> = {
