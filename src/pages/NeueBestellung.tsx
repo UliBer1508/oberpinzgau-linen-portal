@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { CalendarIcon, Plus, Minus, Loader2, Package, ShoppingCart, ArrowLeft, Users } from 'lucide-react';
+import { CalendarIcon, Plus, Minus, Loader2, Package, ShoppingCart, ArrowLeft, Users, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useKunde, useObjekte, useWaescheSets, useWaescheArtikel, useCreateBestellung } from '@/hooks/useSupabaseData';
 
