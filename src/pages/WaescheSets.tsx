@@ -181,7 +181,8 @@ export default function WaescheSets() {
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
 
         {/* Add New Set Card */}
         <button
