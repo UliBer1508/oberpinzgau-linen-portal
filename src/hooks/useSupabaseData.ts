@@ -368,7 +368,22 @@ export function useDeleteWaescheSet() {
   });
 }
 
-// Rechnung with linked Bestellung
+// Set the quick-order set for an objekt (one per objekt)
+export function useSetSchnellbestellungSet() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { objektId: string; setId: string | null }) => {
+      const { error } = await supabase
+        .from('objekte')
+        .update({ schnellbestellung_set_id: params.setId })
+        .eq('id', params.objektId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['objekte'] });
+    },
+  });
+}
 export interface RechnungMitBestellung extends Rechnung {
   bestellung?: {
     bestellnummer: string;
