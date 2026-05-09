@@ -141,31 +141,65 @@ export default function Bestellungen() {
 
       {/* Orders Table */}
       <div className="rounded-2xl border border-border/60 bg-card shadow-card overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Mobile list */}
+        <ul className="md:hidden divide-y divide-border">
+          {filteredBestellungen.map((bestellung, index) => (
+            <li
+              key={bestellung.id}
+              className={`px-3 py-3 cursor-pointer active:bg-muted/60 transition-colors animate-slide-up ${getStatusRowColor(bestellung.status)}`}
+              style={{ animationDelay: `${index * 0.04}s` }}
+              onClick={() => navigate(`/bestellungen/${bestellung.id}`)}
+            >
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                  <ShoppingCart className="h-4 w-4 text-primary" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-medium text-card-foreground truncate text-sm">
+                      #{bestellung.bestellnummer || bestellung.id.slice(-4).toUpperCase()}
+                    </p>
+                    <p className="font-semibold text-card-foreground whitespace-nowrap text-sm">
+                      €{calculateTotal(bestellung.positionen).toFixed(2)}
+                    </p>
+                  </div>
+                  <p className="text-xs text-muted-foreground truncate mt-0.5">
+                    {bestellung.objekt?.name || '—'} · {format(new Date(bestellung.created_at), 'dd.MM.yy', { locale: de })}
+                  </p>
+                  <div className="mt-2 flex items-center gap-2 flex-wrap">
+                    <StatusBadge status={bestellung.status} />
+                    {bestellung.rechnung ? (
+                      <Badge
+                        variant="outline"
+                        className="bg-status-delivered/10 text-status-delivered border-status-delivered/30 text-[10px] px-1.5 py-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/rechnungen/${bestellung.rechnung?.id}`);
+                        }}
+                      >
+                        <FileText className="h-3 w-3 mr-1" />
+                        Rechnung
+                      </Badge>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        {/* Desktop table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                <th className="px-3 md:px-6 py-3 text-left font-medium text-muted-foreground">
-                  Bestellung
-                </th>
-                <th className="hidden sm:table-cell px-3 md:px-6 py-3 text-left font-medium text-muted-foreground">
-                  Objekt
-                </th>
-                <th className="px-3 md:px-6 py-3 text-left font-medium text-muted-foreground">
-                  Status
-                </th>
-                <th className="hidden md:table-cell px-3 md:px-6 py-3 text-left font-medium text-muted-foreground">
-                  Artikel
-                </th>
-                <th className="hidden lg:table-cell px-3 md:px-6 py-3 text-left font-medium text-muted-foreground">
-                  Lieferdatum
-                </th>
-                <th className="px-3 md:px-6 py-3 text-right font-medium text-muted-foreground">
-                  Summe
-                </th>
-                <th className="hidden md:table-cell px-3 md:px-6 py-3 text-left font-medium text-muted-foreground">
-                  Rechnung
-                </th>
+                <th className="px-6 py-3 text-left font-medium text-muted-foreground">Bestellung</th>
+                <th className="px-6 py-3 text-left font-medium text-muted-foreground">Objekt</th>
+                <th className="px-6 py-3 text-left font-medium text-muted-foreground">Status</th>
+                <th className="px-6 py-3 text-left font-medium text-muted-foreground">Artikel</th>
+                <th className="hidden lg:table-cell px-6 py-3 text-left font-medium text-muted-foreground">Lieferdatum</th>
+                <th className="px-6 py-3 text-right font-medium text-muted-foreground">Summe</th>
+                <th className="px-6 py-3 text-left font-medium text-muted-foreground">Rechnung</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -176,8 +210,8 @@ export default function Bestellungen() {
                   style={{ animationDelay: `${index * 0.05}s` }}
                   onClick={() => navigate(`/bestellungen/${bestellung.id}`)}
                 >
-                  <td className="px-3 md:px-6 py-3">
-                    <div className="flex items-center gap-2 md:gap-3">
+                  <td className="px-6 py-3">
+                    <div className="flex items-center gap-3">
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
                         <ShoppingCart className="h-4 w-4 text-primary" />
                       </div>
@@ -187,30 +221,29 @@ export default function Bestellungen() {
                         </p>
                         <p className="text-xs text-muted-foreground truncate">
                           {format(new Date(bestellung.created_at), 'dd.MM.yy', { locale: de })}
-                          <span className="sm:hidden"> · {bestellung.objekt?.name || '—'}</span>
                         </p>
                       </div>
                     </div>
                   </td>
-                  <td className="hidden sm:table-cell px-3 md:px-6 py-3">
+                  <td className="px-6 py-3">
                     <p className="font-medium text-card-foreground">{bestellung.objekt?.name || '—'}</p>
                   </td>
-                  <td className="px-3 md:px-6 py-3">
+                  <td className="px-6 py-3">
                     <StatusBadge status={bestellung.status} />
                   </td>
-                  <td className="hidden md:table-cell px-3 md:px-6 py-3 text-muted-foreground">
+                  <td className="px-6 py-3 text-muted-foreground">
                     {bestellung.positionen?.length || 0} Pos.
                   </td>
-                  <td className="hidden lg:table-cell px-3 md:px-6 py-3 text-muted-foreground">
+                  <td className="hidden lg:table-cell px-6 py-3 text-muted-foreground">
                     {bestellung.lieferdatum
                       ? format(new Date(bestellung.lieferdatum), 'dd.MM.yyyy', { locale: de })
                       : '—'
                     }
                   </td>
-                  <td className="px-3 md:px-6 py-3 text-right font-semibold text-card-foreground whitespace-nowrap">
+                  <td className="px-6 py-3 text-right font-semibold text-card-foreground whitespace-nowrap">
                     €{calculateTotal(bestellung.positionen).toFixed(2)}
                   </td>
-                  <td className="hidden md:table-cell px-3 md:px-6 py-3">
+                  <td className="px-6 py-3">
                     {bestellung.rechnung ? (
                       <Badge
                         variant="outline"
