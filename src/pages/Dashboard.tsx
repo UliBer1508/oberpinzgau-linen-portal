@@ -1,4 +1,16 @@
-import { ShoppingCart, Package, Building2, Clock, Loader2, FileText } from 'lucide-react';
+import {
+  ShoppingCart,
+  Package,
+  Building2,
+  Clock,
+  Loader2,
+  FileText,
+  Plus,
+  ArrowRight,
+  Wallet,
+  Inbox,
+  Sparkles,
+} from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { StatCard } from '@/components/cards/StatCard';
 import { StatusBadge } from '@/components/StatusBadge';
