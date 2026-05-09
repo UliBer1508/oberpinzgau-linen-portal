@@ -35,6 +35,15 @@ export function MainLayout({ children, title, subtitle, actions }: MainLayoutPro
                 )}
               </div>
               {actions && <div className="flex items-center gap-2 md:gap-3 shrink-0">{actions}</div>}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden h-10 w-10 rounded-full shrink-0"
+                onClick={() => navigate('/profil')}
+                aria-label="Profil"
+              >
+                <UserCog className="h-5 w-5" />
+              </Button>
             </div>
           </header>
 
