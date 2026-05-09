@@ -267,7 +267,7 @@ const NeuesWaescheSet = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label>Set-Name (automatisch generiert)</Label>
+                  <Label>Set-Name</Label>
                   <Input
                     value={setName}
                     onChange={e => {
