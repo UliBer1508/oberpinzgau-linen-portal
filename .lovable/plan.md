@@ -1,20 +1,17 @@
-# Stats-Bereich ein-/ausklappbar
+# Wäschesets in Mobile Bottom-Nav zurückholen
 
-## Ziel
-Die 4 Statistik-Kacheln oben am Dashboard (Aktive Bestellungen, Objekte, Wäschesets, Offene Rechnungen) sollen ein- und ausklappbar sein, um auf dem Handy mehr Platz für Schnellbestellung und Listen zu haben.
+## Hintergrund
+Beim letzten Update wurde "Sets" in der mobilen Bottom-Nav durch "Profil" ersetzt, weil Profil auf dem Handy ohne Sidebar sonst nicht erreichbar ist. Die Wäschesets sollen aber wieder direkt von unten zugänglich sein.
 
-## Umsetzung
+## Lösung
 
-In `src/pages/Dashboard.tsx`:
+In `src/components/layout/BottomNav.tsx`:
+- "Profil" entfernen, "Sets" (mit `Package`-Icon, Pfad `/waeschesets`) wieder einsetzen.
 
-- Neuen State `statsOpen` (boolean), Default-Wert in `localStorage` persistieren (`dashboard_stats_open`), damit die Wahl nach Reload erhalten bleibt.
-- Über dem Stats-Grid einen kleinen Header-Button einfügen:
-  - Links: Label "Übersicht" mit kleinem Icon.
-  - Rechts: Chevron (`ChevronDown` / `ChevronUp` aus lucide-react), das je nach State rotiert.
-  - Voll klickbar, `h-10`, daumenfreundlich.
-- Stats-Grid in eine `Collapsible` Komponente (shadcn) wickeln, sanft ein-/ausblenden (`animate-accordion-down/up` oder einfache Transition).
-- Wenn eingeklappt: kompakte Zeile mit den 4 Werten als kleine Pills (z. B. „2 Bestellungen · 2 Objekte · 3 Sets · 1 offene Rg."), damit die wichtigsten Zahlen sichtbar bleiben.
+In `src/components/layout/MainLayout.tsx`:
+- Im Header rechts (neben den `actions`) auf mobil einen kleinen runden Profil-Button einblenden (`md:hidden`), der zu `/profil` navigiert. Icon `UserCog`, Größe ~36 px, daumenfreundlich. Auf Desktop bleibt er ausgeblendet, da dort die Sidebar bereits einen Profil-Eintrag hat.
+
+So bleiben sowohl Wäschesets in der Bottom-Nav als auch Profil auf dem Handy erreichbar.
 
 ## Außerhalb des Scope
-- Keine Änderung an Schnellbestellung, aktuellen Bestellungen oder Rechnungen-Tabellen.
-- Keine Datenbank-Änderungen.
+- Keine Änderungen an Sidebar oder Profil-Seite.
