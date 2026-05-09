@@ -437,12 +437,11 @@ export default function NeueBestellung() {
                             <Button
                               type="button"
                               variant="outline"
-                              size="sm"
-                              className="shrink-0"
+                              size="icon"
+                              className="h-8 w-8 shrink-0"
                               onClick={() => handleAddArtikel(art)}
                             >
                               <Plus className="h-4 w-4" />
-                              {anzahlPersonen}
                             </Button>
                           )}
                         </div>
