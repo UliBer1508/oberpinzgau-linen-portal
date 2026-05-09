@@ -85,11 +85,11 @@ export default function RechnungDetail() {
       <div className="space-y-6">
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Rechnungsdetails */}
-          <Card className="lg:col-span-2">
+          <Card className="lg:col-span-2 lg:order-none order-last">
             <CardHeader>
               <CardTitle>Rechnungsdetails</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 px-4 md:px-6">
               {/* Adressen */}
               <div className="grid gap-6 sm:grid-cols-2">
                 <div>
