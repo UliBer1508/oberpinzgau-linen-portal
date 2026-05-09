@@ -369,7 +369,7 @@ export default function NeueBestellung() {
                         <div
                           key={art.id}
                           className={cn(
-                            "flex items-center gap-3 p-3 rounded-lg border transition-all",
+                            "flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border transition-all",
                             inOrder
                               ? 'border-primary bg-primary/5'
                               : 'border-border'
@@ -380,57 +380,57 @@ export default function NeueBestellung() {
                             <img
                               src={art.bild_url}
                               alt={art.name}
-                              className="w-12 h-12 rounded object-cover shrink-0"
+                              className="w-10 h-10 sm:w-12 sm:h-12 rounded object-cover shrink-0"
                             />
                           ) : (
-                            <div className="w-12 h-12 rounded bg-muted flex items-center justify-center shrink-0">
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded bg-muted flex items-center justify-center shrink-0">
                               <Package className="h-5 w-5 text-muted-foreground" />
                             </div>
                           )}
 
                           <div className="flex-1 min-w-0">
                             <div className="font-medium text-sm truncate">{art.name}</div>
-                            <div className="flex items-center gap-2 mt-1">
+                            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                               <span className="text-xs text-muted-foreground">{art.artikelnummer}</span>
                               {art.farbe && (
                                 <Badge variant="outline" className={cn("text-xs px-1.5 py-0", getFarbStyle(art.farbe))}>
                                   {art.farbe}
                                 </Badge>
                               )}
+                              <span className="text-xs text-muted-foreground">· {formatPreis(art.preis)}</span>
                             </div>
-                            <div className="text-xs text-muted-foreground mt-1">{formatPreis(art.preis)}</div>
                           </div>
 
                           {/* Mengen-Steuerung */}
                           {inOrder ? (
-                            <div className="flex items-center gap-1 shrink-0">
+                            <div className="flex items-center gap-0.5 shrink-0">
                               <Button
                                 type="button"
                                 variant="outline"
                                 size="icon"
-                                className="h-8 w-8"
+                                className="h-7 w-7"
                                 onClick={() => handleQuantityChange(art.id, -1)}
                               >
-                                <Minus className="h-3.5 w-3.5" />
+                                <Minus className="h-3 w-3" />
                               </Button>
-                              <span className="min-w-[2rem] text-center font-medium text-sm">{inOrder.menge}</span>
+                              <span className="min-w-[1.5rem] text-center font-medium text-sm">{inOrder.menge}</span>
                               <Button
                                 type="button"
                                 variant="outline"
                                 size="icon"
-                                className="h-8 w-8"
+                                className="h-7 w-7"
                                 onClick={() => handleQuantityChange(art.id, 1)}
                               >
-                                <Plus className="h-3.5 w-3.5" />
+                                <Plus className="h-3 w-3" />
                               </Button>
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 text-destructive hover:text-destructive"
+                                className="h-7 w-7 text-destructive hover:text-destructive"
                                 onClick={() => handleRemoveArtikel(art.id)}
                               >
-                                <Trash2 className="h-3.5 w-3.5" />
+                                <Trash2 className="h-3 w-3" />
                               </Button>
                             </div>
                           ) : (
