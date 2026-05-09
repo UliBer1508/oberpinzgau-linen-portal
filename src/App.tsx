@@ -48,7 +48,7 @@ const App = () => (
               <ProtectedRoute><NeuesObjekt /></ProtectedRoute>
             } />
             <Route path="/objekte/:id" element={
-              <ProtectedRoute><Objekte /></ProtectedRoute>
+              <ProtectedRoute><ObjektDetail /></ProtectedRoute>
             } />
             <Route path="/bestellungen" element={
               <ProtectedRoute><Bestellungen /></ProtectedRoute>
