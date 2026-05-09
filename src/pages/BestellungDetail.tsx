@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useBestellung } from '@/hooks/useSupabaseData';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { BestellungStatus } from '@/integrations/supabase/client';
+import type { BestellungStatus } from '@/types/database';
 
 const statusSteps: { status: BestellungStatus; label: string; icon: typeof Clock }[] = [
   { status: 'neu', label: 'Neu', icon: Clock },

@@ -1,4 +1,4 @@
-import { BestellungStatus, RechnungStatus } from '@/integrations/supabase/client';
+import type { BestellungStatus, RechnungStatus } from '@/types/database';
 import { cn } from '@/lib/utils';
 
 type AllStatus = BestellungStatus | RechnungStatus;
