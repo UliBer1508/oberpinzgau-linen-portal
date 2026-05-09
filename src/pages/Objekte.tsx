@@ -1,4 +1,5 @@
-import { Building2, MapPin, User, FileText, Loader2 } from 'lucide-react';
+import { Building2, MapPin, User, FileText, Loader2, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useNavigate } from 'react-router-dom';
 import { useKunde, useObjekte } from '@/hooks/useSupabaseData';
@@ -26,19 +27,31 @@ export default function Objekte() {
   }
 
   return (
-    <MainLayout 
-      title="Objekte" 
+    <MainLayout
+      title="Objekte"
       subtitle="Übersicht Ihrer Standorte und Objekte"
+      actions={
+        <Button variant="hero" size="sm" className="rounded-2xl" onClick={() => navigate('/objekte/neu')}>
+          <Plus className="h-4 w-4" />
+          <span className="hidden sm:inline">Neues Objekt</span>
+        </Button>
+      }
     >
       {objekte.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <Building2 className="h-12 w-12 text-muted-foreground/50" />
-          <p className="mt-4 text-lg font-medium text-muted-foreground">
-            Keine Objekte gefunden
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-primary/10 text-primary">
+            <Building2 className="h-8 w-8" />
+          </div>
+          <p className="mt-4 text-lg font-medium text-foreground">
+            Noch keine Objekte
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Kontaktieren Sie uns, um Objekte hinzuzufügen.
+            Lege dein erstes Objekt (Wohnung, Haus, Hotel …) an.
           </p>
+          <Button variant="hero" className="mt-4 rounded-2xl" onClick={() => navigate('/objekte/neu')}>
+            <Plus className="h-4 w-4" />
+            Neues Objekt anlegen
+          </Button>
         </div>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
