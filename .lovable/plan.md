@@ -1,19 +1,28 @@
-## Bestellungen-Header im Übersicht-Stil
+## Status-Chips für Bestellungen-Header
 
-Aktuell hat die Bestellungen-Sektion noch einen großen Card-Header mit Icon-Kachel, dickem Rahmen und Border-Bottom. Sie soll – wie „Übersicht" – als schlanke Trigger-Zeile erscheinen.
+Im eingeklappten Zustand der Bestellungen-Sektion sollen – analog zur Übersicht – farbige Chips mit Anzahl pro Status angezeigt werden.
 
-### Änderungen in `src/pages/Dashboard.tsx`
-- Den umschließenden Card-Container (`rounded-2xl border ... bg-card shadow-card`) der Bestellungen-Sektion entfernen
-- Header neu aufbauen analog zu Übersicht:
-  - `Sparkles`-Icon-Stil → `ShoppingCart`-Icon klein (`h-4 w-4`) in Akzentfarbe
-  - Text „Aktuelle Bestellungen" als `text-sm font-medium text-muted-foreground`
-  - Chevron rechts neben Titel (rotiert beim Öffnen)
-  - Im eingeklappten Zustand rechts: Chip „X Best." (info-Farbe) + kleiner „Alle →"-Link
-  - Im ausgeklappten Zustand: nur „Alle →"-Link rechts
-- `CollapsibleContent` bekommt eigene Card-Optik (Rahmen + `rounded-2xl` + `bg-card`), damit die Liste/Tabelle weiterhin als Karte wirkt – nur der Header ist nun frei
-- Bestehende Mobile-Liste und Desktop-Tabelle bleiben inhaltlich unverändert
-- Persistenz (`localStorage` `dashboard.ordersOpen`) bleibt
+### Anzuzeigende Chips
+Aus `recentOrders` (bzw. `bestellungen` für Gesamtbild – siehe Frage unten) werden gezählt:
+- **Neu** → `status === 'neu'` (Farbe: `bg-status-pending/15 text-status-pending`)
+- **In Bearb.** → `status === 'in_bearbeitung'` (Farbe: `bg-status-processing/15 text-status-processing`)
+- **Ausgel.** → `status === 'ausgeliefert'` (Farbe: `bg-status-ready/15 text-status-ready`)
+
+Chips mit Anzahl 0 werden ausgeblendet (wie sinnvoll bei leeren Werten).
+
+### Verhalten
+- Chips erscheinen nur, wenn `ordersOpen === false` (gleicher Mechanismus wie Übersicht-Chips)
+- Der bisherige Gesamt-Chip „X Best." wird durch diese drei spezifischeren Chips ersetzt
+- „Alle →"-Button bleibt rechts daneben
+
+### Datenquelle
+Für aussagekräftige Zahlen werden alle aktiven `bestellungen` ausgewertet (nicht nur die ersten 5 von `recentOrders`), damit der Header den echten Workload zeigt.
+
+### Umsetzung in `src/pages/Dashboard.tsx`
+- Drei `useMemo`-freie Inline-Counts berechnen (`bestellungen.filter(...).length`)
+- Chip-Block im Header analog zu Übersicht (`px-2 py-0.5 rounded-full ... text-xs font-medium`)
+- Keine weiteren strukturellen Änderungen
 
 ### Nicht betroffen
-- Rechnungen-Sektion bleibt unverändert (kein Auftrag dazu)
-- Keine Backend-/Datenänderungen
+- Listen-/Tabelleninhalte
+- Andere Sektionen (Übersicht, Rechnungen)
