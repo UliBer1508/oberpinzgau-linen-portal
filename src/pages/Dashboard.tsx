@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   ShoppingCart,
   Package,
@@ -10,20 +11,32 @@ import {
   Wallet,
   Inbox,
   Sparkles,
+  ChevronDown,
 } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { StatCard } from '@/components/cards/StatCard';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 import { useKunde, useObjekte, useWaescheSets, useBestellungen, useRechnungen, RechnungMitBestellung } from '@/hooks/useSupabaseData';
 import { QuickOrderTiles } from '@/components/QuickOrderTiles';
 import type { RechnungStatus, BestellungStatus } from '@/types/database';
 export default function Dashboard() {
   const navigate = useNavigate();
+  const [statsOpen, setStatsOpen] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    const v = localStorage.getItem('dashboard_stats_open');
+    return v === null ? true : v === 'true';
+  });
+  const handleStatsOpenChange = (open: boolean) => {
+    setStatsOpen(open);
+    try { localStorage.setItem('dashboard_stats_open', String(open)); } catch {}
+  };
   
   const { data: kunde, isLoading: kundeLoading } = useKunde();
   const { data: objekte = [], isLoading: objekteLoading } = useObjekte(kunde?.id);
