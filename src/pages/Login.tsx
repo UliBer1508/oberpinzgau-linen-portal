@@ -141,6 +141,14 @@ export default function Login() {
               <Button type="submit" variant="hero" size="xl" className="w-full" disabled={loading}>
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Anmelden'}
               </Button>
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                className="text-sm text-primary hover:underline w-full text-center"
+                disabled={loading}
+              >
+                Passwort vergessen?
+              </button>
             </form>
           </TabsContent>
 
