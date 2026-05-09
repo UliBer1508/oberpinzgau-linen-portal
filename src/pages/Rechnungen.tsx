@@ -112,7 +112,6 @@ export default function Rechnungen() {
                       <TableHead>Kunde</TableHead>
                       <TableHead className="text-right">Betrag</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Aktionen</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
