@@ -72,10 +72,16 @@ export default function WaescheSets() {
       }
     >
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {waescheSets.map((set, index) => (
+        {waescheSets.map((set, index) => {
+          const objekt = objekte.find(o => o.id === set.objekt_id);
+          const isSchnell = objekt?.schnellbestellung_set_id === set.id;
+          return (
           <div
             key={set.id}
-            className="group rounded-xl border border-border bg-card shadow-card transition-all hover:shadow-elevated animate-slide-up"
+            className={cn(
+              "group rounded-xl border bg-card shadow-card transition-all hover:shadow-elevated animate-slide-up",
+              isSchnell ? "border-accent ring-2 ring-accent/30" : "border-border"
+            )}
             style={{ animationDelay: `${index * 0.1}s` }}
           >
             <div className="p-6">
@@ -83,21 +89,37 @@ export default function WaescheSets() {
                 <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent/10 text-accent">
                   <Package className="h-6 w-6" />
                 </div>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => objekt && handleToggleSchnell(set.id, objekt.id, isSchnell)}
+                    title={isSchnell ? 'Schnellbestellung entfernen' : 'Als Schnellbestellung setzen'}
+                    className={cn(
+                      "flex h-8 w-8 items-center justify-center rounded-md transition-colors",
+                      isSchnell ? "bg-accent text-accent-foreground" : "hover:bg-muted text-muted-foreground"
+                    )}
+                  >
+                    <Zap className="h-4 w-4" />
+                  </button>
                   <button
                     onClick={() => handleEdit(set.id)}
-                    className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted transition-colors"
+                    className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted transition-colors opacity-0 group-hover:opacity-100"
                   >
                     <Edit2 className="h-4 w-4 text-muted-foreground" />
                   </button>
                   <button
                     onClick={() => handleDelete(set.id)}
-                    className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-destructive/10 transition-colors"
+                    className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </button>
                 </div>
               </div>
+
+              {isSchnell && (
+                <Badge variant="outline" className="mt-3 border-accent text-accent">
+                  <Zap className="h-3 w-3 mr-1" /> Schnellbestellung
+                </Badge>
+              )}
 
               <h3 className="mt-4 text-lg font-semibold text-card-foreground">
                 {set.name}
