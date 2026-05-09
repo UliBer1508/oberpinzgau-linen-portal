@@ -365,9 +365,17 @@ export default function NeueBestellung() {
 
           {/* Wäscheset verwalten & auswählen */}
           {(() => {
-            const filteredSets = selectedObjektId
-              ? waescheSets?.filter((s: any) => s.objekt_id === selectedObjektId) ?? []
-              : [];
+            const allSets = waescheSets ?? [];
+            const sortedSets = [...allSets].sort((a: any, b: any) => {
+              const aMatch = selectedObjektId && a.objekt_id === selectedObjektId ? 0 : 1;
+              const bMatch = selectedObjektId && b.objekt_id === selectedObjektId ? 0 : 1;
+              if (aMatch !== bMatch) return aMatch - bMatch;
+              const ao = a.objekt?.name ?? '';
+              const bo = b.objekt?.name ?? '';
+              if (ao !== bo) return ao.localeCompare(bo);
+              return (a.name ?? '').localeCompare(b.name ?? '');
+            });
+
             return (
               <Card>
                 <CardHeader>
@@ -382,6 +390,7 @@ export default function NeueBestellung() {
                         setEditingSet(null);
                         setSetDialogOpen(true);
                       }}
+                      title={!selectedObjektId ? 'Zuerst Objekt wählen' : undefined}
                     >
                       <Plus className="h-4 w-4 mr-1" />
                       Neues Set
@@ -389,19 +398,16 @@ export default function NeueBestellung() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {!selectedObjektId ? (
-                    <p className="text-sm text-muted-foreground italic">
-                      Bitte zuerst ein Objekt auswählen.
-                    </p>
-                  ) : filteredSets.length === 0 ? (
+                  {sortedSets.length === 0 ? (
                     <div className="text-center py-6 border-2 border-dashed border-border rounded-lg">
                       <Package className="h-8 w-8 mx-auto text-muted-foreground mb-2 opacity-60" />
                       <p className="text-sm text-muted-foreground mb-3">
-                        Noch keine Wäschesets für dieses Objekt.
+                        Noch keine Wäschesets vorhanden.
                       </p>
                       <Button
                         type="button"
                         size="sm"
+                        disabled={!selectedObjektId}
                         onClick={() => {
                           setEditingSet(null);
                           setSetDialogOpen(true);
@@ -410,11 +416,18 @@ export default function NeueBestellung() {
                         <Plus className="h-4 w-4 mr-1" />
                         Erstes Set anlegen
                       </Button>
+                      {!selectedObjektId && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Zum Anlegen zuerst Objekt wählen.
+                        </p>
+                      )}
                     </div>
                   ) : (
                     <div className="grid gap-2 sm:grid-cols-2">
-                      {filteredSets.map((set: any) => {
+                      {sortedSets.map((set: any) => {
                         const active = selectedSetId === set.id;
+                        const otherObject =
+                          selectedObjektId && set.objekt_id !== selectedObjektId;
                         return (
                           <div
                             key={set.id}
@@ -427,7 +440,16 @@ export default function NeueBestellung() {
                           >
                             <button
                               type="button"
-                              onClick={() => handleSetSelect(set.id)}
+                              onClick={() => {
+                                if (set.objekt_id && set.objekt_id !== selectedObjektId) {
+                                  setSelectedObjektId(set.objekt_id);
+                                  toast({
+                                    title: 'Objekt geändert',
+                                    description: `Objekt auf „${set.objekt?.name ?? '–'}" gesetzt.`,
+                                  });
+                                }
+                                handleSetSelect(set.id);
+                              }}
                               className="w-full text-left p-3 pr-16"
                             >
                               <div className="flex items-center gap-2 mb-1">
@@ -439,8 +461,20 @@ export default function NeueBestellung() {
                                   {set.beschreibung}
                                 </div>
                               )}
-                              <div className="text-xs text-muted-foreground">
-                                {set.artikel?.length || 0} Artikel
+                              <div className="flex items-center gap-1.5 flex-wrap text-xs text-muted-foreground">
+                                <span>{set.artikel?.length || 0} Artikel</span>
+                                {set.objekt?.name && (
+                                  <Badge
+                                    variant="outline"
+                                    className={cn(
+                                      'text-[10px] px-1.5 py-0',
+                                      otherObject && 'border-amber-500/60 text-amber-700 dark:text-amber-400',
+                                    )}
+                                  >
+                                    {otherObject ? 'aus: ' : ''}
+                                    {set.objekt.name}
+                                  </Badge>
+                                )}
                               </div>
                             </button>
                             <div className="absolute top-1.5 right-1.5 flex gap-0.5">
