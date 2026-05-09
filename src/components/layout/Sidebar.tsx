@@ -19,7 +19,7 @@ import {
   SidebarMenuButton,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarSeparator,
+  
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
