@@ -11,6 +11,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Objekte from "./pages/Objekte";
+import NeuesObjekt from "./pages/NeuesObjekt";
 import Bestellungen from "./pages/Bestellungen";
 import BestellungDetail from "./pages/BestellungDetail";
 import NeueBestellung from "./pages/NeueBestellung";
@@ -41,6 +42,9 @@ const App = () => (
             } />
             <Route path="/objekte" element={
               <ProtectedRoute><Objekte /></ProtectedRoute>
+            } />
+            <Route path="/objekte/neu" element={
+              <ProtectedRoute><NeuesObjekt /></ProtectedRoute>
             } />
             <Route path="/objekte/:id" element={
               <ProtectedRoute><Objekte /></ProtectedRoute>
