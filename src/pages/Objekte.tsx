@@ -1,13 +1,47 @@
-import { Building2, MapPin, User, FileText, Loader2, Plus } from 'lucide-react';
+import { Building2, MapPin, User, FileText, Loader2, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useNavigate } from 'react-router-dom';
 import { useKunde, useObjekte } from '@/hooks/useSupabaseData';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { supabase } from '@/integrations/external/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { useState } from 'react';
 
 export default function Objekte() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: kunde, isLoading: kundeLoading } = useKunde();
   const { data: objekte = [], isLoading: objekteLoading } = useObjekte(kunde?.id);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDelete = async (id: string, name: string) => {
+    setDeletingId(id);
+    const { error } = await supabase.from('objekte').delete().eq('id', id);
+    setDeletingId(null);
+    if (error) {
+      const msg = error.message ?? '';
+      if (msg.toLowerCase().includes('foreign key') || msg.includes('violates')) {
+        toast.error(`„${name}" hat noch verknüpfte Bestellungen oder Sets.`);
+      } else {
+        toast.error('Löschen fehlgeschlagen: ' + msg);
+      }
+      return;
+    }
+    toast.success(`„${name}" gelöscht`);
+    queryClient.invalidateQueries({ queryKey: ['objekte'] });
+  };
   
   const isLoading = kundeLoading || objekteLoading;
 
@@ -76,6 +110,43 @@ export default function Objekte() {
                     <Building2 className="h-6 w-6" />
                   </div>
                 )}
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      disabled={deletingId === objekt.id}
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                      aria-label="Objekt löschen"
+                    >
+                      {deletingId === objekt.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Objekt löschen?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        „{objekt.name}" wird endgültig entfernt. Das geht nur, wenn keine Bestellungen oder Wäschesets mehr daran hängen.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDelete(objekt.id, objekt.name)}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Löschen
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
 
               <h3 className="mt-4 text-lg font-semibold text-card-foreground">
