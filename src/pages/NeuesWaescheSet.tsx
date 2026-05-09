@@ -48,6 +48,8 @@ const NeuesWaescheSet = () => {
   const [selectedObjektId, setSelectedObjektId] = useState<string>('');
   const [beschreibung, setBeschreibung] = useState('');
   const [pendingArtikel, setPendingArtikel] = useState<PendingSetArtikel[]>([]);
+  const [setName, setSetName] = useState('');
+  const [setNameTouched, setSetNameTouched] = useState(false);
 
   const selectedObjekt = objekte?.find(o => o.id === selectedObjektId);
 
