@@ -170,7 +170,7 @@ const NeuesWaescheSet = () => {
     try {
       await createWaescheSet.mutateAsync({
         objektId: selectedObjektId,
-        name: autoSetName,
+        name: setName.trim() || autoSetName,
         beschreibung: beschreibung || undefined,
         artikel: pendingArtikel.map(a => ({
           artikelId: a.artikel_id,
