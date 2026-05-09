@@ -9,19 +9,18 @@ const TARGET_KEY =
 const sb = createClient(TARGET_URL, TARGET_KEY);
 
 const data = {
+  // Hinweis: Ziel-DB-Schema hat KEIN auth_user_id/vorname/nachname etc. auf kunden.
   kunden: [
     {
       id: 'bcdf0e0e-97fe-42b4-846a-b30ba578104a',
-      auth_user_id: null, // wird nach Neuregistrierung manuell verknüpft
       kundennummer: 'K20260509113746124',
       name: 'Uli Berresheim',
-      vorname: 'Uli',
-      nachname: 'Berresheim',
       email: 'uli.berresheim@hotmail.de',
       bestellmodus: 'mit_buchung',
       aktiv: true,
     },
   ],
+  // Hinweis: Ziel-DB-objekte hat KEIN bild_url.
   objekte: [
     {
       id: '9f4afb1d-8806-4bf4-9b8c-a57c21c8333c',
@@ -34,8 +33,6 @@ const data = {
       ort: 'Neukirchen am Großvenediger',
       ansprechpartner: 'Uli',
       telefon: '+491713020406',
-      bild_url:
-        'https://uzworhojxcxbtsbttstp.supabase.co/storage/v1/object/public/objekt-bilder/bcdf0e0e-97fe-42b4-846a-b30ba578104a/9f4afb1d-8806-4bf4-9b8c-a57c21c8333c-1778328660720.jpeg',
       aktiv: true,
     },
   ],
