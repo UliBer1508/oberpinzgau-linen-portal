@@ -9,6 +9,7 @@ import { KundeProvider } from "@/contexts/KundeContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Objekte from "./pages/Objekte";
 import NeuesObjekt from "./pages/NeuesObjekt";
@@ -36,6 +37,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             
             <Route path="/dashboard" element={

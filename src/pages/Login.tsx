@@ -51,6 +51,24 @@ export default function Login() {
     navigate('/dashboard');
   };
 
+  const handleForgotPassword = async () => {
+    const parsed = z.string().trim().email().safeParse(email);
+    if (!parsed.success) {
+      toast({ title: 'E-Mail erforderlich', description: 'Bitte geben Sie Ihre E-Mail oben ein.', variant: 'destructive' });
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) {
+      toast({ title: 'Fehler', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'E-Mail gesendet', description: 'Prüfen Sie Ihr Postfach für den Link zum Zurücksetzen.' });
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsed = registerSchema.safeParse({ email, password, vorname, nachname });
@@ -123,6 +141,14 @@ export default function Login() {
               <Button type="submit" variant="hero" size="xl" className="w-full" disabled={loading}>
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Anmelden'}
               </Button>
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                className="text-sm text-primary hover:underline w-full text-center"
+                disabled={loading}
+              >
+                Passwort vergessen?
+              </button>
             </form>
           </TabsContent>
 
