@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useKunde, useObjekte, useWaescheSets, useBestellungen, useRechnungen, RechnungMitBestellung } from '@/hooks/useSupabaseData';
-import { RechnungStatus, BestellungStatus } from '@/integrations/supabase/client';
+import type { RechnungStatus, BestellungStatus } from '@/types/database';
 export default function Dashboard() {
   const navigate = useNavigate();
   

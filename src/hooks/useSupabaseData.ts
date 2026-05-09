@@ -1,15 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  supabase, 
-  Kunde, 
-  Objekt, 
-  WaescheArtikel, 
-  WaescheSetMitArtikel, 
-  BestellungMitDetails,
-  BestellungStatus,
-  Rechnung,
-  RechnungMitPositionen
-} from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
+import type { Kunde, Objekt, WaescheArtikel, WaescheSetMitArtikel, BestellungMitDetails, BestellungStatus, Rechnung, RechnungMitPositionen } from '@/types/database';
 import { useKundeContext } from '@/contexts/KundeContext';
 
 // Alle Kunden für die Auswahl (Entwicklung)

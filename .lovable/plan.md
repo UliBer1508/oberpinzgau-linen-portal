@@ -1,85 +1,112 @@
-# Plan: Frisches Mobile-First Kundenportal mit Self-Service & Bezahlung
+# Plan: Neues Lovable Cloud Backend + Mobile-First Kundenportal
 
-## 1. Datenbank — Mandantenfähigkeit & Bezahldaten
+## Schritt 0 — Lovable Cloud aktivieren
 
-**Aktuelle Lage:** Tabellen haben `kunde_id`, aber `AuthContext` läuft im `DEV_MODE = true` (alle sehen alles über einen Mock-User). Es fehlen: Verknüpfung `auth.users → kunden`, RLS-Policies, Bankdaten und Bezahldaten.
+- Tool `supabase--enable` aufrufen → frisches Backend wird bereitgestellt
+- `src/integrations/supabase/client.ts` zeigt danach automatisch auf das neue Projekt
+- Das alte externe Supabase (`pkpnowevagxmhyqlawng`) wird nicht mehr verwendet
+- **Wichtig:** Die Daten aus dem alten Projekt werden NICHT übernommen. Falls Stammdaten (Artikelkatalog, Kunden, Objekte) übernommen werden sollen, machen wir das separat als CSV-Export/Import nach dem Schema-Setup. Wir starten mit leeren Tabellen + Test-Seed-Daten für den Artikelkatalog.
 
-**Schema-Änderungen (Migration):**
-- `kunden` erweitern: `auth_user_id uuid` (FK auf `auth.users`, unique), `vorname`, `nachname`, `mobil`, `geburtsdatum?`, `iban`, `bic`, `kontoinhaber`, `stripe_customer_id`, `agb_akzeptiert_am`
-- Neue Tabelle `zahlungen`: `id`, `bestellung_id`, `rechnung_id?`, `kunde_id`, `betrag`, `waehrung`, `methode` (`card` | `paypal` | `sepa`), `stripe_payment_intent_id`, `stripe_session_id`, `status` (`pending` | `paid` | `failed` | `refunded`), `bezahlt_am`, `created_at`
-- `bestellungen` erweitern: `bezahlstatus` (`offen` | `bezahlt` | `fehlgeschlagen`), `zahlung_id?`
-- Trigger `handle_new_user()`: legt bei Auth-Signup einen leeren `kunden`-Datensatz mit `auth_user_id` an
-- Helper-Funktion `current_kunde_id()` (SECURITY DEFINER): liefert `kunden.id` zum eingeloggten Auth-User
+## Schritt 1 — Datenbank-Schema (Migration)
 
-**RLS aktivieren** auf allen Tabellen mit Policy-Pattern:
-- `kunden`: SELECT/UPDATE nur eigener Datensatz (`auth_user_id = auth.uid()`)
-- `objekte`, `waeschesets`, `bestellungen`, `rechnungen`, `zahlungen`: `kunde_id = current_kunde_id()` für SELECT/INSERT/UPDATE
-- `waeschesets_artikel`, `bestellpositionen`, `rechnungspositionen`: über Join auf Parent prüfen
-- `waescheartikel` (Katalog): SELECT für alle authentifizierten Nutzer, kein Schreiben
+Alle 16 Tabellen aus dem alten Schema neu anlegen + Erweiterungen:
 
-## 2. Authentifizierung & Registrierung
+**Enums:**
+- `bestellung_status`, `rechnung_status`, `bestellmodus`, `bestellart`, `berechnungsart`, `objekt_typ`
+- Neu: `zahlung_methode` (`card | paypal | sepa`), `zahlung_status` (`pending | paid | failed | refunded`), `bezahl_status` (`offen | bezahlt | fehlgeschlagen`), `app_role` (`admin | customer`)
 
-- `AuthContext`: `DEV_MODE = false`, echter Supabase-Auth-Flow mit `onAuthStateChange` + `getSession`
-- `Login.tsx` neu: nur E-Mail + Passwort, „Passwort vergessen", Link zu Registrierung
-- Neue mehrstufige Registrierung `/register` (Mobile-First Wizard, 3 Schritte mit Progress-Bar):
-  1. **Konto:** E-Mail, Passwort, Passwort bestätigen
-  2. **Stammdaten:** Vorname, Nachname, Firma (optional), Straße, PLZ, Ort, Mobil, Geburtsdatum
+**Bestehende Tabellen (neu angelegt):**
+- `kunden` — erweitert um: `auth_user_id (uuid, FK auth.users, unique)`, `vorname`, `nachname`, `mobil`, `geburtsdatum`, `iban`, `bic`, `kontoinhaber`, `stripe_customer_id`, `agb_akzeptiert_am`
+- `objekte`, `waescheartikel`, `waeschesets`, `waescheset_artikel`, `waeschebestellungen`, `bestellpositionen`, `rechnungen`, `rechnungspositionen`, `rechnungseinstellungen`
+
+**Neue Tabellen:**
+- `zahlungen` (id, bestellung_id, rechnung_id?, kunde_id, betrag, waehrung, methode, stripe_payment_intent_id, stripe_session_id, status, bezahlt_am, created_at)
+- `user_roles` (id, user_id, role) — getrennt von `kunden` zum Schutz vor Privilege Escalation
+- `waeschebestellungen` erweitert um: `bezahlstatus`, `zahlung_id?`
+
+**Funktionen & Trigger:**
+- `handle_new_user()` (SECURITY DEFINER) → bei Auth-Signup leeren `kunden`-Datensatz mit `auth_user_id` anlegen + `user_roles` Eintrag mit Rolle `customer`
+- `current_kunde_id()` (SECURITY DEFINER) → liefert `kunden.id` zum eingeloggten Nutzer
+- `has_role(_user_id, _role)` (SECURITY DEFINER) → für Admin-Checks
+- Trigger für `updated_at` auf allen Tabellen
+
+**RLS-Policies (auf allen Tabellen aktiv):**
+- `kunden`: SELECT/UPDATE eigenen Datensatz (`auth_user_id = auth.uid()`)
+- `objekte`, `waeschesets`, `waeschebestellungen`, `rechnungen`, `zahlungen`: `kunde_id = current_kunde_id()` für SELECT/INSERT/UPDATE/DELETE
+- Kindtabellen (`waescheset_artikel`, `bestellpositionen`, `rechnungspositionen`): über Join auf Parent
+- `waescheartikel` (Katalog): SELECT für alle authentifizierten Nutzer, INSERT/UPDATE nur Admin
+- `rechnungseinstellungen`: SELECT alle authentifizierten, UPDATE nur Admin
+
+## Schritt 2 — Authentifizierung & Registrierung
+
+- `AuthContext`: `DEV_MODE = false`, echter Flow (`onAuthStateChange` zuerst, dann `getSession`)
+- `KundeContext` & `KundenAuswahl` entfernen — Mandant kommt aus Auth, nicht aus Dropdown
+- `useSupabaseData` umstellen: Hooks holen `kunde_id` aus `auth.uid()` (RLS filtert automatisch)
+- `Login.tsx` neu: E-Mail + Passwort, Link „Passwort vergessen", Link zu Registrierung
+- Neue `/register` Seite — 3-Schritt Wizard, mobile-first:
+  1. **Konto:** E-Mail, Passwort (mit Stärke-Anzeige), Passwort bestätigen
+  2. **Stammdaten:** Vorname, Nachname, Firma (optional), Straße, PLZ, Ort, Mobil
   3. **Bankdaten & AGB:** IBAN, BIC, Kontoinhaber, AGB-Checkbox
-- Nach `signUp` → Trigger erstellt `kunden`-Datensatz, Schritt 2+3 schreiben per `update` in `kunden`
-- `emailRedirectTo: window.location.origin` setzen
-- `/reset-password` Seite anlegen
+- `signUp` mit `emailRedirectTo: window.location.origin/dashboard`
+- Neue `/reset-password` Seite (öffentlich)
+- Bestätigungs-E-Mail vorerst auf „auto-confirm" (Test); später `scaffold_auth_email_templates` für Branding
 
-## 3. Self-Service Flow (Mobile-First)
+## Schritt 3 — Mobile-First UI Redesign
 
-Nach Login geführter Onboarding-Check auf dem Dashboard:
-1. **Vermietungsobjekt anlegen** — wenn noch keins existiert, prominente CTA-Card; einfaches Formular (Name, Typ, Adresse)
-2. **Wäscheset definieren** — vorhandener Flow `/waeschesets/neu`, mobil optimiert
-3. **Bestellen** — `/bestellungen/neu`, Auswahl: ganzes Set ODER Einzelartikel
+**Design-Tokens (`index.css`, `tailwind.config.ts`):**
+- Pastell-Mint als Primary `162 60% 48%`, Coral-Akzent `12 85% 65%`
+- Sehr helles Background `180 20% 98%`, Cards reines Weiß mit weichem Schatten
+- `--gradient-fresh`, `--gradient-mint`, `--shadow-soft`
+- Display-Font „Plus Jakarta Sans" + Body „Inter"
+- Radius `1rem` (rounded-2xl)
 
-Dashboard zeigt diese 3 Schritte als „Erste Schritte"-Karten mit Häkchen, sobald erledigt.
+**Layout:**
+- `MainLayout` neu: oben Sticky-Header mit Begrüßung & Avatar, mittig Content, unten `BottomNav` (mobil < md)
+- `BottomNav.tsx`: 5 Tabs (Start / Bestellen / Sets / Rechnungen / Profil), Safe-Area-Insets
+- Sidebar bleibt für Desktop ≥ md
+- Touch-Targets min. 44px, Inputs `h-12`, korrekte `inputMode` (tel/email/numeric)
+- Sanfte `framer-motion` Transitions auf Karten und Wizard-Schritten
 
-## 4. Zahlungsintegration (Stripe via Lovable Payments)
+## Schritt 4 — Self-Service Onboarding-Flow
 
-- `enable_stripe_payments` aufrufen (Pro-Plan + Cloud erforderlich)
-- Karte + PayPal als Methoden in Stripe Checkout aktivieren
-- Edge Function `create-checkout`: erstellt Checkout-Session pro Bestellung (Modus `payment`, `line_items` aus Bestellpositionen)
-- Edge Function `stripe-webhook`: schreibt `zahlungen` und setzt `bestellungen.bezahlstatus = 'bezahlt'`
-- Edge Function `verify-payment`: prüft Session-Status nach Redirect
-- Bestellabschluss-Schritt: „Jetzt bezahlen" → Stripe Checkout → Erfolgsseite `/bestellungen/:id?payment=success`
+Auf `/dashboard` — wenn noch nicht vollständig: prominente Onboarding-Karten:
+1. **Profil vervollständigen** (wenn `vorname` leer)
+2. **Erstes Vermietungsobjekt anlegen** (wenn keine `objekte`) → `/objekte/neu`
+3. **Wäscheset definieren** (wenn keine `waeschesets`) → `/waeschesets/neu`
+4. **Erste Bestellung aufgeben** → `/bestellungen/neu`
 
-## 5. UI-Redesign — Frisch & freundlich, Mobile-First
+Sobald Schritt 1+2 erledigt → normales Dashboard mit Stats & Aktionen.
+Neuer Flow `/objekte/neu` (heute fehlt — aktuell wird über Detail-Seite editiert).
 
-**Design-Token (`index.css` + `tailwind.config.ts`):**
-- Hauptfarbe Sky/Mint Pastell, sanfte Gradients, viel Weißraum
-- Typo: Display „Plus Jakarta Sans", Body „Inter"
-- Großzügige Radien (`rounded-2xl`), weiche Schatten, Pastell-Akzente
-- Neue Tokens: `--primary` (Mint), `--accent` (Coral), `--gradient-fresh`, `--shadow-soft`
+## Schritt 5 — Stripe-Bezahlung (Pro Bestellung)
 
-**Layout-Umbau:**
-- Mobile-First: Sidebar wird auf < md zur Bottom-Tab-Bar (Dashboard / Objekte / Bestellungen / Wäschesets / Profil)
-- `MainLayout` mit Safe-Area-Insets, sticky Header mit Avatar + Begrüßung
-- Dashboard-Cards mit Icons, großen Touch-Targets (min. 44px), Swipeable Listen
-- Formulare in vollbreiten Karten, Inputs `h-12`, Tastatur-Typen (`inputMode="tel"`, `email`, `numeric`)
-- Skeleton-Loader & sanfte `framer-motion` Übergänge auf Cards & Wizard-Schritten
+- `enable_stripe_payments` aufrufen → Lovable Payments
+- Karte + PayPal in Stripe Dashboard aktivieren
+- Edge Functions:
+  - `create-checkout` — erstellt Checkout-Session aus Bestellung (Modus `payment`, `line_items` aus Positionen × Artikelpreis), gibt URL zurück
+  - `verify-payment` — wird auf Erfolgsseite aufgerufen, prüft Session, schreibt `zahlungen`, setzt `bezahlstatus = 'bezahlt'`
+- Bestellabschluss in `NeueBestellung`: nach Speichern → CTA „Jetzt bezahlen" → Stripe Checkout (neuer Tab) → Redirect zurück auf `/bestellungen/:id?payment=success`
+- In `BestellungDetail`: bei `bezahlstatus = 'offen'` → erneut „Jetzt bezahlen" Button anzeigen
 
-**Komponenten neu/überarbeitet:**
-- `BottomNav.tsx` (mobil) + bestehende `Sidebar.tsx` (desktop)
-- `OnboardingCard.tsx` für die 3 Erste-Schritte
-- `RegistrierungWizard.tsx` mit 3 Steps + Progress
-- `ZahlungButton.tsx` für Stripe-Checkout-Trigger
-- `KundenAuswahl` entfernen (war nur Dev-Hilfe, Mandant kommt aus Auth)
+## Schritt 6 — Bestehende Seiten anpassen
 
-## 6. Reihenfolge der Umsetzung
+- `Bestellungen`, `Rechnungen`, `Objekte`, `WaescheSets`, deren Detail-Seiten: an neues Design + Mobile angepasst (große Touch-Targets, Sticky-Aktionen unten, Back-Button im Header)
+- `KundenAuswahl` Komponente entfernen
+- `ProtectedRoute` greift jetzt scharf
 
-1. Migration: `kunden`-Erweiterung, `zahlungen`, Trigger, RLS-Policies, `current_kunde_id()`
-2. Auth scharfstellen, Registrierungs-Wizard, Login/Reset-Password
-3. `KundeContext` umstellen auf `current_kunde_id()` aus DB statt Mock
-4. Design-System & Mobile-First Layout (BottomNav, Tokens, Cards)
-5. Onboarding-Flow auf Dashboard
-6. Stripe aktivieren, Edge Functions, Bezahl-Flow in Bestellung
-7. Bestehende Seiten (Bestellungen, Wäschesets, Objekte, Rechnungen) ans neue Design + RLS anpassen
+## Reihenfolge
+
+1. `supabase--enable` (Cloud aktivieren)
+2. Migration mit allen Tabellen, Enums, Funktionen, RLS, Trigger, Seed-Daten für Artikelkatalog
+3. AuthContext umstellen, Login/Register/Reset-Password Seiten
+4. Design-Tokens + Mobile Layout + BottomNav
+5. Onboarding-Karten auf Dashboard + `/objekte/neu`
+6. Stripe aktivieren, Edge Functions, Bezahl-Flow integrieren
+7. Bestehende Seiten an neues Design anpassen, alten Mock-/KundenAuswahl-Code entfernen
 
 ## Hinweise
-- Lovable Cloud muss aktiv sein (für Stripe-Integration & Edge Functions)
-- Stripe-Bezahlung benötigt Pro-Plan
-- Bankdaten (IBAN) werden gespeichert — RLS schützt, dass nur der Eigentümer sie liest; in Logs nie ausgeben
+
+- Stripe (Lovable Payments) erfordert Pro-Plan
+- Bestehende Daten im alten Supabase werden nicht migriert — Stammdaten ggf. später per CSV-Import
+- Bankdaten (IBAN) werden gespeichert, RLS schützt; nicht in Logs ausgeben
+- Memory-Regel „DEV_MODE / KundenAuswahl Dropdown" wird mit dieser Umstellung obsolet — wird nach Umsetzung aktualisiert

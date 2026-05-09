@@ -26,7 +26,7 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { OverdueBadge } from '@/components/OverdueBadge';
 import { useRechnungen } from '@/hooks/useSupabaseData';
 import { useKundeContext } from '@/contexts/KundeContext';
-import { RechnungStatus } from '@/integrations/supabase/client';
+import type { RechnungStatus } from '@/types/database';
 
 export default function Rechnungen() {
   const { selectedKundeId } = useKundeContext();
