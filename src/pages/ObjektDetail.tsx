@@ -3,6 +3,17 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Building2, Camera, ImageOff, Loader2, MapPin, Phone, StickyNote, Trash2, User } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/external/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -21,6 +32,27 @@ export default function ObjektDetail() {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!objekt) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.from('objekte').delete().eq('id', objekt.id);
+      if (error) throw error;
+      toast.success('Objekt gelöscht');
+      queryClient.invalidateQueries({ queryKey: ['objekte'] });
+      navigate('/objekte');
+    } catch (err: any) {
+      const msg = err?.message ?? 'Unbekannter Fehler';
+      if (msg.toLowerCase().includes('foreign key') || msg.includes('violates')) {
+        toast.error('Objekt kann nicht gelöscht werden – es gibt noch verknüpfte Bestellungen oder Sets.');
+      } else {
+        toast.error('Löschen fehlgeschlagen: ' + msg);
+      }
+      setDeleting(false);
+    }
+  };
 
   const { data: objekt, isLoading } = useQuery({
     queryKey: ['objekt', id],
