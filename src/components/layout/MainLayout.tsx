@@ -19,7 +19,7 @@ export function MainLayout({ children, title, subtitle, actions }: MainLayoutPro
           <AppSidebar />
         </div>
 
-        <SidebarInset className="bg-transparent">
+        <SidebarInset className="bg-transparent min-w-0 w-full overflow-x-hidden">
           <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="flex h-14 md:h-16 items-center gap-3 px-3 md:px-8">
               <div className="flex-1 min-w-0">
@@ -34,7 +34,7 @@ export function MainLayout({ children, title, subtitle, actions }: MainLayoutPro
             </div>
           </header>
 
-          <div className="p-3 md:p-8 pb-24 md:pb-8 animate-fade-in">
+          <div className="p-3 md:p-8 pb-24 md:pb-8 animate-fade-in min-w-0">
             {children}
           </div>
         </SidebarInset>
