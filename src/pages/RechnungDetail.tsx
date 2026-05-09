@@ -1,7 +1,8 @@
 import { useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { Printer, Download, Package, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Printer, Download, Package, ArrowRight, ArrowLeft, CreditCard } from 'lucide-react';
+import { toast } from 'sonner';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -298,6 +299,22 @@ export default function RechnungDetail() {
                   </>
                 )}
               </CardContent>
+              {(rechnung.status === 'offen' || rechnung.status === 'mahnung') && (
+                <div className="px-6 pb-6">
+                  <Button
+                    className="w-full"
+                    size="lg"
+                    onClick={() =>
+                      toast.info('Zahlungsfunktion wird in Kürze aktiviert', {
+                        description: 'Stripe-Integration ist noch nicht freigeschaltet.',
+                      })
+                    }
+                  >
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Jetzt bezahlen
+                  </Button>
+                </div>
+              )}
             </Card>
 
             {/* Linked Order */}
