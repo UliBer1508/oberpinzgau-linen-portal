@@ -85,14 +85,14 @@ export default function Dashboard() {
       title="Dashboard" 
       subtitle="Übersicht über Ihre Bestellungen und Objekte"
       actions={
-        <Button variant="hero" onClick={() => navigate('/bestellungen/neu')}>
-          <ShoppingCart className="h-4 w-4" />
-          Neue Bestellung
+        <Button variant="hero" size="sm" onClick={() => navigate('/bestellungen/neu')} className="rounded-2xl">
+          <Plus className="h-4 w-4" />
+          <span className="hidden sm:inline">Neue Bestellung</span>
         </Button>
       }
     >
       {/* Stats Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Aktive Bestellungen"
           value={activeOrders}
@@ -125,7 +125,7 @@ export default function Dashboard() {
       </div>
 
       {/* Recent Orders & Quick Actions */}
-      <div className="mt-8 grid gap-6 lg:grid-cols-3">
+      <div className="mt-4 md:mt-8 grid gap-4 md:gap-6 lg:grid-cols-3">
         {/* Recent Orders */}
         <div className="lg:col-span-2 rounded-2xl border border-border/60 bg-card shadow-card overflow-hidden">
           <div className="flex items-center justify-between border-b border-border/60 p-5">

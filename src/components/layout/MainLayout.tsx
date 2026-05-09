@@ -21,20 +21,20 @@ export function MainLayout({ children, title, subtitle, actions }: MainLayoutPro
 
         <SidebarInset className="bg-transparent">
           <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="flex h-16 items-center gap-4 px-4 md:px-8">
+            <div className="flex h-14 md:h-16 items-center gap-3 px-3 md:px-8">
               <div className="flex-1 min-w-0">
-                <h1 className="font-display text-xl md:text-2xl font-bold text-foreground truncate">
+                <h1 className="font-display text-base md:text-2xl font-bold text-foreground truncate leading-tight">
                   {title}
                 </h1>
                 {subtitle && (
-                  <p className="text-sm text-muted-foreground truncate">{subtitle}</p>
+                  <p className="text-[11px] md:text-sm text-muted-foreground truncate leading-tight">{subtitle}</p>
                 )}
               </div>
-              {actions && <div className="flex items-center gap-2 md:gap-3">{actions}</div>}
+              {actions && <div className="flex items-center gap-2 md:gap-3 shrink-0">{actions}</div>}
             </div>
           </header>
 
-          <div className="p-4 md:p-8 pb-24 md:pb-8 animate-fade-in">
+          <div className="p-3 md:p-8 pb-24 md:pb-8 animate-fade-in">
             {children}
           </div>
         </SidebarInset>
