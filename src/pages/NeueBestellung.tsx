@@ -101,7 +101,7 @@ export default function NeueBestellung() {
     }
   };
 
-  // Artikel hinzufügen
+  // Artikel hinzufügen (Default-Menge = Anzahl Personen)
   const handleAddArtikel = (art: { id: string; name: string; preis: number | null }) => {
     setOrderItems(prev => {
       const existing = prev.find(item => item.artikel_id === art.id);
@@ -112,7 +112,7 @@ export default function NeueBestellung() {
             : item
         );
       }
-      return [...prev, { artikel_id: art.id, artikel_name: art.name, menge: 1, preis: art.preis || 0 }];
+      return [...prev, { artikel_id: art.id, artikel_name: art.name, menge: anzahlPersonen, preis: art.preis || 0 }];
     });
   };
 
