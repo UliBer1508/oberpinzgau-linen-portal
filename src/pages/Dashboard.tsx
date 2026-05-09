@@ -152,56 +152,94 @@ export default function Dashboard() {
               </Button>
             </div>
           ) : (
-            <div className="overflow-x-auto"><Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Bestellung</TableHead>
-                  <TableHead>Objekt</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Rechnung</TableHead>
-                  <TableHead>Rg.-Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Mobile: kompakte Listen-Ansicht (kein Scrollen) */}
+              <div className="md:hidden divide-y divide-border/60">
                 {recentOrders.map((bestellung) => (
-                  <TableRow
+                  <button
                     key={bestellung.id}
-                    className={`cursor-pointer ${getBestellungRowClassName(bestellung.status)}`}
                     onClick={() => navigate(`/bestellungen/${bestellung.id}`)}
+                    className={`w-full text-left p-3 ${getBestellungRowClassName(bestellung.status)}`}
                   >
-                    <TableCell className="font-mono text-sm font-medium text-primary">
-                      #{bestellung.bestellnummer || bestellung.id.slice(-8)}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      <span className="inline-flex items-center gap-2">
-                        <Building2 className="h-4 w-4 text-muted-foreground" />
-                        {bestellung.objekt?.name || 'Objekt'}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono text-sm font-medium text-primary">
+                        #{bestellung.bestellnummer || bestellung.id.slice(-8)}
                       </span>
-                    </TableCell>
-                    <TableCell>
                       <StatusBadge status={bestellung.status} />
-                    </TableCell>
-                    <TableCell className="font-mono text-sm">
-                      {bestellung.rechnung?.rechnungsnummer || '—'}
-                    </TableCell>
-                    <TableCell>
+                    </div>
+                    <div className="mt-1 flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-1.5 text-sm font-medium truncate min-w-0">
+                        <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                        <span className="truncate">{bestellung.objekt?.name || 'Objekt'}</span>
+                      </span>
                       {bestellung.rechnung ? (
-                        <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${
+                        <span className={`inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded-full shrink-0 ${
                           bestellung.rechnung.status === 'bezahlt'
                             ? 'bg-status-delivered/20 text-status-delivered'
                             : 'bg-status-pending/20 text-status-pending'
                         }`}>
-                          {bestellung.rechnung.status === 'bezahlt' ? <Wallet className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
-                          {bestellung.rechnung.status === 'bezahlt' ? 'Bezahlt' : 'Offen'}
+                          {bestellung.rechnung.rechnungsnummer}
                         </span>
                       ) : (
-                        <span className="text-muted-foreground">—</span>
+                        <span className="text-xs text-muted-foreground shrink-0">Keine Rg.</span>
                       )}
-                    </TableCell>
-                  </TableRow>
+                    </div>
+                  </button>
                 ))}
-              </TableBody>
-            </Table></div>
+              </div>
+
+              {/* Desktop: volle Tabelle */}
+              <div className="hidden md:block"><Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Bestellung</TableHead>
+                    <TableHead>Objekt</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Rechnung</TableHead>
+                    <TableHead>Rg.-Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recentOrders.map((bestellung) => (
+                    <TableRow
+                      key={bestellung.id}
+                      className={`cursor-pointer ${getBestellungRowClassName(bestellung.status)}`}
+                      onClick={() => navigate(`/bestellungen/${bestellung.id}`)}
+                    >
+                      <TableCell className="font-mono text-sm font-medium text-primary">
+                        #{bestellung.bestellnummer || bestellung.id.slice(-8)}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        <span className="inline-flex items-center gap-2">
+                          <Building2 className="h-4 w-4 text-muted-foreground" />
+                          {bestellung.objekt?.name || 'Objekt'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={bestellung.status} />
+                      </TableCell>
+                      <TableCell className="font-mono text-sm">
+                        {bestellung.rechnung?.rechnungsnummer || '—'}
+                      </TableCell>
+                      <TableCell>
+                        {bestellung.rechnung ? (
+                          <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${
+                            bestellung.rechnung.status === 'bezahlt'
+                              ? 'bg-status-delivered/20 text-status-delivered'
+                              : 'bg-status-pending/20 text-status-pending'
+                          }`}>
+                            {bestellung.rechnung.status === 'bezahlt' ? <Wallet className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+                            {bestellung.rechnung.status === 'bezahlt' ? 'Bezahlt' : 'Offen'}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table></div>
+            </>
           )}
         </div>
 
