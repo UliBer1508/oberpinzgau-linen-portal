@@ -383,17 +383,17 @@ export default function NeueBestellung() {
                     <CardTitle className="text-lg">3. Wäschesets</CardTitle>
                     <Button
                       type="button"
-                      size="sm"
-                      variant="outline"
+                      size="icon"
                       disabled={!selectedObjektId}
                       onClick={() => {
                         setEditingSet(null);
                         setSetDialogOpen(true);
                       }}
-                      title={!selectedObjektId ? 'Zuerst Objekt wählen' : undefined}
+                      title={!selectedObjektId ? 'Zuerst Objekt wählen' : 'Neues Wäscheset'}
+                      aria-label="Neues Wäscheset"
+                      className="h-10 w-10 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-md"
                     >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Neues Set
+                      <Plus className="h-5 w-5" />
                     </Button>
                   </div>
                 </CardHeader>
