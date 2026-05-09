@@ -366,10 +366,10 @@ export default function NeueBestellung() {
           {/* Wäscheset verwalten & auswählen */}
           {(() => {
             const allSets = waescheSets ?? [];
-            const sortedSets = [...allSets].sort((a: any, b: any) => {
-              const aMatch = selectedObjektId && a.objekt_id === selectedObjektId ? 0 : 1;
-              const bMatch = selectedObjektId && b.objekt_id === selectedObjektId ? 0 : 1;
-              if (aMatch !== bMatch) return aMatch - bMatch;
+            const filteredSets = selectedObjektId
+              ? allSets.filter((s: any) => s.objekt_id === selectedObjektId)
+              : allSets;
+            const sortedSets = [...filteredSets].sort((a: any, b: any) => {
               const ao = a.objekt?.name ?? '';
               const bo = b.objekt?.name ?? '';
               if (ao !== bo) return ao.localeCompare(bo);
