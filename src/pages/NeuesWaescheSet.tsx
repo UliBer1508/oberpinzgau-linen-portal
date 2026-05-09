@@ -268,7 +268,26 @@ const NeuesWaescheSet = () => {
               <CardContent className="space-y-4">
                 <div>
                   <Label>Set-Name (automatisch generiert)</Label>
-                  <Input value={autoSetName} disabled className="bg-muted" />
+                  <Input
+                    value={setName}
+                    onChange={e => {
+                      setSetName(e.target.value);
+                      setSetNameTouched(true);
+                    }}
+                    placeholder={autoSetName || 'Set-Name eingeben...'}
+                  />
+                  {setNameTouched && setName !== autoSetName && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSetName(autoSetName);
+                        setSetNameTouched(false);
+                      }}
+                      className="text-xs text-muted-foreground hover:text-primary mt-1"
+                    >
+                      Vorschlag übernehmen
+                    </button>
+                  )}
                 </div>
                 <div>
                   <Label>Beschreibung (optional)</Label>
