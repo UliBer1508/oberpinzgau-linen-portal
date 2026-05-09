@@ -63,9 +63,19 @@ export default function Objekte() {
               onClick={() => navigate(`/objekte/${objekt.id}`)}
             >
               <div className="flex items-start justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                  <Building2 className="h-6 w-6" />
-                </div>
+                {objekt.bild_url ? (
+                  <div className="h-12 w-12 overflow-hidden rounded-lg border border-border/60">
+                    <img
+                      src={objekt.bild_url}
+                      alt={objekt.name}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                    <Building2 className="h-6 w-6" />
+                  </div>
+                )}
               </div>
 
               <h3 className="mt-4 text-lg font-semibold text-card-foreground">

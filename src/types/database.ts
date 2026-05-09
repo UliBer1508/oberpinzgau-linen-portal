@@ -58,6 +58,7 @@ export interface Objekt {
   ansprechpartner: string | null;
   telefon: string | null;
   notizen: string | null;
+  bild_url: string | null;
   aktiv: boolean;
   created_at: string;
   updated_at: string;
