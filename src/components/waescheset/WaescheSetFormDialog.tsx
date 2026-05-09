@@ -212,50 +212,88 @@ export function WaescheSetFormDialog({
             </div>
           </div>
 
-          {/* Artikelauswahl */}
+          {/* Artikelauswahl mit Inline-Bearbeitung */}
           <div>
-            <Label className="mb-2 block">Artikel</Label>
+            <Label className="mb-2 block">
+              Artikel {artikel ? `(${artikel.length})` : ''}
+            </Label>
             {artikelLoading ? (
               <div className="flex justify-center py-6">
                 <Loader2 className="h-5 w-5 animate-spin text-primary" />
               </div>
             ) : (
-              <div className="space-y-4 max-h-64 overflow-y-auto rounded-lg border p-3">
+              <div className="space-y-4 rounded-lg border p-3">
                 {Object.entries(artikelByKategorie).map(([kat, arts]) => (
                   <div key={kat}>
                     <h4 className="text-xs font-medium text-muted-foreground mb-2">{kat}</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="space-y-2">
                       {arts.map(a => {
                         const inSet = pending.find(p => p.artikel_id === a.id);
                         return (
-                          <button
+                          <div
                             key={a.id}
-                            type="button"
-                            onClick={() => addArt(a)}
-                            className={`flex items-center gap-2 p-2 rounded-md border text-left transition ${
-                              inSet ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/40'
+                            className={`rounded-md border transition ${
+                              inSet ? 'border-primary bg-primary/5' : 'border-border'
                             }`}
                           >
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium text-sm truncate">{a.name}</span>
-                                {inSet && (
-                                  <Badge variant="secondary" className="shrink-0 text-xs">
-                                    {inSet.menge}×
-                                  </Badge>
-                                )}
+                            <button
+                              type="button"
+                              onClick={() => !inSet && addArt(a)}
+                              className="w-full flex items-center gap-2 p-3 text-left min-h-14"
+                            >
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-sm truncate">{a.name}</div>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <span className="text-[11px] text-muted-foreground">{a.artikelnummer}</span>
+                                  {a.farbe && (
+                                    <Badge variant="outline" className={`text-[10px] px-1 ${getFarbStyle(a.farbe)}`}>
+                                      {a.farbe}
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
-                              <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="text-[11px] text-muted-foreground">{a.artikelnummer}</span>
-                                {a.farbe && (
-                                  <Badge variant="outline" className={`text-[10px] px-1 ${getFarbStyle(a.farbe)}`}>
-                                    {a.farbe}
-                                  </Badge>
-                                )}
+                              <span className="text-xs font-medium shrink-0">{formatPreis(a.preis)}</span>
+                            </button>
+
+                            {inSet && (
+                              <div className="px-3 pb-3 pt-0 space-y-2 border-t border-primary/20">
+                                <div className="flex items-center justify-between gap-2 pt-2">
+                                  <div className="flex items-center gap-1">
+                                    <Button type="button" variant="outline" size="icon" className="h-10 w-10" onClick={() => updMenge(a.id, -1)}>
+                                      <Minus className="h-4 w-4" />
+                                    </Button>
+                                    <span className="w-10 text-center text-base font-semibold">{inSet.menge}</span>
+                                    <Button type="button" variant="outline" size="icon" className="h-10 w-10" onClick={() => updMenge(a.id, 1)}>
+                                      <Plus className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                  <Button type="button" variant="ghost" size="icon" className="h-10 w-10 text-destructive hover:text-destructive" onClick={() => removeArt(a.id)} aria-label="Entfernen">
+                                    <X className="h-5 w-5" />
+                                  </Button>
+                                </div>
+                                <div className="grid grid-cols-2 gap-1 rounded-md bg-muted p-1">
+                                  <Button
+                                    type="button"
+                                    variant={inSet.berechnungsart === 'pro_buchung' ? 'default' : 'ghost'}
+                                    size="sm"
+                                    className="h-10 text-sm"
+                                    onClick={() => inSet.berechnungsart !== 'pro_buchung' && toggleBer(a.id)}
+                                  >
+                                    <Calendar className="h-4 w-4 mr-1.5" /> Pro Buchung
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant={inSet.berechnungsart === 'pro_gast' ? 'default' : 'ghost'}
+                                    size="sm"
+                                    className="h-10 text-sm"
+                                    onClick={() => inSet.berechnungsart !== 'pro_gast' && toggleBer(a.id)}
+                                  >
+                                    <Users className="h-4 w-4 mr-1.5" /> Pro Gast
+                                  </Button>
+                                </div>
                               </div>
-                            </div>
-                            <span className="text-xs font-medium shrink-0">{formatPreis(a.preis)}</span>
-                          </button>
+                            )}
+                          </div>
                         );
                       })}
                     </div>
@@ -265,65 +303,31 @@ export function WaescheSetFormDialog({
             )}
           </div>
 
-          {/* Zusammenfassung */}
-          <div>
-            <Label className="mb-2 flex items-center gap-2">
-              <Package className="h-4 w-4" /> Set-Inhalt
-            </Label>
-            {pending.length === 0 ? (
-              <p className="text-sm text-muted-foreground italic py-3">Noch keine Artikel hinzugefügt.</p>
-            ) : (
-              <div className="space-y-2">
+          {/* Kompakte Übersicht */}
+          {pending.length > 0 && (
+            <div>
+              <Label className="mb-2 flex items-center gap-2">
+                <Package className="h-4 w-4" /> Set-Inhalt ({pending.length})
+              </Label>
+              <div className="space-y-1 rounded-lg border p-3">
                 {pending.map(p => (
-                  <div key={p.artikel_id} className="rounded-lg border p-2 space-y-1.5">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="font-medium text-sm truncate">{p.artikelName}</p>
-                        <p className="text-[11px] text-muted-foreground">{p.artikelNummer}</p>
-                      </div>
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeArt(p.artikel_id)}>
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <div className="flex items-center gap-1">
-                        <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updMenge(p.artikel_id, -1)}>
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <span className="w-6 text-center text-sm font-medium">{p.menge}</span>
-                        <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updMenge(p.artikel_id, 1)}>
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                      </div>
-                      <div className="flex gap-1">
-                        <Button
-                          variant={p.berechnungsart === 'pro_buchung' ? 'default' : 'outline'}
-                          size="sm"
-                          className="h-6 text-xs px-2"
-                          onClick={() => p.berechnungsart !== 'pro_buchung' && toggleBer(p.artikel_id)}
-                        >
-                          <Calendar className="h-3 w-3 mr-1" /> Buchung
-                        </Button>
-                        <Button
-                          variant={p.berechnungsart === 'pro_gast' ? 'default' : 'outline'}
-                          size="sm"
-                          className="h-6 text-xs px-2"
-                          onClick={() => p.berechnungsart !== 'pro_gast' && toggleBer(p.artikel_id)}
-                        >
-                          <Users className="h-3 w-3 mr-1" /> Gast
-                        </Button>
-                      </div>
-                    </div>
+                  <div key={p.artikel_id} className="flex items-center justify-between gap-2 text-sm">
+                    <span className="truncate flex-1">
+                      <span className="font-medium">{p.menge}×</span> {p.artikelName}
+                    </span>
+                    <Badge variant="outline" className="text-[10px] shrink-0">
+                      {p.berechnungsart === 'pro_gast' ? 'pro Gast' : 'pro Buchung'}
+                    </Badge>
                   </div>
                 ))}
-                <Separator />
+                <Separator className="my-2" />
                 <div className="flex items-center justify-between text-sm font-medium">
                   <span>Gesamtpreis:</span>
                   <span>{formatPreis(gesamt)}</span>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter>
