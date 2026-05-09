@@ -215,7 +215,7 @@ export default function NeueBestellung() {
                 <SelectContent className="bg-popover border-border z-50">
                   {objekte?.map((objekt) => (
                     <SelectItem key={objekt.id} value={objekt.id}>
-                      {objekt.name} - {formatAdresse(objekt)}
+                      {objekt.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
