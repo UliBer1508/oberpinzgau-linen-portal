@@ -331,27 +331,53 @@ export default function NeueBestellung() {
           </Card>
 
           {/* Wäscheset auswählen (optional) */}
-          {waescheSets && waescheSets.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">3. Schnellauswahl: Wäscheset</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Select value={selectedSetId} onValueChange={handleSetSelect}>
-                  <SelectTrigger className="bg-background">
-                    <SelectValue placeholder="Set auswählen (optional)..." />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover border-border z-50">
-                    {waescheSets.map((set) => (
-                      <SelectItem key={set.id} value={set.id}>
-                        {set.name} ({set.artikel?.length || 0} Artikel)
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </CardContent>
-            </Card>
-          )}
+          {(() => {
+            const filteredSets = selectedObjektId
+              ? waescheSets?.filter((s: any) => s.objekt_id === selectedObjektId) ?? []
+              : waescheSets ?? [];
+            if (!filteredSets.length) return null;
+            return (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">3. Schnellauswahl: Wäscheset</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {filteredSets.map((set: any) => {
+                      const active = selectedSetId === set.id;
+                      return (
+                        <button
+                          key={set.id}
+                          type="button"
+                          onClick={() => handleSetSelect(set.id)}
+                          className={cn(
+                            'text-left p-3 rounded-lg border transition-all',
+                            active
+                              ? 'border-primary bg-primary/5 shadow-sm'
+                              : 'border-border hover:border-primary/40 hover:bg-muted/30'
+                          )}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <Package className="h-4 w-4 text-primary shrink-0" />
+                            <div className="font-medium text-sm truncate">{set.name}</div>
+                          </div>
+                          {set.beschreibung && (
+                            <div className="text-xs text-muted-foreground line-clamp-2 mb-1">
+                              {set.beschreibung}
+                            </div>
+                          )}
+                          <div className="text-xs text-muted-foreground">
+                            {set.artikel?.length || 0} Artikel
+                            {!selectedObjektId && set.objekt?.name ? ` · ${set.objekt.name}` : ''}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()}
 
           {/* Artikel auswählen */}
           <Card>
