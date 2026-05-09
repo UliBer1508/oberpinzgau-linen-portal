@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Building2, ShoppingCart, Receipt, UserCog } from 'lucide-react';
+import { LayoutDashboard, Building2, ShoppingCart, Receipt, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const items = [
@@ -7,7 +7,7 @@ const items = [
   { to: '/objekte', icon: Building2, label: 'Objekte' },
   { to: '/bestellungen', icon: ShoppingCart, label: 'Bestellen' },
   { to: '/rechnungen', icon: Receipt, label: 'Rechnungen' },
-  { to: '/profil', icon: UserCog, label: 'Profil' },
+  { to: '/waeschesets', icon: Package, label: 'Sets' },
 ];
 
 export function BottomNav() {
