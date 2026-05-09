@@ -12,6 +12,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Objekte from "./pages/Objekte";
 import NeuesObjekt from "./pages/NeuesObjekt";
+import ObjektDetail from "./pages/ObjektDetail";
 import Bestellungen from "./pages/Bestellungen";
 import BestellungDetail from "./pages/BestellungDetail";
 import NeueBestellung from "./pages/NeueBestellung";
