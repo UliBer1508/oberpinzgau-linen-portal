@@ -79,6 +79,28 @@ export default function NeueBestellung() {
   const [checkOut, setCheckOut] = useState<Date>();
   const [anzahlPersonen, setAnzahlPersonen] = useState<number>(1);
 
+  // Wäscheset Dialog State
+  const [setDialogOpen, setSetDialogOpen] = useState(false);
+  const [editingSet, setEditingSet] = useState<any | null>(null);
+  const [setToDelete, setSetToDelete] = useState<any | null>(null);
+  const deleteWaescheSet = useDeleteWaescheSet();
+
+  const handleDeleteSet = async () => {
+    if (!setToDelete) return;
+    try {
+      await deleteWaescheSet.mutateAsync(setToDelete.id);
+      if (selectedSetId === setToDelete.id) {
+        setSelectedSetId('');
+        setOrderItems([]);
+      }
+      toast({ title: 'Erfolg', description: 'Set gelöscht.' });
+    } catch (err: any) {
+      toast({ title: 'Fehler', description: err?.message ?? 'Konnte Set nicht löschen.', variant: 'destructive' });
+    } finally {
+      setSetToDelete(null);
+    }
+  };
+
   const isLoading = kundeLoading || objekteLoading || setsLoading || artikelLoading;
 
   // Helper to format address from separate fields
