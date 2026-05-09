@@ -242,7 +242,7 @@ export default function ObjektDetail() {
 
             {/* Stammdaten rechts */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2 mb-1 pr-10">
                 <Building2 className="h-4 w-4 text-primary shrink-0" />
                 <h2 className="font-display text-base font-bold truncate">{objekt.name}</h2>
               </div>
