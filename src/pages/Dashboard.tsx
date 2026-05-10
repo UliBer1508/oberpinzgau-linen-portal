@@ -25,6 +25,7 @@ import { de } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useKunde, useObjekte, useWaescheSets, useBestellungen, useRechnungen, RechnungMitBestellung } from '@/hooks/useSupabaseData';
 import { QuickOrderTiles } from '@/components/QuickOrderTiles';
+import { SectionHeader } from '@/components/dashboard/SectionHeader';
 import type { RechnungStatus, BestellungStatus } from '@/types/database';
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -125,23 +126,21 @@ export default function Dashboard() {
     >
       {/* Stats Section (collapsible) */}
       <Collapsible open={statsOpen} onOpenChange={handleStatsOpenChange}>
-        <div className="flex items-center justify-between mb-2">
-          <CollapsibleTrigger className="flex items-center gap-2 h-10 px-2 -ml-2 rounded-lg hover:bg-muted/60 text-sm font-medium text-muted-foreground transition-colors">
-            <Sparkles className="h-4 w-4 text-accent" />
-            Übersicht
-            <ChevronDown className={cn('h-4 w-4 transition-transform', statsOpen && 'rotate-180')} />
-          </CollapsibleTrigger>
-          {!statsOpen && (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground overflow-x-auto">
-              <span className="px-2 py-0.5 rounded-full bg-info/15 text-info font-medium">{activeOrders} Best.</span>
-              <span className="px-2 py-0.5 rounded-full bg-primary/15 text-primary font-medium">{objekte.length} Obj.</span>
-              <span className="px-2 py-0.5 rounded-full bg-accent/15 text-accent font-medium">{waescheSets.length} Sets</span>
-              <span className={cn('px-2 py-0.5 rounded-full font-medium', offeneRechnungen.length > 0 ? 'bg-warning/15 text-warning' : 'bg-success/15 text-success')}>{offeneRechnungen.length} Rg.</span>
-            </div>
-          )}
-        </div>
+        <SectionHeader
+          icon={Sparkles}
+          iconVariant="accent"
+          title="Übersicht"
+          subtitle="4 Kennzahlen"
+          open={statsOpen}
+          chips={[
+            { label: 'Best.', count: activeOrders, variant: 'info' },
+            { label: 'Obj.', count: objekte.length, variant: 'primary' },
+            { label: 'Sets', count: waescheSets.length, variant: 'accent' },
+            { label: 'Rg.', count: offeneRechnungen.length, variant: offeneRechnungen.length > 0 ? 'warning' : 'success' },
+          ]}
+        />
         <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
-          <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+          <div className="mt-3 grid gap-3 grid-cols-2 lg:grid-cols-4">
             <StatCard
               title="Aktive Bestellungen"
               value={activeOrders}
@@ -180,32 +179,20 @@ export default function Dashboard() {
         {/* Recent Orders */}
         <div className="lg:col-span-2">
           <Collapsible open={ordersOpen} onOpenChange={handleOrdersOpenChange}>
-            <div className="flex items-center justify-between mb-2 gap-2">
-              <CollapsibleTrigger className="flex items-center gap-2 h-10 px-2 -ml-2 rounded-lg hover:bg-muted/60 text-sm font-medium text-muted-foreground transition-colors min-w-0">
-                <ShoppingCart className="h-4 w-4 text-info shrink-0" />
-                <span className="truncate">Bestellungen</span>
-                <ChevronDown className={cn('h-4 w-4 transition-transform shrink-0', ordersOpen && 'rotate-180')} />
-              </CollapsibleTrigger>
-              <div className="flex items-center gap-1.5 shrink-0">
-                {!ordersOpen && (
-                  <>
-                    <span className="px-2 py-0.5 rounded-full bg-status-pending/15 text-status-pending text-xs font-medium">
-                      {bestellungen.filter(b => b.status === 'neu').length} Neu
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full bg-status-processing/15 text-status-processing text-xs font-medium">
-                      {bestellungen.filter(b => b.status === 'in_bearbeitung').length} Bearb.
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full bg-status-ready/15 text-status-ready text-xs font-medium">
-                      {bestellungen.filter(b => b.status === 'ausgeliefert').length} Ausgel.
-                    </span>
-                  </>
-                )}
-                <Button variant="ghost" size="sm" onClick={() => navigate('/bestellungen')}>
-                  Alle <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+            <SectionHeader
+              icon={ShoppingCart}
+              iconVariant="info"
+              title="Bestellungen"
+              subtitle={`${activeOrders} aktiv`}
+              open={ordersOpen}
+              chips={[
+                { label: 'Neu', count: bestellungen.filter(b => b.status === 'neu').length, variant: 'pending' },
+                { label: 'Bearb.', count: bestellungen.filter(b => b.status === 'in_bearbeitung').length, variant: 'processing' },
+                { label: 'Ausgel.', count: bestellungen.filter(b => b.status === 'ausgeliefert').length, variant: 'ready' },
+              ]}
+              onAllClick={() => navigate('/bestellungen')}
+            />
+            <CollapsibleContent className="mt-3 overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
               {recentOrders.length === 0 ? (
                 <div className="rounded-2xl border border-border bg-card shadow-card flex flex-col items-center justify-center py-12 text-center px-4">
                   <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-muted">
@@ -322,29 +309,23 @@ export default function Dashboard() {
         {/* Recent Invoices */}
         <div className="lg:col-span-3">
           <Collapsible open={invoicesOpen} onOpenChange={handleInvoicesOpenChange}>
-            <div className="flex items-center justify-between mb-2 gap-2">
-              <CollapsibleTrigger className="flex items-center gap-2 h-10 px-2 -ml-2 rounded-lg hover:bg-muted/60 text-sm font-medium text-muted-foreground transition-colors min-w-0">
-                <FileText className="h-4 w-4 text-warning shrink-0" />
-                <span className="truncate">Rechnungen</span>
-                <ChevronDown className={cn('h-4 w-4 transition-transform shrink-0', invoicesOpen && 'rotate-180')} />
-              </CollapsibleTrigger>
-              <div className="flex items-center gap-1.5 shrink-0">
-                {!invoicesOpen && (
-                  <>
-                    <span className="px-2 py-0.5 rounded-full bg-status-pending/15 text-status-pending text-xs font-medium">
-                      {rechnungen.filter(r => r.status === 'offen').length} Offen
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full bg-status-delivered/15 text-status-delivered text-xs font-medium">
-                      {rechnungen.filter(r => r.status === 'bezahlt').length} Bezahlt
-                    </span>
-                  </>
-                )}
-                <Button variant="ghost" size="sm" onClick={() => navigate('/rechnungen')}>
-                  Alle <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+            <SectionHeader
+              icon={FileText}
+              iconVariant="warning"
+              title="Rechnungen"
+              subtitle={
+                offeneRechnungen.length > 0
+                  ? `${offeneRechnungen.length} offen · €${offenerBetrag.toFixed(2)}`
+                  : 'Alle bezahlt'
+              }
+              open={invoicesOpen}
+              chips={[
+                { label: 'Offen', count: rechnungen.filter(r => r.status === 'offen').length, variant: 'pending' },
+                { label: 'Bezahlt', count: rechnungen.filter(r => r.status === 'bezahlt').length, variant: 'delivered' },
+              ]}
+              onAllClick={() => navigate('/rechnungen')}
+            />
+            <CollapsibleContent className="mt-3 overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
               {recentRechnungen.length === 0 ? (
                 <div className="rounded-2xl border border-border bg-card shadow-card flex flex-col items-center justify-center py-12 text-center px-4">
                   <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-muted">
