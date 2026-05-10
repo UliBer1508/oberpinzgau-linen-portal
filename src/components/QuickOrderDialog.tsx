@@ -110,31 +110,7 @@ export function QuickOrderDialog({ open, onOpenChange, objekt, set }: QuickOrder
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          {/* Anzahl Sets */}
-          <div className="flex items-center justify-between rounded-xl border border-border bg-card p-3">
-            <Label className="text-sm font-medium">Anzahl Sets</Label>
-            <Stepper value={anzahlSets} onChange={setAnzahlSets} />
-          </div>
-
-          {/* Lieferdatum */}
-          <div>
-            <Label className="text-sm font-medium mb-2 flex items-center gap-2">
-              <CalendarIcon className="h-4 w-4" /> Lieferdatum
-            </Label>
-            <div className="rounded-xl border border-border bg-card p-2 flex justify-center">
-              <Calendar
-                mode="single"
-                selected={lieferdatum}
-                onSelect={setLieferdatum}
-                locale={de}
-                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                initialFocus
-                className="pointer-events-auto"
-              />
-            </div>
-          </div>
-
-          {/* Buchungsdetails Toggle */}
+          {/* Buchungsdetails Toggle (first) */}
           <div className="rounded-xl border border-border bg-card p-3">
             <div className="flex items-center justify-between">
               <div>
@@ -204,9 +180,43 @@ export function QuickOrderDialog({ open, onOpenChange, objekt, set }: QuickOrder
                     </Label>
                     <Stepper value={anzahlPersonen} onChange={setAnzahlPersonen} min={1} max={50} />
                   </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Bestimmt die Menge für Artikel „pro Gast".
+                  </p>
                 </div>
               </CollapsibleContent>
             </Collapsible>
+          </div>
+
+          {/* Anzahl Sets */}
+          {!mitBuchung && (
+            <div className="rounded-xl border border-border bg-card p-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">Anzahl Sets</Label>
+                <Stepper value={anzahlSets} onChange={setAnzahlSets} />
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Multipliziert die Menge aller Artikel im Set.
+              </p>
+            </div>
+          )}
+
+          {/* Lieferdatum */}
+          <div>
+            <Label className="text-sm font-medium mb-2 flex items-center gap-2">
+              <CalendarIcon className="h-4 w-4" /> Lieferdatum
+            </Label>
+            <div className="rounded-xl border border-border bg-card p-2 flex justify-center">
+              <Calendar
+                mode="single"
+                selected={lieferdatum}
+                onSelect={setLieferdatum}
+                locale={de}
+                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                initialFocus
+                className="pointer-events-auto"
+              />
+            </div>
           </div>
         </div>
 
