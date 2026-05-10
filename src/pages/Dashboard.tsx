@@ -206,7 +206,7 @@ export default function Dashboard() {
               ) : (
                 <>
                   {/* Karten-Grid: 2 pro Zeile */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-3">
                     {recentOrders.map((bestellung) => (
                       <button
                         key={bestellung.id}
@@ -285,7 +285,7 @@ export default function Dashboard() {
               ) : (
                 <>
                   {/* Karten-Grid: 2 pro Zeile */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-3">
                     {recentRechnungen.map((rechnung) => (
                       <button
                         key={rechnung.id}
