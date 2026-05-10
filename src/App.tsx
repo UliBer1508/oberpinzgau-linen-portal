@@ -74,6 +74,9 @@ const App = () => (
             <Route path="/waeschesets/neu" element={
               <ProtectedRoute><NeuesWaescheSet /></ProtectedRoute>
             } />
+            <Route path="/waeschesets/:id/bearbeiten" element={
+              <ProtectedRoute><NeuesWaescheSet /></ProtectedRoute>
+            } />
             <Route path="/artikel" element={
               <ProtectedRoute><Artikel /></ProtectedRoute>
             } />
