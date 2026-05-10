@@ -325,7 +325,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-2 gap-2">
               <CollapsibleTrigger className="flex items-center gap-2 h-10 px-2 -ml-2 rounded-lg hover:bg-muted/60 text-sm font-medium text-muted-foreground transition-colors min-w-0">
                 <FileText className="h-4 w-4 text-warning shrink-0" />
-                <span className="truncate">Aktuelle Rechnungen</span>
+                <span className="truncate">Rechnungen</span>
                 <ChevronDown className={cn('h-4 w-4 transition-transform shrink-0', invoicesOpen && 'rotate-180')} />
               </CollapsibleTrigger>
               <div className="flex items-center gap-1.5 shrink-0">
