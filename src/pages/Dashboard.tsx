@@ -46,6 +46,15 @@ export default function Dashboard() {
     setOrdersOpen(open);
     try { localStorage.setItem('dashboard.ordersOpen', String(open)); } catch {}
   };
+  const [invoicesOpen, setInvoicesOpen] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    const v = localStorage.getItem('dashboard.invoicesOpen');
+    return v === null ? true : v === 'true';
+  });
+  const handleInvoicesOpenChange = (open: boolean) => {
+    setInvoicesOpen(open);
+    try { localStorage.setItem('dashboard.invoicesOpen', String(open)); } catch {}
+  };
   
   const { data: kunde, isLoading: kundeLoading } = useKunde();
   const { data: objekte = [], isLoading: objekteLoading } = useObjekte(kunde?.id);
