@@ -76,8 +76,8 @@ export function QuickOrderDialog({ open, onOpenChange, objekt, set }: QuickOrder
       });
       reset();
       onOpenChange(false);
-    } catch (e: any) {
-      toast({ title: 'Fehler', description: e?.message ?? 'Bestellung fehlgeschlagen.', variant: 'destructive' });
+    } catch (e: unknown) {
+      toast({ title: 'Fehler', description: e instanceof Error ? e.message : 'Bestellung fehlgeschlagen.', variant: 'destructive' });
     }
   };
 
@@ -218,7 +218,7 @@ export function QuickOrderDialog({ open, onOpenChange, objekt, set }: QuickOrder
                   ? (istProGast ? a.menge * anzahlPersonen : a.menge)
                   : a.menge * anzahlSets;
                 const formel = mitBuchung
-                  ? (istProGast ? `${a.menge} × ${anzahlPersonen}` : `${a.menge}`)
+                  ? (istProGast ? `${a.menge} × ${anzahlPersonen}` : `${a.menge}× pro Buchung`)
                   : `${a.menge} × ${anzahlSets}`;
                 return (
                   <div key={a.artikel_id} className="flex items-center justify-between gap-2">
@@ -261,7 +261,7 @@ export function QuickOrderDialog({ open, onOpenChange, objekt, set }: QuickOrder
           <Button variant="outline" className="h-14 text-base" onClick={() => onOpenChange(false)} disabled={createBestellung.isPending}>
             Abbrechen
           </Button>
-          <Button variant="hero" className="h-14 text-base" onClick={handleSubmit} disabled={createBestellung.isPending || !lieferdatum || !setHasArtikel}>
+          <Button variant="hero" className="h-14 text-base" onClick={handleSubmit} disabled={createBestellung.isPending || !setHasArtikel}>
             {createBestellung.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Bestellen'}
           </Button>
         </DialogFooter>
