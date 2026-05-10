@@ -65,14 +65,14 @@ export function QuickOrderDialog({ open, onOpenChange, objekt, set }: QuickOrder
         anzahl_personen: mitBuchung ? anzahlPersonen : null,
         positionen: set.artikel.map(a => ({
           artikel_id: a.artikel_id,
-          menge: a.berechnungsart === 'pro_gast' && mitBuchung
-            ? a.menge * anzahlPersonen
+          menge: mitBuchung
+            ? (a.berechnungsart === 'pro_gast' ? a.menge * anzahlPersonen : a.menge)
             : a.menge * anzahlSets,
         })),
       });
       toast({
         title: 'Bestellung gesendet',
-        description: `${objekt.name} – ${anzahlSets}× ${set.name} – Lieferung am ${format(lieferdatum, 'dd.MM.yyyy', { locale: de })}`,
+        description: `${objekt.name} – ${set.name}${mitBuchung ? ` für ${anzahlPersonen} Pers.` : ` (${anzahlSets}× Set)`} – Lieferung am ${format(lieferdatum, 'dd.MM.yyyy', { locale: de })}`,
       });
       reset();
       onOpenChange(false);
@@ -117,7 +117,14 @@ export function QuickOrderDialog({ open, onOpenChange, objekt, set }: QuickOrder
                 <Label htmlFor="mit-buchung" className="text-sm font-medium">Buchungsdetails</Label>
                 <p className="text-xs text-muted-foreground mt-0.5">An eine Gast-Buchung knüpfen</p>
               </div>
-              <Switch id="mit-buchung" checked={mitBuchung} onCheckedChange={setMitBuchung} />
+              <Switch
+                id="mit-buchung"
+                checked={mitBuchung}
+                onCheckedChange={(v) => {
+                  setMitBuchung(v);
+                  if (v) setAnzahlSets(1);
+                }}
+              />
             </div>
 
             <Collapsible open={mitBuchung}>
@@ -198,6 +205,36 @@ export function QuickOrderDialog({ open, onOpenChange, objekt, set }: QuickOrder
               <p className="text-[11px] text-muted-foreground mt-1">
                 Multipliziert die Menge aller Artikel im Set.
               </p>
+            </div>
+          )}
+
+          {/* Live-Vorschau berechnete Mengen */}
+          {setHasArtikel && (
+            <div className="rounded-xl border border-border bg-muted/30 p-3 text-sm space-y-1">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Berechnete Mengen</div>
+              {set!.artikel.map((a) => {
+                const istProGast = a.berechnungsart === 'pro_gast';
+                const menge = mitBuchung
+                  ? (istProGast ? a.menge * anzahlPersonen : a.menge)
+                  : a.menge * anzahlSets;
+                const formel = mitBuchung
+                  ? (istProGast ? `${a.menge} × ${anzahlPersonen}` : `${a.menge}`)
+                  : `${a.menge} × ${anzahlSets}`;
+                return (
+                  <div key={a.artikel_id} className="flex items-center justify-between gap-2">
+                    <span className="truncate">
+                      {a.waescheartikel?.name ?? 'Artikel'}
+                      <span className="ml-1.5 text-[11px] text-muted-foreground">
+                        {istProGast ? 'pro Gast' : 'pro Buchung'}
+                      </span>
+                    </span>
+                    <span className="tabular-nums whitespace-nowrap">
+                      <span className="text-muted-foreground">{formel} = </span>
+                      <span className="font-semibold">{menge}</span>
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           )}
 
