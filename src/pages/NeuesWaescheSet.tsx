@@ -284,7 +284,7 @@ const NeuesWaescheSet = () => {
               <CardDescription>Für welches Objekt soll das Set erstellt werden?</CardDescription>
             </CardHeader>
             <CardContent>
-              <Select value={selectedObjektId} onValueChange={setSelectedObjektId}>
+              <Select value={selectedObjektId} onValueChange={setSelectedObjektId} disabled={isEdit}>
                 <SelectTrigger>
                   <SelectValue placeholder="Objekt auswählen..." />
                 </SelectTrigger>
@@ -296,6 +296,9 @@ const NeuesWaescheSet = () => {
                   ))}
                 </SelectContent>
               </Select>
+              {isEdit && (
+                <p className="text-xs text-muted-foreground mt-2">Das Objekt eines bestehenden Sets kann nicht geändert werden.</p>
+              )}
             </CardContent>
           </Card>
 
