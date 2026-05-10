@@ -38,7 +38,7 @@ export function StatCard({
   return (
     <div
       className={cn(
-        'group rounded-2xl border border-border/60 bg-card p-3 sm:p-5 shadow-card transition-all hover:shadow-soft hover:-translate-y-0.5',
+        'group rounded-2xl border border-border bg-card p-3 sm:p-5 shadow-card transition-all hover:shadow-soft hover:-translate-y-0.5',
         onClick && 'cursor-pointer',
         className
       )}
