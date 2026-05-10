@@ -63,7 +63,12 @@ export function QuickOrderDialog({ open, onOpenChange, objekt, set }: QuickOrder
         check_in: mitBuchung && checkIn ? format(checkIn, 'yyyy-MM-dd') : null,
         check_out: mitBuchung && checkOut ? format(checkOut, 'yyyy-MM-dd') : null,
         anzahl_personen: mitBuchung ? anzahlPersonen : null,
-        positionen: set.artikel.map(a => ({ artikel_id: a.artikel_id, menge: a.menge * anzahlSets })),
+        positionen: set.artikel.map(a => ({
+          artikel_id: a.artikel_id,
+          menge: a.berechnungsart === 'pro_gast' && mitBuchung
+            ? a.menge * anzahlPersonen
+            : a.menge * anzahlSets,
+        })),
       });
       toast({
         title: 'Bestellung gesendet',
