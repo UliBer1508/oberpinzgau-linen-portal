@@ -4,7 +4,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { useKunde, useWaescheSets, useWaescheArtikel, useObjekte, useSetSchnellbestellungSet } from '@/hooks/useSupabaseData';
+import { useKunde, useWaescheSets, useWaescheArtikel, useObjekte, useSetSchnellbestellungSet, useDeleteWaescheSet } from '@/hooks/useSupabaseData';
 import { cn } from '@/lib/utils';
 
 export default function WaescheSets() {
