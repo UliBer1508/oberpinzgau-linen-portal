@@ -46,6 +46,15 @@ export default function Dashboard() {
     setOrdersOpen(open);
     try { localStorage.setItem('dashboard.ordersOpen', String(open)); } catch {}
   };
+  const [invoicesOpen, setInvoicesOpen] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    const v = localStorage.getItem('dashboard.invoicesOpen');
+    return v === null ? true : v === 'true';
+  });
+  const handleInvoicesOpenChange = (open: boolean) => {
+    setInvoicesOpen(open);
+    try { localStorage.setItem('dashboard.invoicesOpen', String(open)); } catch {}
+  };
   
   const { data: kunde, isLoading: kundeLoading } = useKunde();
   const { data: objekte = [], isLoading: objekteLoading } = useObjekte(kunde?.id);
@@ -311,101 +320,113 @@ export default function Dashboard() {
         <QuickOrderTiles objekte={objekte} waescheSets={waescheSets} />
 
         {/* Recent Invoices */}
-        <div className="lg:col-span-3 rounded-2xl border border-border/60 bg-card shadow-card overflow-hidden">
-          <div className="flex items-center justify-between border-b border-border/60 p-3 md:p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-warning/15 text-warning">
-                <FileText className="h-5 w-5" />
+        <div className="lg:col-span-3">
+          <Collapsible open={invoicesOpen} onOpenChange={handleInvoicesOpenChange}>
+            <div className="flex items-center justify-between mb-2 gap-2">
+              <CollapsibleTrigger className="flex items-center gap-2 h-10 px-2 -ml-2 rounded-lg hover:bg-muted/60 text-sm font-medium text-muted-foreground transition-colors min-w-0">
+                <FileText className="h-4 w-4 text-warning shrink-0" />
+                <span className="truncate">Aktuelle Rechnungen</span>
+                <ChevronDown className={cn('h-4 w-4 transition-transform shrink-0', invoicesOpen && 'rotate-180')} />
+              </CollapsibleTrigger>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {!invoicesOpen && (
+                  <>
+                    <span className="px-2 py-0.5 rounded-full bg-status-pending/15 text-status-pending text-xs font-medium">
+                      {rechnungen.filter(r => r.status === 'offen').length} Offen
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-status-delivered/15 text-status-delivered text-xs font-medium">
+                      {rechnungen.filter(r => r.status === 'bezahlt').length} Bezahlt
+                    </span>
+                  </>
+                )}
+                <Button variant="ghost" size="sm" onClick={() => navigate('/rechnungen')}>
+                  Alle <ArrowRight className="h-4 w-4" />
+                </Button>
               </div>
-              <h2 className="font-display text-lg font-bold text-card-foreground">
-                Aktuelle Rechnungen
-              </h2>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/rechnungen')}>
-              Alle <ArrowRight className="h-4 w-4" />
-            </Button>
-          </div>
-          {recentRechnungen.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center px-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-muted">
-                <FileText className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <p className="mt-4 text-muted-foreground">Noch keine Rechnungen</p>
-            </div>
-          ) : (
-            <>
-              {/* Mobile: kompakte Listen-Ansicht */}
-              <div className="md:hidden divide-y divide-border/60">
-                {recentRechnungen.map((rechnung) => (
-                  <button
-                    key={rechnung.id}
-                    onClick={() => navigate(`/rechnungen/${rechnung.id}`)}
-                    className={`w-full text-left p-3 ${getRechnungRowClassName(rechnung.status)}`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-sm font-medium text-primary truncate">
-                        {rechnung.rechnungsnummer}
-                      </span>
-                      <StatusBadge status={rechnung.status} />
-                    </div>
-                    <div className="mt-1 flex items-center justify-between gap-2 text-xs">
-                      <span className="inline-flex items-center gap-1.5 text-muted-foreground truncate min-w-0">
-                        {rechnung.bestellung?.bestellnummer && (
-                          <span className="font-mono">#{rechnung.bestellung.bestellnummer}</span>
+            <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+              {recentRechnungen.length === 0 ? (
+                <div className="rounded-2xl border border-border bg-card shadow-card flex flex-col items-center justify-center py-12 text-center px-4">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-muted">
+                    <FileText className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <p className="mt-4 text-muted-foreground">Noch keine Rechnungen</p>
+                </div>
+              ) : (
+                <>
+                  {/* Mobile: einzelne Karten */}
+                  <div className="md:hidden grid grid-cols-2 gap-3">
+                    {recentRechnungen.map((rechnung) => (
+                      <button
+                        key={rechnung.id}
+                        onClick={() => navigate(`/rechnungen/${rechnung.id}`)}
+                        className={cn(
+                          'w-full text-left rounded-2xl border border-border bg-card p-4 shadow-card transition-all hover:shadow-soft active:scale-[0.99]',
+                          getRechnungRowClassName(rechnung.status)
                         )}
-                        <Clock className="h-3 w-3 shrink-0" />
-                        {format(new Date(rechnung.rechnungsdatum), 'dd.MM.yyyy', { locale: de })}
-                      </span>
-                      <span className="font-semibold text-sm shrink-0 text-foreground">
-                        €{(rechnung.bruttobetrag || 0).toFixed(2)}
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-sm font-medium text-foreground truncate">
+                            {format(new Date(rechnung.rechnungsdatum), 'dd.MM.yyyy', { locale: de })}
+                          </span>
+                          <StatusBadge status={rechnung.status} />
+                        </div>
+                        <div className="mt-2 flex items-center justify-between gap-2">
+                          <span className="font-mono text-xs text-muted-foreground truncate min-w-0">
+                            {rechnung.rechnungsnummer}
+                          </span>
+                          <span className="font-semibold text-sm shrink-0 text-foreground">
+                            €{(rechnung.bruttobetrag || 0).toFixed(2)}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
 
-              {/* Desktop: volle Tabelle */}
-              <div className="hidden md:block"><Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Bestellung</TableHead>
-                    <TableHead>Rechnung</TableHead>
-                    <TableHead>Datum</TableHead>
-                    <TableHead className="text-right">Betrag</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recentRechnungen.map((rechnung) => (
-                    <TableRow
-                      key={rechnung.id}
-                      className={`cursor-pointer ${getRechnungRowClassName(rechnung.status)}`}
-                      onClick={() => navigate(`/rechnungen/${rechnung.id}`)}
-                    >
-                      <TableCell className="font-mono text-sm font-medium text-primary">
-                        {rechnung.bestellung?.bestellnummer ? `#${rechnung.bestellung.bestellnummer}` : '—'}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm">
-                        {rechnung.rechnungsnummer}
-                      </TableCell>
-                      <TableCell>
-                        <span className="inline-flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          {format(new Date(rechnung.rechnungsdatum), 'dd.MM.yyyy', { locale: de })}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right font-semibold">
-                        €{(rechnung.bruttobetrag || 0).toFixed(2)}
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge status={rechnung.status} />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table></div>
-            </>
-          )}
+                  {/* Desktop: volle Tabelle */}
+                  <div className="hidden md:block rounded-2xl border border-border bg-card shadow-card overflow-hidden"><Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Bestellung</TableHead>
+                        <TableHead>Rechnung</TableHead>
+                        <TableHead>Datum</TableHead>
+                        <TableHead className="text-right">Betrag</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {recentRechnungen.map((rechnung) => (
+                        <TableRow
+                          key={rechnung.id}
+                          className={`cursor-pointer ${getRechnungRowClassName(rechnung.status)}`}
+                          onClick={() => navigate(`/rechnungen/${rechnung.id}`)}
+                        >
+                          <TableCell className="font-mono text-sm font-medium text-primary">
+                            {rechnung.bestellung?.bestellnummer ? `#${rechnung.bestellung.bestellnummer}` : '—'}
+                          </TableCell>
+                          <TableCell className="font-mono text-sm">
+                            {rechnung.rechnungsnummer}
+                          </TableCell>
+                          <TableCell>
+                            <span className="inline-flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-muted-foreground" />
+                              {format(new Date(rechnung.rechnungsdatum), 'dd.MM.yyyy', { locale: de })}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">
+                            €{(rechnung.bruttobetrag || 0).toFixed(2)}
+                          </TableCell>
+                          <TableCell>
+                            <StatusBadge status={rechnung.status} />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table></div>
+                </>
+              )}
+            </CollapsibleContent>
+          </Collapsible>
         </div>
       </div>
     </MainLayout>
