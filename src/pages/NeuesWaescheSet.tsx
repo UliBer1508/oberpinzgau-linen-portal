@@ -260,9 +260,12 @@ const NeuesWaescheSet = () => {
   };
 
   return (
-    <MainLayout title="Neues Wäscheset" subtitle="Erstellen Sie ein neues Wäscheset">
+    <MainLayout
+      title={isEdit ? 'Wäscheset bearbeiten' : 'Neues Wäscheset'}
+      subtitle={isEdit ? 'Bestehendes Set anpassen' : 'Erstellen Sie ein neues Wäscheset'}
+    >
       <div className="mb-4">
-        <Button variant="ghost" onClick={() => navigate('/waesche-sets')}>
+        <Button variant="ghost" onClick={() => navigate('/waeschesets')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Zurück zu Wäschesets
         </Button>
