@@ -1,13 +1,21 @@
 import { useState, useEffect } from 'react';
-import { ShoppingCart, Search, Plus, Loader2, FileText, FileX } from 'lucide-react';
+import { Search, Plus, Loader2, Building2, ShoppingCart, Wallet, Clock } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/external/client';
 import type { BestellungStatus } from '@/types/database';
 import { useKunde, useBestellungen } from '@/hooks/useSupabaseData';
@@ -22,22 +30,21 @@ const statusFilters: { label: string; value: BestellungStatus | 'alle' }[] = [
   { label: 'Abgeschlossen', value: 'abgeschlossen' },
 ];
 
-// Status-basierte Hintergrundfarben
-const getStatusRowColor = (status: BestellungStatus): string => {
+const getBestellungRowClassName = (status: BestellungStatus): string => {
   switch (status) {
     case 'neu':
-      return 'bg-status-pending/10';
+      return 'bg-status-pending/10 hover:bg-status-pending/15';
     case 'in_bearbeitung':
-      return 'bg-status-processing/10';
+      return 'bg-status-processing/10 hover:bg-status-processing/15';
     case 'ausgeliefert':
     case 'abgeholt':
-      return 'bg-status-ready/10';
+      return 'bg-status-ready/10 hover:bg-status-ready/15';
     case 'abgeschlossen':
-      return 'bg-status-delivered/10';
+      return 'bg-status-delivered/10 hover:bg-status-delivered/15';
     case 'storniert':
-      return 'bg-destructive/10';
+      return 'bg-destructive/10 hover:bg-destructive/15';
     default:
-      return '';
+      return 'hover:bg-muted/50';
   }
 };
 
@@ -46,16 +53,14 @@ export default function Bestellungen() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<BestellungStatus | 'alle'>('alle');
-  
+
   const { data: kunde, isLoading: kundeLoading } = useKunde();
   const { data: bestellungen = [], isLoading: bestellungenLoading } = useBestellungen(kunde?.id);
-  
+
   const isLoading = kundeLoading || bestellungenLoading;
 
-  // Realtime subscription for status updates
   useEffect(() => {
     if (!kunde?.id) return;
-
     const channel = supabase
       .channel('bestellungen-status')
       .on(
@@ -71,7 +76,6 @@ export default function Bestellungen() {
         }
       )
       .subscribe();
-
     return () => {
       supabase.removeChannel(channel);
     };
@@ -79,17 +83,13 @@ export default function Bestellungen() {
 
   const filteredBestellungen = bestellungen.filter((bestellung) => {
     const objektName = bestellung.objekt?.name || '';
-    const matchesSearch = objektName.toLowerCase().includes(searchQuery.toLowerCase());
+    const nr = bestellung.bestellnummer || '';
+    const q = searchQuery.toLowerCase();
+    const matchesSearch =
+      objektName.toLowerCase().includes(q) || nr.toLowerCase().includes(q);
     const matchesStatus = statusFilter === 'alle' || bestellung.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
-
-  const calculateTotal = (positionen: typeof bestellungen[0]['positionen']) => {
-    return positionen?.reduce((sum, pos) => {
-      const preis = pos.waescheartikel?.preis || 0;
-      return sum + (preis * pos.menge);
-    }, 0) || 0;
-  };
 
   if (isLoading) {
     return (
@@ -123,7 +123,6 @@ export default function Bestellungen() {
             className="pl-10 rounded-2xl"
           />
         </div>
-
         <div className="flex flex-wrap gap-1.5">
           {statusFilters.map((filter) => (
             <Button
@@ -139,154 +138,124 @@ export default function Bestellungen() {
         </div>
       </div>
 
-      {/* Orders Table */}
-      <div className="rounded-2xl border border-border/60 bg-card shadow-card overflow-hidden">
-        {/* Mobile list */}
-        <ul className="md:hidden divide-y divide-border">
-          {filteredBestellungen.map((bestellung, index) => (
-            <li
-              key={bestellung.id}
-              className={`px-3 py-3 cursor-pointer active:bg-muted/60 transition-colors animate-slide-up ${getStatusRowColor(bestellung.status)}`}
-              style={{ animationDelay: `${index * 0.04}s` }}
-              onClick={() => navigate(`/bestellungen/${bestellung.id}`)}
-            >
-              <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                  <ShoppingCart className="h-4 w-4 text-primary" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="font-medium text-card-foreground truncate text-sm">
-                      #{bestellung.bestellnummer || bestellung.id.slice(-4).toUpperCase()}
-                    </p>
-                    <p className="font-semibold text-card-foreground whitespace-nowrap text-sm">
-                      €{calculateTotal(bestellung.positionen).toFixed(2)}
-                    </p>
-                  </div>
-                  <p className="text-xs text-muted-foreground truncate mt-0.5">
-                    {bestellung.objekt?.name || '—'} · {format(new Date(bestellung.created_at), 'dd.MM.yy', { locale: de })}
-                  </p>
-                  <div className="mt-2 flex items-center gap-2 flex-wrap">
-                    <StatusBadge status={bestellung.status} />
-                    {bestellung.rechnung ? (
-                      <Badge
-                        variant="outline"
-                        className="bg-status-delivered/10 text-status-delivered border-status-delivered/30 text-[10px] px-1.5 py-0"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/rechnungen/${bestellung.rechnung?.id}`);
-                        }}
-                      >
-                        <FileText className="h-3 w-3 mr-1" />
-                        Rechnung
-                      </Badge>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
-
-        {/* Desktop table */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="px-6 py-3 text-left font-medium text-muted-foreground">Bestellung</th>
-                <th className="px-6 py-3 text-left font-medium text-muted-foreground">Objekt</th>
-                <th className="px-6 py-3 text-left font-medium text-muted-foreground">Status</th>
-                <th className="px-6 py-3 text-left font-medium text-muted-foreground">Artikel</th>
-                <th className="hidden lg:table-cell px-6 py-3 text-left font-medium text-muted-foreground">Lieferdatum</th>
-                <th className="px-6 py-3 text-right font-medium text-muted-foreground">Summe</th>
-                <th className="px-6 py-3 text-left font-medium text-muted-foreground">Rechnung</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filteredBestellungen.map((bestellung, index) => (
-                <tr
-                  key={bestellung.id}
-                  className={`hover:bg-muted/50 transition-colors cursor-pointer animate-slide-up ${getStatusRowColor(bestellung.status)}`}
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                  onClick={() => navigate(`/bestellungen/${bestellung.id}`)}
-                >
-                  <td className="px-6 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                        <ShoppingCart className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-medium text-card-foreground truncate">
-                          #{bestellung.bestellnummer || bestellung.id.slice(-4).toUpperCase()}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {format(new Date(bestellung.created_at), 'dd.MM.yy', { locale: de })}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-3">
-                    <p className="font-medium text-card-foreground">{bestellung.objekt?.name || '—'}</p>
-                  </td>
-                  <td className="px-6 py-3">
-                    <StatusBadge status={bestellung.status} />
-                  </td>
-                  <td className="px-6 py-3 text-muted-foreground">
-                    {bestellung.positionen?.length || 0} Pos.
-                  </td>
-                  <td className="hidden lg:table-cell px-6 py-3 text-muted-foreground">
+      {filteredBestellungen.length === 0 ? (
+        <div className="rounded-2xl border border-border bg-card shadow-card flex flex-col items-center justify-center py-12 text-center px-4">
+          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-muted">
+            <ShoppingCart className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <p className="mt-4 text-base font-medium text-foreground">Keine Bestellungen gefunden</p>
+          <p className="mt-1 text-sm text-muted-foreground">Filter anpassen oder neue Bestellung erstellen.</p>
+          <Button variant="hero" size="sm" className="mt-4 rounded-2xl" onClick={() => navigate('/bestellungen/neu')}>
+            <Plus className="h-4 w-4" /> Neue Bestellung
+          </Button>
+        </div>
+      ) : (
+        <>
+          {/* Mobile: Karten-Grid im Übersichts-Stil */}
+          <div className="md:hidden grid grid-cols-2 gap-3">
+            {filteredBestellungen.map((bestellung) => (
+              <button
+                key={bestellung.id}
+                onClick={() => navigate(`/bestellungen/${bestellung.id}`)}
+                className={cn(
+                  'w-full text-left rounded-2xl border border-border bg-card p-4 shadow-card transition-all hover:shadow-soft active:scale-[0.99]',
+                  getBestellungRowClassName(bestellung.status)
+                )}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium text-foreground truncate">
                     {bestellung.lieferdatum
                       ? format(new Date(bestellung.lieferdatum), 'dd.MM.yyyy', { locale: de })
-                      : '—'
-                    }
-                  </td>
-                  <td className="px-6 py-3 text-right font-semibold text-card-foreground whitespace-nowrap">
-                    €{calculateTotal(bestellung.positionen).toFixed(2)}
-                  </td>
-                  <td className="px-6 py-3">
-                    {bestellung.rechnung ? (
-                      <Badge
-                        variant="outline"
-                        className="bg-status-delivered/10 text-status-delivered border-status-delivered/30"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/rechnungen/${bestellung.rechnung?.id}`);
-                        }}
-                      >
-                        <FileText className="h-3 w-3 mr-1" />
-                        Erstellt
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="bg-muted text-muted-foreground border-border">
-                        <FileX className="h-3 w-3 mr-1" />
-                        Keine
-                      </Badge>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {filteredBestellungen.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-12 text-center px-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-muted">
-              <ShoppingCart className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <p className="mt-4 text-base font-medium text-foreground">
-              Keine Bestellungen gefunden
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Filter anpassen oder neue Bestellung erstellen.
-            </p>
-            <Button variant="hero" size="sm" className="mt-4 rounded-2xl" onClick={() => navigate('/bestellungen/neu')}>
-              <Plus className="h-4 w-4" />
-              Neue Bestellung
-            </Button>
+                      : 'Kein Datum'}
+                  </span>
+                  <StatusBadge status={bestellung.status} />
+                </div>
+                <div className="mt-2 flex items-center justify-between gap-2">
+                  <span className="inline-flex items-center gap-1.5 text-sm font-medium truncate min-w-0">
+                    <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <span className="truncate">{bestellung.objekt?.name || 'Objekt'}</span>
+                  </span>
+                  {bestellung.rechnung ? (
+                    <span
+                      className={cn(
+                        'inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded-full shrink-0',
+                        bestellung.rechnung.status === 'bezahlt'
+                          ? 'bg-status-delivered/20 text-status-delivered'
+                          : 'bg-status-pending/20 text-status-pending'
+                      )}
+                    >
+                      {bestellung.rechnung.rechnungsnummer}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground shrink-0">Keine Rg.</span>
+                  )}
+                </div>
+              </button>
+            ))}
           </div>
-        )}
-      </div>
+
+          {/* Desktop: Tabellenkarte im Übersichts-Stil */}
+          <div className="hidden md:block rounded-2xl border border-border bg-card shadow-card overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Bestellung</TableHead>
+                  <TableHead>Objekt</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Rechnung</TableHead>
+                  <TableHead>Rg.-Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredBestellungen.map((bestellung) => (
+                  <TableRow
+                    key={bestellung.id}
+                    className={cn('cursor-pointer', getBestellungRowClassName(bestellung.status))}
+                    onClick={() => navigate(`/bestellungen/${bestellung.id}`)}
+                  >
+                    <TableCell className="font-mono text-sm font-medium text-primary">
+                      #{bestellung.bestellnummer || bestellung.id.slice(-8)}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      <span className="inline-flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                        {bestellung.objekt?.name || 'Objekt'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={bestellung.status} />
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">
+                      {bestellung.rechnung?.rechnungsnummer || '—'}
+                    </TableCell>
+                    <TableCell>
+                      {bestellung.rechnung ? (
+                        <span
+                          className={cn(
+                            'inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full',
+                            bestellung.rechnung.status === 'bezahlt'
+                              ? 'bg-status-delivered/20 text-status-delivered'
+                              : 'bg-status-pending/20 text-status-pending'
+                          )}
+                        >
+                          {bestellung.rechnung.status === 'bezahlt' ? (
+                            <Wallet className="h-3 w-3" />
+                          ) : (
+                            <Clock className="h-3 w-3" />
+                          )}
+                          {bestellung.rechnung.status === 'bezahlt' ? 'Bezahlt' : 'Offen'}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </>
+      )}
     </MainLayout>
   );
 }
