@@ -179,32 +179,20 @@ export default function Dashboard() {
         {/* Recent Orders */}
         <div className="lg:col-span-2">
           <Collapsible open={ordersOpen} onOpenChange={handleOrdersOpenChange}>
-            <div className="flex items-center justify-between mb-2 gap-2">
-              <CollapsibleTrigger className="flex items-center gap-2 h-10 px-2 -ml-2 rounded-lg hover:bg-muted/60 text-sm font-medium text-muted-foreground transition-colors min-w-0">
-                <ShoppingCart className="h-4 w-4 text-info shrink-0" />
-                <span className="truncate">Bestellungen</span>
-                <ChevronDown className={cn('h-4 w-4 transition-transform shrink-0', ordersOpen && 'rotate-180')} />
-              </CollapsibleTrigger>
-              <div className="flex items-center gap-1.5 shrink-0">
-                {!ordersOpen && (
-                  <>
-                    <span className="px-2 py-0.5 rounded-full bg-status-pending/15 text-status-pending text-xs font-medium">
-                      {bestellungen.filter(b => b.status === 'neu').length} Neu
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full bg-status-processing/15 text-status-processing text-xs font-medium">
-                      {bestellungen.filter(b => b.status === 'in_bearbeitung').length} Bearb.
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full bg-status-ready/15 text-status-ready text-xs font-medium">
-                      {bestellungen.filter(b => b.status === 'ausgeliefert').length} Ausgel.
-                    </span>
-                  </>
-                )}
-                <Button variant="ghost" size="sm" onClick={() => navigate('/bestellungen')}>
-                  Alle <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+            <SectionHeader
+              icon={ShoppingCart}
+              iconVariant="info"
+              title="Bestellungen"
+              subtitle={`${activeOrders} aktiv`}
+              open={ordersOpen}
+              chips={[
+                { label: 'Neu', count: bestellungen.filter(b => b.status === 'neu').length, variant: 'pending' },
+                { label: 'Bearb.', count: bestellungen.filter(b => b.status === 'in_bearbeitung').length, variant: 'processing' },
+                { label: 'Ausgel.', count: bestellungen.filter(b => b.status === 'ausgeliefert').length, variant: 'ready' },
+              ]}
+              onAllClick={() => navigate('/bestellungen')}
+            />
+            <CollapsibleContent className="mt-3 overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
               {recentOrders.length === 0 ? (
                 <div className="rounded-2xl border border-border bg-card shadow-card flex flex-col items-center justify-center py-12 text-center px-4">
                   <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-muted">
