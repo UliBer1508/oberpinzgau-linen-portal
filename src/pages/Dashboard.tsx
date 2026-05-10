@@ -205,8 +205,8 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <>
-                  {/* Mobile: einzelne Karten im Übersicht-Stil */}
-                  <div className="md:hidden grid grid-cols-2 gap-3">
+                  {/* Karten-Grid: 2 pro Zeile */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {recentOrders.map((bestellung) => (
                       <button
                         key={bestellung.id}
@@ -245,57 +245,6 @@ export default function Dashboard() {
                     ))}
                   </div>
 
-                  {/* Desktop: volle Tabelle */}
-                  <div className="hidden md:block rounded-2xl border border-border bg-card shadow-card overflow-hidden"><Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Bestellung</TableHead>
-                          <TableHead>Objekt</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Rechnung</TableHead>
-                          <TableHead>Rg.-Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {recentOrders.map((bestellung) => (
-                          <TableRow
-                            key={bestellung.id}
-                            className={`cursor-pointer ${getBestellungRowClassName(bestellung.status)}`}
-                            onClick={() => navigate(`/bestellungen/${bestellung.id}`)}
-                          >
-                            <TableCell className="font-mono text-sm font-medium text-primary">
-                              #{bestellung.bestellnummer || bestellung.id.slice(-8)}
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              <span className="inline-flex items-center gap-2">
-                                <Building2 className="h-4 w-4 text-muted-foreground" />
-                                {bestellung.objekt?.name || 'Objekt'}
-                              </span>
-                            </TableCell>
-                            <TableCell>
-                              <StatusBadge status={bestellung.status} />
-                            </TableCell>
-                            <TableCell className="font-mono text-sm">
-                              {bestellung.rechnung?.rechnungsnummer || '—'}
-                            </TableCell>
-                            <TableCell>
-                              {bestellung.rechnung ? (
-                                <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${
-                                  bestellung.rechnung.status === 'bezahlt'
-                                    ? 'bg-status-delivered/20 text-status-delivered'
-                                    : 'bg-status-pending/20 text-status-pending'
-                                }`}>
-                                  {bestellung.rechnung.status === 'bezahlt' ? <Wallet className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
-                                  {bestellung.rechnung.status === 'bezahlt' ? 'Bezahlt' : 'Offen'}
-                                </span>
-                              ) : (
-                                <span className="text-muted-foreground">—</span>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table></div>
                 </>
               )}
 
@@ -335,8 +284,8 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <>
-                  {/* Mobile: einzelne Karten */}
-                  <div className="md:hidden grid grid-cols-2 gap-3">
+                  {/* Karten-Grid: 2 pro Zeile */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {recentRechnungen.map((rechnung) => (
                       <button
                         key={rechnung.id}
