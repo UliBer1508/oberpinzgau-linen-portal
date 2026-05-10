@@ -109,8 +109,8 @@ export default function Rechnungen() {
         </div>
       ) : (
         <>
-          {/* Mobile: Karten-Grid im Übersichts-Stil */}
-          <div className="md:hidden grid grid-cols-2 gap-3">
+          {/* Karten-Grid: 2 pro Zeile */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {filteredRechnungen.map((rechnung) => (
               <button
                 key={rechnung.id}
@@ -134,7 +134,10 @@ export default function Rechnungen() {
                     {formatCurrency(rechnung.bruttobetrag)}
                   </span>
                 </div>
-                <div className="mt-1">
+                <div className="mt-1 flex items-center justify-between gap-2">
+                  <span className="text-xs text-muted-foreground truncate min-w-0">
+                    {rechnung.kunde_firma || rechnung.kunde_name}
+                  </span>
                   <OverdueBadge
                     faelligkeitsdatum={rechnung.faelligkeitsdatum}
                     status={rechnung.status}
@@ -142,55 +145,6 @@ export default function Rechnungen() {
                 </div>
               </button>
             ))}
-          </div>
-
-          {/* Desktop: Tabellenkarte im Übersichts-Stil */}
-          <div className="hidden md:block rounded-2xl border border-border bg-card shadow-card overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Rechnungsnummer</TableHead>
-                  <TableHead>Datum</TableHead>
-                  <TableHead>Kunde</TableHead>
-                  <TableHead className="text-right">Betrag</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredRechnungen.map((rechnung) => (
-                  <TableRow
-                    key={rechnung.id}
-                    className={cn('cursor-pointer', getRechnungRowClassName(rechnung.status))}
-                    onClick={() => navigate(`/rechnungen/${rechnung.id}`)}
-                  >
-                    <TableCell className="font-mono text-sm font-medium text-primary">
-                      {rechnung.rechnungsnummer}
-                    </TableCell>
-                    <TableCell>
-                      {format(new Date(rechnung.rechnungsdatum), 'dd.MM.yyyy', { locale: de })}
-                    </TableCell>
-                    <TableCell>
-                      <p className="font-medium">{rechnung.kunde_name}</p>
-                      {rechnung.kunde_firma && (
-                        <p className="text-sm text-muted-foreground">{rechnung.kunde_firma}</p>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right font-semibold whitespace-nowrap">
-                      {formatCurrency(rechnung.bruttobetrag)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <StatusBadge status={rechnung.status} />
-                        <OverdueBadge
-                          faelligkeitsdatum={rechnung.faelligkeitsdatum}
-                          status={rechnung.status}
-                        />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
           </div>
         </>
       )}
