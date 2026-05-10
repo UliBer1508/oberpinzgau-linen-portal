@@ -117,7 +117,14 @@ export function QuickOrderDialog({ open, onOpenChange, objekt, set }: QuickOrder
                 <Label htmlFor="mit-buchung" className="text-sm font-medium">Buchungsdetails</Label>
                 <p className="text-xs text-muted-foreground mt-0.5">An eine Gast-Buchung knüpfen</p>
               </div>
-              <Switch id="mit-buchung" checked={mitBuchung} onCheckedChange={setMitBuchung} />
+              <Switch
+                id="mit-buchung"
+                checked={mitBuchung}
+                onCheckedChange={(v) => {
+                  setMitBuchung(v);
+                  if (v) setAnzahlSets(1);
+                }}
+              />
             </div>
 
             <Collapsible open={mitBuchung}>
