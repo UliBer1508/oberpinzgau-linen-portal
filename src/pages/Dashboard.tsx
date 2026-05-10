@@ -309,29 +309,23 @@ export default function Dashboard() {
         {/* Recent Invoices */}
         <div className="lg:col-span-3">
           <Collapsible open={invoicesOpen} onOpenChange={handleInvoicesOpenChange}>
-            <div className="flex items-center justify-between mb-2 gap-2">
-              <CollapsibleTrigger className="flex items-center gap-2 h-10 px-2 -ml-2 rounded-lg hover:bg-muted/60 text-sm font-medium text-muted-foreground transition-colors min-w-0">
-                <FileText className="h-4 w-4 text-warning shrink-0" />
-                <span className="truncate">Rechnungen</span>
-                <ChevronDown className={cn('h-4 w-4 transition-transform shrink-0', invoicesOpen && 'rotate-180')} />
-              </CollapsibleTrigger>
-              <div className="flex items-center gap-1.5 shrink-0">
-                {!invoicesOpen && (
-                  <>
-                    <span className="px-2 py-0.5 rounded-full bg-status-pending/15 text-status-pending text-xs font-medium">
-                      {rechnungen.filter(r => r.status === 'offen').length} Offen
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full bg-status-delivered/15 text-status-delivered text-xs font-medium">
-                      {rechnungen.filter(r => r.status === 'bezahlt').length} Bezahlt
-                    </span>
-                  </>
-                )}
-                <Button variant="ghost" size="sm" onClick={() => navigate('/rechnungen')}>
-                  Alle <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+            <SectionHeader
+              icon={FileText}
+              iconVariant="warning"
+              title="Rechnungen"
+              subtitle={
+                offeneRechnungen.length > 0
+                  ? `${offeneRechnungen.length} offen · €${offenerBetrag.toFixed(2)}`
+                  : 'Alle bezahlt'
+              }
+              open={invoicesOpen}
+              chips={[
+                { label: 'Offen', count: rechnungen.filter(r => r.status === 'offen').length, variant: 'pending' },
+                { label: 'Bezahlt', count: rechnungen.filter(r => r.status === 'bezahlt').length, variant: 'delivered' },
+              ]}
+              onAllClick={() => navigate('/rechnungen')}
+            />
+            <CollapsibleContent className="mt-3 overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
               {recentRechnungen.length === 0 ? (
                 <div className="rounded-2xl border border-border bg-card shadow-card flex flex-col items-center justify-center py-12 text-center px-4">
                   <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-muted">
