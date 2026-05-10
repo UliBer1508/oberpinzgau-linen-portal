@@ -200,27 +200,35 @@ const NeuesWaescheSet = () => {
     }
 
     try {
-      await createWaescheSet.mutateAsync({
-        objektId: selectedObjektId,
-        name: setName.trim() || autoSetName,
-        beschreibung: beschreibung || undefined,
-        artikel: pendingArtikel.map(a => ({
-          artikelId: a.artikel_id,
-          menge: a.menge,
-          berechnungsart: a.berechnungsart
-        }))
-      });
+      const artikelPayload = pendingArtikel.map(a => ({
+        artikelId: a.artikel_id,
+        menge: a.menge,
+        berechnungsart: a.berechnungsart,
+      }));
 
-      toast({
-        title: 'Erfolg',
-        description: 'Wäscheset wurde erfolgreich erstellt.'
-      });
+      if (isEdit && editId) {
+        await updateWaescheSet.mutateAsync({
+          setId: editId,
+          name: setName.trim() || autoSetName,
+          beschreibung: beschreibung || undefined,
+          artikel: artikelPayload,
+        });
+        toast({ title: 'Gespeichert', description: 'Wäscheset wurde aktualisiert.' });
+      } else {
+        await createWaescheSet.mutateAsync({
+          objektId: selectedObjektId,
+          name: setName.trim() || autoSetName,
+          beschreibung: beschreibung || undefined,
+          artikel: artikelPayload,
+        });
+        toast({ title: 'Erfolg', description: 'Wäscheset wurde erfolgreich erstellt.' });
+      }
 
-      navigate('/waesche-sets');
+      navigate('/waeschesets');
     } catch (error) {
       toast({
         title: 'Fehler',
-        description: 'Set konnte nicht erstellt werden.',
+        description: isEdit ? 'Set konnte nicht aktualisiert werden.' : 'Set konnte nicht erstellt werden.',
         variant: 'destructive'
       });
     }
