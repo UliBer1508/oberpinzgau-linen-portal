@@ -152,7 +152,7 @@ export default function Bestellungen() {
       ) : (
         <>
           {/* Karten-Grid: 2 pro Zeile */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {filteredBestellungen.map((bestellung) => (
               <button
                 key={bestellung.id}
