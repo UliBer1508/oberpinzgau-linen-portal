@@ -221,8 +221,10 @@ export default function Dashboard() {
                         )}
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <span className="font-mono text-sm font-medium text-primary truncate">
-                            #{bestellung.bestellnummer || bestellung.id.slice(-8)}
+                          <span className="text-sm font-medium text-foreground truncate">
+                            {bestellung.lieferdatum
+                              ? format(new Date(bestellung.lieferdatum), 'dd.MM.yyyy', { locale: de })
+                              : 'Kein Datum'}
                           </span>
                           <StatusBadge status={bestellung.status} />
                         </div>
