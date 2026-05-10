@@ -480,15 +480,15 @@ const NeuesWaescheSet = () => {
                     className="w-full mt-4"
                     size="lg"
                     onClick={handleSubmit}
-                    disabled={createWaescheSet.isPending || pendingArtikel.length === 0}
+                    disabled={createWaescheSet.isPending || updateWaescheSet.isPending || pendingArtikel.length === 0}
                   >
-                    {createWaescheSet.isPending ? (
+                    {(createWaescheSet.isPending || updateWaescheSet.isPending) ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Wird gespeichert...
                       </>
                     ) : (
-                      'Set speichern'
+                      isEdit ? 'Änderungen speichern' : 'Set speichern'
                     )}
                   </Button>
                 </div>
