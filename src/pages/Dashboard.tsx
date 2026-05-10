@@ -312,47 +312,6 @@ export default function Dashboard() {
                       </button>
                     ))}
                   </div>
-
-                  {/* Desktop: volle Tabelle */}
-                  <div className="hidden md:block rounded-2xl border border-border bg-card shadow-card overflow-hidden"><Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Bestellung</TableHead>
-                        <TableHead>Rechnung</TableHead>
-                        <TableHead>Datum</TableHead>
-                        <TableHead className="text-right">Betrag</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {recentRechnungen.map((rechnung) => (
-                        <TableRow
-                          key={rechnung.id}
-                          className={`cursor-pointer ${getRechnungRowClassName(rechnung.status)}`}
-                          onClick={() => navigate(`/rechnungen/${rechnung.id}`)}
-                        >
-                          <TableCell className="font-mono text-sm font-medium text-primary">
-                            {rechnung.bestellung?.bestellnummer ? `#${rechnung.bestellung.bestellnummer}` : '—'}
-                          </TableCell>
-                          <TableCell className="font-mono text-sm">
-                            {rechnung.rechnungsnummer}
-                          </TableCell>
-                          <TableCell>
-                            <span className="inline-flex items-center gap-2">
-                              <Clock className="h-4 w-4 text-muted-foreground" />
-                              {format(new Date(rechnung.rechnungsdatum), 'dd.MM.yyyy', { locale: de })}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right font-semibold">
-                            €{(rechnung.bruttobetrag || 0).toFixed(2)}
-                          </TableCell>
-                          <TableCell>
-                            <StatusBadge status={rechnung.status} />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table></div>
                 </>
               )}
             </CollapsibleContent>
