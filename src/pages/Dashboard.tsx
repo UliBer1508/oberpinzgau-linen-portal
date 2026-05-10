@@ -125,23 +125,21 @@ export default function Dashboard() {
     >
       {/* Stats Section (collapsible) */}
       <Collapsible open={statsOpen} onOpenChange={handleStatsOpenChange}>
-        <div className="flex items-center justify-between mb-2">
-          <CollapsibleTrigger className="flex items-center gap-2 h-10 px-2 -ml-2 rounded-lg hover:bg-muted/60 text-sm font-medium text-muted-foreground transition-colors">
-            <Sparkles className="h-4 w-4 text-accent" />
-            Übersicht
-            <ChevronDown className={cn('h-4 w-4 transition-transform', statsOpen && 'rotate-180')} />
-          </CollapsibleTrigger>
-          {!statsOpen && (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground overflow-x-auto">
-              <span className="px-2 py-0.5 rounded-full bg-info/15 text-info font-medium">{activeOrders} Best.</span>
-              <span className="px-2 py-0.5 rounded-full bg-primary/15 text-primary font-medium">{objekte.length} Obj.</span>
-              <span className="px-2 py-0.5 rounded-full bg-accent/15 text-accent font-medium">{waescheSets.length} Sets</span>
-              <span className={cn('px-2 py-0.5 rounded-full font-medium', offeneRechnungen.length > 0 ? 'bg-warning/15 text-warning' : 'bg-success/15 text-success')}>{offeneRechnungen.length} Rg.</span>
-            </div>
-          )}
-        </div>
+        <SectionHeader
+          icon={Sparkles}
+          iconVariant="accent"
+          title="Übersicht"
+          subtitle="4 Kennzahlen"
+          open={statsOpen}
+          chips={[
+            { label: 'Best.', count: activeOrders, variant: 'info' },
+            { label: 'Obj.', count: objekte.length, variant: 'primary' },
+            { label: 'Sets', count: waescheSets.length, variant: 'accent' },
+            { label: 'Rg.', count: offeneRechnungen.length, variant: offeneRechnungen.length > 0 ? 'warning' : 'success' },
+          ]}
+        />
         <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
-          <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+          <div className="mt-3 grid gap-3 grid-cols-2 lg:grid-cols-4">
             <StatCard
               title="Aktive Bestellungen"
               value={activeOrders}
