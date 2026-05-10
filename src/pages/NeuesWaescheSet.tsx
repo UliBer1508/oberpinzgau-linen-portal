@@ -37,6 +37,8 @@ const FARB_STYLES: Record<string, string> = {
 
 const NeuesWaescheSet = () => {
   const navigate = useNavigate();
+  const { id: editId } = useParams<{ id: string }>();
+  const isEdit = !!editId;
   const { toast } = useToast();
   
   const { data: kunde, isLoading: kundeLoading } = useKunde();
@@ -44,12 +46,42 @@ const NeuesWaescheSet = () => {
   const { data: artikel, isLoading: artikelLoading } = useWaescheArtikel();
   const { data: existingSets } = useWaescheSets(kunde?.id);
   const createWaescheSet = useCreateWaescheSet();
+  const updateWaescheSet = useUpdateWaescheSet();
 
   const [selectedObjektId, setSelectedObjektId] = useState<string>('');
   const [beschreibung, setBeschreibung] = useState('');
   const [pendingArtikel, setPendingArtikel] = useState<PendingSetArtikel[]>([]);
   const [setName, setSetName] = useState('');
   const [setNameTouched, setSetNameTouched] = useState(false);
+  const [prefilled, setPrefilled] = useState(false);
+
+  const editingSet = useMemo(
+    () => (isEdit ? existingSets?.find(s => s.id === editId) : undefined),
+    [isEdit, existingSets, editId]
+  );
+
+  // Prefill state when editing
+  useEffect(() => {
+    if (!isEdit || prefilled || !editingSet) return;
+    setSelectedObjektId(editingSet.objekt_id);
+    setSetName(editingSet.name);
+    setSetNameTouched(true);
+    setBeschreibung(editingSet.beschreibung ?? '');
+    setPendingArtikel(
+      editingSet.artikel.map(a => ({
+        id: a.id,
+        artikel_id: a.artikel_id,
+        artikelName: a.waescheartikel?.name ?? '',
+        artikelNummer: a.waescheartikel?.artikelnummer ?? '',
+        kategorie: a.waescheartikel?.kategorie ?? null,
+        farbe: a.waescheartikel?.farbe ?? null,
+        preis: a.waescheartikel?.preis ?? null,
+        menge: a.menge,
+        berechnungsart: a.berechnungsart,
+      }))
+    );
+    setPrefilled(true);
+  }, [isEdit, editingSet, prefilled]);
 
   const selectedObjekt = objekte?.find(o => o.id === selectedObjektId);
 
