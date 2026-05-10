@@ -298,9 +298,9 @@ export default function Dashboard() {
                         ))}
                       </TableBody>
                     </Table></div>
-                  </>
-                )}
-              </div>
+                </>
+              )}
+
             </CollapsibleContent>
           </Collapsible>
         </div>
