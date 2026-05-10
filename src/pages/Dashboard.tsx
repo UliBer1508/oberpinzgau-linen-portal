@@ -210,7 +210,7 @@ export default function Dashboard() {
               ) : (
                 <>
                   {/* Mobile: einzelne Karten im Übersicht-Stil */}
-                  <div className="md:hidden grid grid-cols-1 gap-3">
+                  <div className="md:hidden grid grid-cols-2 gap-3">
                     {recentOrders.map((bestellung) => (
                       <button
                         key={bestellung.id}
