@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { useKunde, useObjekte, useWaescheArtikel, useWaescheSets, useCreateWaescheSet } from '@/hooks/useSupabaseData';
+import { useKunde, useObjekte, useWaescheArtikel, useWaescheSets, useCreateWaescheSet, useUpdateWaescheSet } from '@/hooks/useSupabaseData';
 import { Loader2, Plus, Minus, X, Package, ArrowLeft, Users, Calendar } from 'lucide-react';
 import type { WaescheArtikel, Objekt, BerechnungsArt } from '@/types/database';
 
