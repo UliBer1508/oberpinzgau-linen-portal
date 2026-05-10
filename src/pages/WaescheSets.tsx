@@ -4,7 +4,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { useKunde, useWaescheSets, useWaescheArtikel, useObjekte, useSetSchnellbestellungSet } from '@/hooks/useSupabaseData';
+import { useKunde, useWaescheSets, useWaescheArtikel, useObjekte, useSetSchnellbestellungSet, useDeleteWaescheSet } from '@/hooks/useSupabaseData';
 import { cn } from '@/lib/utils';
 
 export default function WaescheSets() {
@@ -15,6 +15,7 @@ export default function WaescheSets() {
   const { data: artikel = [] } = useWaescheArtikel();
   const { data: objekte = [] } = useObjekte(kunde?.id);
   const setSchnellbestellung = useSetSchnellbestellungSet();
+  const deleteSet = useDeleteWaescheSet();
 
   const isLoading = kundeLoading || setsLoading;
 
@@ -30,17 +31,17 @@ export default function WaescheSets() {
   };
 
   const handleEdit = (setId: string) => {
-    toast({
-      title: 'Bearbeitung',
-      description: 'Die Bearbeitungsfunktion wird bald verfügbar sein.',
-    });
+    navigate(`/waeschesets/${setId}/bearbeiten`);
   };
 
-  const handleDelete = (setId: string) => {
-    toast({
-      title: 'Löschen',
-      description: 'Die Löschfunktion wird bald verfügbar sein.',
-    });
+  const handleDelete = async (setId: string) => {
+    if (!window.confirm('Wäscheset wirklich löschen? Dies kann nicht rückgängig gemacht werden.')) return;
+    try {
+      await deleteSet.mutateAsync(setId);
+      toast({ title: 'Gelöscht', description: 'Wäscheset wurde entfernt.' });
+    } catch (e: any) {
+      toast({ title: 'Fehler', description: e?.message ?? 'Löschen fehlgeschlagen.', variant: 'destructive' });
+    }
   };
 
   const calculateSetPrice = (setArtikel: typeof waescheSets[0]['artikel']) => {

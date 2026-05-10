@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { useKunde, useObjekte, useWaescheArtikel, useWaescheSets, useCreateWaescheSet } from '@/hooks/useSupabaseData';
+import { useKunde, useObjekte, useWaescheArtikel, useWaescheSets, useCreateWaescheSet, useUpdateWaescheSet } from '@/hooks/useSupabaseData';
 import { Loader2, Plus, Minus, X, Package, ArrowLeft, Users, Calendar } from 'lucide-react';
 import type { WaescheArtikel, Objekt, BerechnungsArt } from '@/types/database';
 
@@ -37,6 +37,8 @@ const FARB_STYLES: Record<string, string> = {
 
 const NeuesWaescheSet = () => {
   const navigate = useNavigate();
+  const { id: editId } = useParams<{ id: string }>();
+  const isEdit = !!editId;
   const { toast } = useToast();
   
   const { data: kunde, isLoading: kundeLoading } = useKunde();
@@ -44,12 +46,42 @@ const NeuesWaescheSet = () => {
   const { data: artikel, isLoading: artikelLoading } = useWaescheArtikel();
   const { data: existingSets } = useWaescheSets(kunde?.id);
   const createWaescheSet = useCreateWaescheSet();
+  const updateWaescheSet = useUpdateWaescheSet();
 
   const [selectedObjektId, setSelectedObjektId] = useState<string>('');
   const [beschreibung, setBeschreibung] = useState('');
   const [pendingArtikel, setPendingArtikel] = useState<PendingSetArtikel[]>([]);
   const [setName, setSetName] = useState('');
   const [setNameTouched, setSetNameTouched] = useState(false);
+  const [prefilled, setPrefilled] = useState(false);
+
+  const editingSet = useMemo(
+    () => (isEdit ? existingSets?.find(s => s.id === editId) : undefined),
+    [isEdit, existingSets, editId]
+  );
+
+  // Prefill state when editing
+  useEffect(() => {
+    if (!isEdit || prefilled || !editingSet) return;
+    setSelectedObjektId(editingSet.objekt_id);
+    setSetName(editingSet.name);
+    setSetNameTouched(true);
+    setBeschreibung(editingSet.beschreibung ?? '');
+    setPendingArtikel(
+      editingSet.artikel.map(a => ({
+        id: a.id,
+        artikel_id: a.artikel_id,
+        artikelName: a.waescheartikel?.name ?? '',
+        artikelNummer: a.waescheartikel?.artikelnummer ?? '',
+        kategorie: a.waescheartikel?.kategorie ?? null,
+        farbe: a.waescheartikel?.farbe ?? null,
+        preis: a.waescheartikel?.preis ?? null,
+        menge: a.menge,
+        berechnungsart: a.berechnungsart,
+      }))
+    );
+    setPrefilled(true);
+  }, [isEdit, editingSet, prefilled]);
 
   const selectedObjekt = objekte?.find(o => o.id === selectedObjektId);
 
@@ -168,27 +200,35 @@ const NeuesWaescheSet = () => {
     }
 
     try {
-      await createWaescheSet.mutateAsync({
-        objektId: selectedObjektId,
-        name: setName.trim() || autoSetName,
-        beschreibung: beschreibung || undefined,
-        artikel: pendingArtikel.map(a => ({
-          artikelId: a.artikel_id,
-          menge: a.menge,
-          berechnungsart: a.berechnungsart
-        }))
-      });
+      const artikelPayload = pendingArtikel.map(a => ({
+        artikelId: a.artikel_id,
+        menge: a.menge,
+        berechnungsart: a.berechnungsart,
+      }));
 
-      toast({
-        title: 'Erfolg',
-        description: 'Wäscheset wurde erfolgreich erstellt.'
-      });
+      if (isEdit && editId) {
+        await updateWaescheSet.mutateAsync({
+          setId: editId,
+          name: setName.trim() || autoSetName,
+          beschreibung: beschreibung || undefined,
+          artikel: artikelPayload,
+        });
+        toast({ title: 'Gespeichert', description: 'Wäscheset wurde aktualisiert.' });
+      } else {
+        await createWaescheSet.mutateAsync({
+          objektId: selectedObjektId,
+          name: setName.trim() || autoSetName,
+          beschreibung: beschreibung || undefined,
+          artikel: artikelPayload,
+        });
+        toast({ title: 'Erfolg', description: 'Wäscheset wurde erfolgreich erstellt.' });
+      }
 
-      navigate('/waesche-sets');
+      navigate('/waeschesets');
     } catch (error) {
       toast({
         title: 'Fehler',
-        description: 'Set konnte nicht erstellt werden.',
+        description: isEdit ? 'Set konnte nicht aktualisiert werden.' : 'Set konnte nicht erstellt werden.',
         variant: 'destructive'
       });
     }
@@ -220,9 +260,12 @@ const NeuesWaescheSet = () => {
   };
 
   return (
-    <MainLayout title="Neues Wäscheset" subtitle="Erstellen Sie ein neues Wäscheset">
+    <MainLayout
+      title={isEdit ? 'Wäscheset bearbeiten' : 'Neues Wäscheset'}
+      subtitle={isEdit ? 'Bestehendes Set anpassen' : 'Erstellen Sie ein neues Wäscheset'}
+    >
       <div className="mb-4">
-        <Button variant="ghost" onClick={() => navigate('/waesche-sets')}>
+        <Button variant="ghost" onClick={() => navigate('/waeschesets')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Zurück zu Wäschesets
         </Button>
@@ -241,7 +284,7 @@ const NeuesWaescheSet = () => {
               <CardDescription>Für welches Objekt soll das Set erstellt werden?</CardDescription>
             </CardHeader>
             <CardContent>
-              <Select value={selectedObjektId} onValueChange={setSelectedObjektId}>
+              <Select value={selectedObjektId} onValueChange={setSelectedObjektId} disabled={isEdit}>
                 <SelectTrigger>
                   <SelectValue placeholder="Objekt auswählen..." />
                 </SelectTrigger>
@@ -253,6 +296,9 @@ const NeuesWaescheSet = () => {
                   ))}
                 </SelectContent>
               </Select>
+              {isEdit && (
+                <p className="text-xs text-muted-foreground mt-2">Das Objekt eines bestehenden Sets kann nicht geändert werden.</p>
+              )}
             </CardContent>
           </Card>
 
@@ -434,15 +480,15 @@ const NeuesWaescheSet = () => {
                     className="w-full mt-4"
                     size="lg"
                     onClick={handleSubmit}
-                    disabled={createWaescheSet.isPending || pendingArtikel.length === 0}
+                    disabled={createWaescheSet.isPending || updateWaescheSet.isPending || pendingArtikel.length === 0}
                   >
-                    {createWaescheSet.isPending ? (
+                    {(createWaescheSet.isPending || updateWaescheSet.isPending) ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Wird gespeichert...
                       </>
                     ) : (
-                      'Set speichern'
+                      isEdit ? 'Änderungen speichern' : 'Set speichern'
                     )}
                   </Button>
                 </div>
