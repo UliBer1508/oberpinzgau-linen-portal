@@ -1,50 +1,93 @@
 ## Ziel
 
-Die Bestellungen-Liste in der mobilen Ansicht soll wie die StatCards im Bereich „Übersicht" gestaltet werden — als eigenständige, klickbare Karten mit sichtbarem Rand. Zusätzlich erhalten alle Karten (Übersicht + Bestellungen) einen deutlicheren Rand.
+Schnellbestellung erweitern um:
+1. **Anzahl Sets** (Multiplikator) — z. B. 2× Standardset
+2. **Optionale Buchungsdetails** — Gastname, Check-In, Check-Out, Personen
+3. Klare Auswahl: „Mit Buchung" oder „Ohne Buchung"
 
-## Umsetzung
+So entstehen zwei Wege:
+- **Schnell ohne Buchung** → nur Lieferdatum + Anzahl Sets
+- **Mit Buchung** → zusätzlich Gastname / Zeitraum / Personen
 
-### 1. Sichtbarer Rand für alle Karten
-- In `src/components/cards/StatCard.tsx`: `border-border/60` → `border-border` (volle Deckkraft, klar sichtbar).
-- Gleiche Anpassung für die neuen Bestellung-Karten.
+## UX-Konzept (`QuickOrderDialog.tsx`)
 
-### 2. Bestellungen mobile: Karten statt Listen-Zeilen
-In `src/pages/Dashboard.tsx`, mobiler Block (`md:hidden`):
-- Container nicht mehr als zusammenhängende Liste mit `divide-y` in einem gemeinsamen Rahmen, sondern als **Grid mit einzelnen Karten** (`grid grid-cols-1 gap-3` — eine Karte pro Zeile auf 390px).
-- Den umschließenden `rounded-2xl border bg-card`-Wrapper für die Mobile-Variante entfernen, damit jede Karte ihren eigenen Rand bekommt (Desktop-Tabelle behält ihren Wrapper).
-
-Jede Bestell-Karte:
-- `<button>` (volle Breite, klickbar) mit:
-  - `rounded-2xl border border-border bg-card p-4 shadow-card`
-  - `transition-all hover:shadow-soft active:scale-[0.99]`
-  - Status-Hintergrundtönung über bestehende `getBestellungRowClassName`-Logik (z. B. `bg-status-pending/10`) — wird zusätzlich zur Border angewendet.
-- Inhalt zweizeilig wie bisher:
-  - Zeile 1: `#Bestellnummer` (mono, primary) ←→ `StatusBadge`
-  - Zeile 2: Objekt-Name mit Building-Icon ←→ Rechnungsnummer-Chip oder „Keine Rg."
-
-### 3. Empty-State (mobil)
-- Bleibt als einzelne zentrierte Karte mit gleichem Border-Stil.
-
-### 4. Nicht betroffen
-- Desktop-Tabelle (`hidden md:block`) bleibt unverändert.
-- Rechnungen-Bereich bleibt unverändert (kann in einem Folgeschritt angeglichen werden, falls gewünscht).
-- Keine Änderungen an Datenlogik, Routing oder Backend.
-
-## Visuelles Ergebnis (mobil)
+### Schritt-Layout (innerhalb des bestehenden Dialogs)
+Ein einziger Dialog, gegliedert in drei Bereiche untereinander — kein Wizard, damit es auf Mobile schnell bleibt:
 
 ```text
-┌─────────────────────────────────┐
-│ #B17783...      [Neu]           │
-│ 🏢 Exklusives Chalet  Keine Rg. │
-└─────────────────────────────────┘
-┌─────────────────────────────────┐
-│ #B0002          [Neu]           │
-│ 🏢 Chalet Wald        Keine Rg. │
-└─────────────────────────────────┘
-┌─────────────────────────────────┐
-│ #B0001          [Ausgeliefert]  │
-│ 🏢 Chalet Wald      R2025-0001  │
-└─────────────────────────────────┘
+┌────────────────────────────────┐
+│ Objekt-Name                    │
+│ Set: Standardset (4 Artikel)   │
+├────────────────────────────────┤
+│ Anzahl Sets:  [ − ]  2  [ + ]  │
+├────────────────────────────────┤
+│ Lieferdatum    [Kalender]      │
+├────────────────────────────────┤
+│ Buchungsdetails       [Toggle] │  ← Switch „Mit Buchung"
+│  ▼ (eingeklappt wenn aus)      │
+│  Gastname      [______]        │
+│  Check-In      [Datum]         │
+│  Check-Out     [Datum]         │
+│  Personen      [ − ] 2 [ + ]   │
+├────────────────────────────────┤
+│ [Abbrechen]      [Bestellen]   │
+└────────────────────────────────┘
 ```
 
-Jede Karte: eigener sichtbarer Rand, Status-Tönung, klickbar → `/bestellungen/:id`.
+### Verhalten
+- **Anzahl Sets**: Stepper (Minus/Plus, Min 1, Max 20). Default 1.
+- **Buchungsdetails-Switch**: Default = aus. Beim Aktivieren erscheinen die Felder per `Collapsible`.
+  - Wenn aus → Gastname/Check-In/Check-Out/Personen werden NICHT gesendet (`null`).
+  - Wenn an → Felder sind optional (kein Pflichtfeld), aber wenn `check_in` und `check_out` gesetzt sind, muss `check_out >= check_in` gelten.
+- **Lieferdatum** bleibt Pflicht.
+- **Vorbelegung**: Wenn Buchung aktiviert und `check_in` gewählt, könnte `lieferdatum = check_in` vorgeschlagen werden (nur wenn noch leer).
+
+### Validierung
+- `lieferdatum` Pflicht → wie bisher.
+- `anzahl_sets` >= 1.
+- Wenn Buchung an + beide Daten gesetzt → `check_out >= check_in`, sonst Toast.
+- Zod-Schema im Dialog.
+
+## Datenfluss
+
+### Positionen-Berechnung (Anzahl Sets)
+Beim Submit werden die Set-Artikel mit `anzahl_sets` multipliziert:
+
+```ts
+positionen: set.artikel.map(a => ({
+  artikel_id: a.artikel_id,
+  menge: a.menge * anzahlSets,
+}))
+```
+
+Keine Schema-Änderung nötig — `bestellpositionen.menge` ist bereits `integer`.
+
+### Buchungsfelder
+`useCreateBestellung` akzeptiert bereits `gastname`, `check_in`, `check_out`, `anzahl_personen` (siehe `useSupabaseData.ts` Z. 209–212). Die DB-Spalten existieren in `waeschebestellungen`. → **Keine Migration nötig.**
+
+Bei „Buchung aus" werden diese Felder als `null` übergeben.
+
+## Komponenten / Dateien
+
+### Geändert: `src/components/QuickOrderDialog.tsx`
+- Neuer State: `anzahlSets` (number, default 1), `mitBuchung` (boolean, default false), `gastname`, `checkIn`, `checkOut`, `anzahlPersonen`.
+- Stepper-Komponente inline (Buttons + Anzeige) — kein neues UI-Paket nötig.
+- `Switch` aus shadcn (`@/components/ui/switch`) für „Mit Buchung".
+- `Collapsible` (`@/components/ui/collapsible`) für die Buchungsfelder.
+- Zwei `Calendar`-Popovers (Check-In, Check-Out) — kompakt via `Popover` + `Calendar` (Pattern wie shadcn-Datepicker, mit `pointer-events-auto`).
+- Reset aller States beim Schließen.
+
+### Unverändert
+- `QuickOrderTiles.tsx` — Aufruf bleibt gleich.
+- `useCreateBestellung` — bestehende Parameter abdecken alles.
+- DB-Schema — keine Migration.
+
+## Edge Cases
+- Leere Sets (set.artikel.length === 0) → Bestell-Button bleibt deaktiviert (bereits im Code via `!set` — zusätzliche Prüfung auf `set.artikel.length > 0`).
+- Sehr große `anzahl_sets` × `menge` → Cap bei 20 Sets.
+- Kein Set hinterlegt → wie bisher Weiterleitung zu `/waeschesets`.
+
+## Nicht im Scope
+- Preis-Vorschau (kein Preis im aktuellen Quick-Flow sichtbar).
+- Wiederkehrende Bestellungen.
+- Edit nach Erstellung (passiert in `BestellungDetail`).
