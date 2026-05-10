@@ -25,6 +25,7 @@ import { de } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useKunde, useObjekte, useWaescheSets, useBestellungen, useRechnungen, RechnungMitBestellung } from '@/hooks/useSupabaseData';
 import { QuickOrderTiles } from '@/components/QuickOrderTiles';
+import { SectionHeader } from '@/components/dashboard/SectionHeader';
 import type { RechnungStatus, BestellungStatus } from '@/types/database';
 export default function Dashboard() {
   const navigate = useNavigate();
