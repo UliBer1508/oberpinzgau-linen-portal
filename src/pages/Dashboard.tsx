@@ -197,56 +197,58 @@ export default function Dashboard() {
               </div>
             </div>
             <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
-              <div className="rounded-2xl border border-border/60 bg-card shadow-card overflow-hidden">
-                {recentOrders.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-center px-4">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-muted">
-                      <Inbox className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                    <p className="mt-4 text-muted-foreground">Noch keine Bestellungen</p>
-                    <Button variant="outline" size="sm" className="mt-4" onClick={() => navigate('/bestellungen/neu')}>
-                      <Plus className="h-4 w-4" /> Erste Bestellung
-                    </Button>
+              {recentOrders.length === 0 ? (
+                <div className="rounded-2xl border border-border bg-card shadow-card flex flex-col items-center justify-center py-12 text-center px-4">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-muted">
+                    <Inbox className="h-8 w-8 text-muted-foreground" />
                   </div>
-                ) : (
-                  <>
-                    {/* Mobile: kompakte Listen-Ansicht (kein Scrollen) */}
-                    <div className="md:hidden divide-y divide-border/60">
-                      {recentOrders.map((bestellung) => (
-                        <button
-                          key={bestellung.id}
-                          onClick={() => navigate(`/bestellungen/${bestellung.id}`)}
-                          className={`w-full text-left p-3 ${getBestellungRowClassName(bestellung.status)}`}
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="font-mono text-sm font-medium text-primary">
-                              #{bestellung.bestellnummer || bestellung.id.slice(-8)}
+                  <p className="mt-4 text-muted-foreground">Noch keine Bestellungen</p>
+                  <Button variant="outline" size="sm" className="mt-4" onClick={() => navigate('/bestellungen/neu')}>
+                    <Plus className="h-4 w-4" /> Erste Bestellung
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {/* Mobile: einzelne Karten im Übersicht-Stil */}
+                  <div className="md:hidden grid grid-cols-1 gap-3">
+                    {recentOrders.map((bestellung) => (
+                      <button
+                        key={bestellung.id}
+                        onClick={() => navigate(`/bestellungen/${bestellung.id}`)}
+                        className={cn(
+                          'w-full text-left rounded-2xl border border-border bg-card p-4 shadow-card transition-all hover:shadow-soft active:scale-[0.99]',
+                          getBestellungRowClassName(bestellung.status)
+                        )}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-mono text-sm font-medium text-primary truncate">
+                            #{bestellung.bestellnummer || bestellung.id.slice(-8)}
+                          </span>
+                          <StatusBadge status={bestellung.status} />
+                        </div>
+                        <div className="mt-2 flex items-center justify-between gap-2">
+                          <span className="inline-flex items-center gap-1.5 text-sm font-medium truncate min-w-0">
+                            <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <span className="truncate">{bestellung.objekt?.name || 'Objekt'}</span>
+                          </span>
+                          {bestellung.rechnung ? (
+                            <span className={`inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded-full shrink-0 ${
+                              bestellung.rechnung.status === 'bezahlt'
+                                ? 'bg-status-delivered/20 text-status-delivered'
+                                : 'bg-status-pending/20 text-status-pending'
+                            }`}>
+                              {bestellung.rechnung.rechnungsnummer}
                             </span>
-                            <StatusBadge status={bestellung.status} />
-                          </div>
-                          <div className="mt-1 flex items-center justify-between gap-2">
-                            <span className="inline-flex items-center gap-1.5 text-sm font-medium truncate min-w-0">
-                              <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                              <span className="truncate">{bestellung.objekt?.name || 'Objekt'}</span>
-                            </span>
-                            {bestellung.rechnung ? (
-                              <span className={`inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded-full shrink-0 ${
-                                bestellung.rechnung.status === 'bezahlt'
-                                  ? 'bg-status-delivered/20 text-status-delivered'
-                                  : 'bg-status-pending/20 text-status-pending'
-                              }`}>
-                                {bestellung.rechnung.rechnungsnummer}
-                              </span>
-                            ) : (
-                              <span className="text-xs text-muted-foreground shrink-0">Keine Rg.</span>
-                            )}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground shrink-0">Keine Rg.</span>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
 
-                    {/* Desktop: volle Tabelle */}
-                    <div className="hidden md:block"><Table>
+                  {/* Desktop: volle Tabelle */}
+                  <div className="hidden md:block rounded-2xl border border-border bg-card shadow-card overflow-hidden"><Table>
                       <TableHeader>
                         <TableRow>
                           <TableHead>Bestellung</TableHead>
