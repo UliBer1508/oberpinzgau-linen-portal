@@ -208,6 +208,36 @@ export function QuickOrderDialog({ open, onOpenChange, objekt, set }: QuickOrder
             </div>
           )}
 
+          {/* Live-Vorschau berechnete Mengen */}
+          {setHasArtikel && (
+            <div className="rounded-xl border border-border bg-muted/30 p-3 text-sm space-y-1">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Berechnete Mengen</div>
+              {set!.artikel.map((a) => {
+                const istProGast = a.berechnungsart === 'pro_gast';
+                const menge = mitBuchung
+                  ? (istProGast ? a.menge * anzahlPersonen : a.menge)
+                  : a.menge * anzahlSets;
+                const formel = mitBuchung
+                  ? (istProGast ? `${a.menge} × ${anzahlPersonen}` : `${a.menge}`)
+                  : `${a.menge} × ${anzahlSets}`;
+                return (
+                  <div key={a.artikel_id} className="flex items-center justify-between gap-2">
+                    <span className="truncate">
+                      {a.waescheartikel?.name ?? 'Artikel'}
+                      <span className="ml-1.5 text-[11px] text-muted-foreground">
+                        {istProGast ? 'pro Gast' : 'pro Buchung'}
+                      </span>
+                    </span>
+                    <span className="tabular-nums whitespace-nowrap">
+                      <span className="text-muted-foreground">{formel} = </span>
+                      <span className="font-semibold">{menge}</span>
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           {/* Lieferdatum */}
           <div>
             <Label className="text-sm font-medium mb-2 flex items-center gap-2">
