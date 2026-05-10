@@ -1,58 +1,36 @@
+
 ## Ziel
-Mengen-Berechnung in der Schnellbestellung an die Set-Definition anpassen:
-- `pro_buchung`-Artikel → Menge wie im Set definiert (z.B. 3 Badvorleger pro Buchung)
-- `pro_gast`-Artikel → Menge × Gästezahl (z.B. 1 Bettwäsche × 6 Gäste = 6)
 
-## Aktueller Bug
-In `src/components/QuickOrderDialog.tsx` (Zeile 66–71) gilt aktuell:
+Die Listenseiten **Bestellungen** (`/bestellungen`) und **Rechnungen** (`/rechnungen`) sollen optisch identisch zur Dashboard-Übersicht (siehe Screenshot) dargestellt werden: gerundete Tabellenkarte mit farbigen Statuszeilen, gleichen Spalten und gleicher Mobile-Karten-Variante.
 
-```
-mit Buchung + pro_buchung → menge × anzahlSets   ✗ falsch
-mit Buchung + pro_gast    → menge × anzahlPersonen ✓
-```
+## Referenz: Dashboard-Übersicht
 
-`anzahlSets` ist im Buchungs-Modus zwar im UI ausgeblendet, sein State-Default ist aber `1` und kann sich „erinnern", wenn vorher umgeschaltet wurde — d.h. Badvorleger könnten fälschlich vervielfacht werden.
+- Spalten Bestellungen: **Bestellung · Objekt · Status · Rechnung · Rg.-Status**
+- Spalten Rechnungen: gleiche Karten-Optik (gerundete Card mit Tabelle innen, farbige Zeilen-Hintergründe pro Status)
+- Mobile: 2-Spalten-Karten-Grid mit farbigem Hintergrund pro Status
+- Container: `rounded-2xl border border-border bg-card shadow-card overflow-hidden`
 
-## Korrektur
+## Änderungen
 
-### 1. `src/components/QuickOrderDialog.tsx` — `handleSubmit`
+### `src/pages/Bestellungen.tsx`
+- Bestehende Desktop-Tabelle (Bestellung/Objekt/Status/Artikel/Lieferdatum/Summe/Rechnung) **ersetzen** durch das Dashboard-Schema:
+  - Spalten: Bestellung (#nummer in primary mono), Objekt (mit Building2-Icon), Status (StatusBadge), Rechnung (Rechnungsnummer mono oder „—"), Rg.-Status (Pill „Bezahlt"/„Offen" oder „—")
+  - Zeilenfarben über `getBestellungRowClassName` (gleiche Logik wie Dashboard)
+  - shadcn `<Table>` statt rohem `<table>`
+- Mobile: 2-Spalten-Grid mit Karten im Übersicht-Stil (Lieferdatum + StatusBadge oben, Objekt + Rechnungsnummer-Pill unten) — analog Dashboard
+- Such-/Filterleiste oberhalb bleibt erhalten
+- Summe/Artikelanzahl/Lieferdatum-Spalten entfallen (passt zum Übersichts-Layout); falls relevant bleibt das im Detail sichtbar
 
-Berechnung pro Position ersetzen:
+### `src/pages/Rechnungen.tsx`
+- Card+CardHeader-Wrapper entfernen, durch Übersichts-Container ersetzen (`rounded-2xl border border-border bg-card shadow-card overflow-hidden`)
+- Filterleiste (Suche + Status-Select) als eigenständige Leiste oberhalb (analog Bestellungen-Stil mit Pill-Filter-Buttons statt Select, optional)
+- Desktop-Tabelle behält Spalten Rechnungsnummer/Datum/Kunde/Betrag/Status, aber im neuen Karten-Container und mit den vorhandenen Statuszeilenfarben
+- Mobile: 2-Spalten-Karten-Grid (Datum + StatusBadge oben, Rechnungsnr. + Betrag unten) statt aktueller Listen-Ansicht — passend zum Dashboard-Stil
 
-```ts
-positionen: set.artikel.map(a => {
-  const menge = mitBuchung
-    ? (a.berechnungsart === 'pro_gast'
-        ? a.menge * anzahlPersonen
-        : a.menge)                       // pro_buchung: genau wie definiert
-    : a.menge * anzahlSets;              // ohne Buchung: manueller Multiplikator
-  return { artikel_id: a.artikel_id, menge };
-}),
-```
+### Keine Änderungen
+- Keine Datenmodell-/Hook-Änderungen
+- Keine Änderungen an Dashboard, Detailseiten, Auth, RLS
 
-### 2. State-Reset beim Umschalten
-Wenn `mitBuchung` auf `true` gesetzt wird, `anzahlSets` zurück auf `1` setzen (Sicherheitsnetz, falls Nutzer vorher hochgestellt hat).
+## Offene Frage (vor Umsetzung)
 
-### 3. Live-Vorschau „Berechnete Mengen"
-Direkt unter der Buchungs- bzw. Sets-Karte eine kompakte Liste einblenden, die für jeden Artikel zeigt:
-
-```
-Bettbezug 135x200    pro Gast      1 × 6 = 6
-Badvorleger          pro Buchung   3
-Handtuch 50x100      pro Gast      1 × 6 = 6
-```
-
-Reaktiv auf `mitBuchung`, `anzahlPersonen`, `anzahlSets`. Styling: `rounded-xl border bg-muted/30 p-3 text-sm space-y-1`.
-
-Damit ist die Logik für den Nutzer transparent und Fehler werden sofort sichtbar.
-
-### 4. Toast-Beschreibung
-Im Buchungsmodus statt `${anzahlSets}× Set` die Personenzahl anzeigen:
-```
-${objekt.name} – ${set.name} für ${anzahlPersonen} Pers. – Lieferung am …
-```
-
-## Nicht im Scope
-- Set-Konfiguration (`NeuesWaescheSet.tsx`, `WaescheSetFormDialog.tsx`) — funktioniert bereits korrekt, Logik wird dort nur eingestellt.
-- Backend / `useCreateBestellung` — empfängt fertige Mengen.
-- Seed-Daten — laut Aussage existiert das Set bereits.
+Sollen die zusätzlichen Felder (**Lieferdatum, Summe, Artikelanzahl** bei Bestellungen) komplett entfallen, oder lieber als zusätzliche Spalten im Dashboard-Schema beibehalten? Empfehlung: weglassen für 1:1-Konsistenz mit der Übersicht; Details stehen in der Detailansicht.
