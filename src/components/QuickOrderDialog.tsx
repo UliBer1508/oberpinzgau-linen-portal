@@ -76,8 +76,8 @@ export function QuickOrderDialog({ open, onOpenChange, objekt, set }: QuickOrder
       });
       reset();
       onOpenChange(false);
-    } catch (e: any) {
-      toast({ title: 'Fehler', description: e?.message ?? 'Bestellung fehlgeschlagen.', variant: 'destructive' });
+    } catch (e: unknown) {
+      toast({ title: 'Fehler', description: e instanceof Error ? e.message : 'Bestellung fehlgeschlagen.', variant: 'destructive' });
     }
   };
 
