@@ -12,6 +12,7 @@ import {
   Inbox,
   Sparkles,
   ChevronDown,
+  ClipboardList,
 } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { StatCard } from '@/components/cards/StatCard';
@@ -23,7 +24,7 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { useKunde, useObjekte, useWaescheSets, useBestellungen, useRechnungen, RechnungMitBestellung } from '@/hooks/useSupabaseData';
+import { useKunde, useObjekte, useWaescheSets, useBestellungen, useRechnungen, useWaescheArtikel, RechnungMitBestellung } from '@/hooks/useSupabaseData';
 import { QuickOrderTiles } from '@/components/QuickOrderTiles';
 import { SectionHeader } from '@/components/dashboard/SectionHeader';
 import type { RechnungStatus, BestellungStatus } from '@/types/database';
