@@ -80,8 +80,8 @@ export default function Rechnungen() {
           </div>
           <p className="mt-4 text-base font-medium text-foreground">Keine Rechnungen</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            {search || statusFilter !== 'alle'
-              ? 'Keine Rechnungen für die aktuelle Filterung gefunden.'
+            {search
+              ? 'Keine Rechnungen für die aktuelle Suche gefunden.'
               : 'Es wurden noch keine Rechnungen erstellt.'}
           </p>
         </div>
