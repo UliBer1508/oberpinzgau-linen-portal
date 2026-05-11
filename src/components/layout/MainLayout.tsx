@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { UserCog } from 'lucide-react';
 import { AppSidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
+import { Footer } from './Footer';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 
@@ -50,6 +51,7 @@ export function MainLayout({ children, title, subtitle, actions }: MainLayoutPro
           <div className="p-3 md:p-8 pb-24 md:pb-8 animate-fade-in min-w-0">
             {children}
           </div>
+          <Footer />
         </SidebarInset>
 
         {/* Mobile bottom navigation */}
