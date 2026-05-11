@@ -1,11 +1,22 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserCog } from 'lucide-react';
+import { UserCog, LogOut } from 'lucide-react';
 import { AppSidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
 import { Footer } from './Footer';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -16,6 +27,14 @@ interface MainLayoutProps {
 
 export function MainLayout({ children, title, subtitle, actions }: MainLayoutProps) {
   const navigate = useNavigate();
+  const { logout } = useAuth();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-gradient-soft">
@@ -45,6 +64,15 @@ export function MainLayout({ children, title, subtitle, actions }: MainLayoutPro
               >
                 <UserCog className="h-5 w-5" />
               </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden h-10 w-10 rounded-full shrink-0"
+                onClick={() => setConfirmOpen(true)}
+                aria-label="Abmelden"
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
             </div>
           </header>
 
@@ -56,6 +84,21 @@ export function MainLayout({ children, title, subtitle, actions }: MainLayoutPro
 
         {/* Mobile bottom navigation */}
         <BottomNav />
+
+        <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Abmelden?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Sie werden aus dem Kundenportal abgemeldet und zur Login-Seite weitergeleitet.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+              <AlertDialogAction onClick={handleLogout}>Abmelden</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </SidebarProvider>
   );
