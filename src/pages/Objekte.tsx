@@ -30,12 +30,6 @@ export default function Objekte() {
     <MainLayout
       title="Objekte"
       subtitle="Übersicht Ihrer Standorte und Objekte"
-      actions={
-        <Button variant="hero" size="sm" className="rounded-2xl" onClick={() => navigate('/objekte/neu')}>
-          <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">Neues Objekt</span>
-        </Button>
-      }
     >
       {objekte.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
