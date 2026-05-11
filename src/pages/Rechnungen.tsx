@@ -85,7 +85,7 @@ export default function Rechnungen() {
                 key={rechnung.id}
                 onClick={() => navigate(`/rechnungen/${rechnung.id}`)}
                 className={cn(
-                  'w-full text-left rounded-2xl border border-border bg-card p-3 min-h-[112px] shadow-card transition-all hover:shadow-soft active:scale-[0.99]',
+                  'w-full text-left rounded-2xl border border-border bg-card p-3 min-h-[160px] shadow-card transition-all hover:shadow-soft active:scale-[0.99]',
                   getRechnungRowClassName(rechnung.status)
                 )}
               >

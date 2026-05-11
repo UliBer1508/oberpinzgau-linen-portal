@@ -48,7 +48,7 @@ export default function WaescheSets() {
               key={set.id}
               onClick={() => navigate(`/waeschesets/${set.id}/bearbeiten`)}
               className={cn(
-                'group text-left rounded-2xl border p-3 min-h-[112px] shadow-card transition-all hover:shadow-soft hover:-translate-y-0.5',
+                'group text-left rounded-2xl border p-3 min-h-[160px] shadow-card transition-all hover:shadow-soft hover:-translate-y-0.5',
                 'bg-accent/10 border-accent/30',
                 isSchnell && 'ring-2 ring-accent'
               )}
@@ -88,7 +88,7 @@ export default function WaescheSets() {
         {/* Add New Set Card */}
         <button
           onClick={() => navigate('/waeschesets/neu')}
-          className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border p-3 text-center transition-colors hover:border-primary/50 hover:bg-muted/50 min-h-[112px]"
+          className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border p-3 text-center transition-colors hover:border-primary/50 hover:bg-muted/50 min-h-[160px]"
         >
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-muted">
             <Plus className="h-5 w-5 text-muted-foreground" />

@@ -1,49 +1,19 @@
 ## Ziel
 
-1. Auf allen vier Übersichtsseiten (Bestellungen, Rechnungen, Objekte, Wäschesets) sollen die Karten – inklusive der „Neu"-Plus-Karte – exakt gleich groß und visuell konsistent sein.
-2. Auf der Rechnungen-Seite werden die Status-Filter-Buttons (Alle / Offen / Mahnung / Bezahlt / Storniert) entfernt – analog zur bereits durchgeführten Änderung bei Bestellungen.
+Die Karten auf den Übersichtsseiten und im Dashboard sollen die in der Referenz gezeigte größere Höhe annehmen (etwa wie die aktuelle Objekt-Karte mit 4 Textzeilen + Bild). Aktuell ist `min-h-[112px]` zu klein.
 
-## Aktueller Zustand
+## Änderung
 
-| Seite | Padding | min-Height | Add-Tile |
-|-------|---------|------------|----------|
-| Bestellungen | `p-4` | – | `p-4`, kein min-h |
-| Rechnungen | `p-4` | – | (keine Add-Tile) |
-| Objekte | `p-3` | – | `p-3` `min-h-[112px]` |
-| Wäschesets | `p-3` | – | `p-3` `min-h-[112px]` |
+Einheitliche Mindesthöhe **`min-h-[160px]`** für alle Listen-/Stat-Karten und ihre „Neu"-Plus-Tiles. Padding bleibt `p-3`, Rest unverändert.
 
-Dadurch sind die Karten zwischen den Seiten unterschiedlich hoch, und innerhalb derselben Seite kann die Add-Tile von den Datenkarten abweichen.
+Betroffene Stellen (`min-h-[112px]` → `min-h-[160px]`):
 
-## Änderungen
-
-### Einheitlicher Karten-Stil (alle 4 Seiten)
-
-Datenkarten und Add-Tiles erhalten dieselben Basis-Klassen:
-- `rounded-2xl`
-- `p-3`
-- `min-h-[112px]`
-- `shadow-card transition-all hover:shadow-soft active:scale-[0.99]`
-
-Da CSS-Grid pro Zeile bereits gleich hohe Items rendert, sorgt zusätzlich `min-h-[112px]` dafür, dass auch eine alleinstehende Add-Tile (letzte Zeile mit nur einem Item) dieselbe Höhe wie die Datenkarten hat.
-
-### `src/pages/Bestellungen.tsx`
-- Datenkarte: `p-4` → `p-3`, ergänze `min-h-[112px]`.
-- Add-Tile: ergänze `min-h-[112px]` (bereits vorhanden, nur prüfen).
-
-### `src/pages/Rechnungen.tsx`
-- **Status-Filter entfernen:** `statusFilters` Konstante, `statusFilter` State, gesamten `<div className="flex flex-wrap gap-1.5">…</div>` Block sowie `matchesStatus` aus dem Filter-Predicate löschen. `filteredRechnungen` filtert nur noch nach Suchtext.
-- Hinweistext im Empty-State ohne `statusFilter`-Bezug.
-- Datenkarte: `p-4` → `p-3`, ergänze `min-h-[112px]`.
-- Keine Add-Tile (Erstellung läuft hier nicht über die Liste).
-
-### `src/pages/Objekte.tsx`
-- Datenkarte und Add-Tile: bereits `p-3`, ergänze `min-h-[112px]` an der Datenkarte für Konsistenz.
-
-### `src/pages/WaescheSets.tsx`
-- Datenkarte und Add-Tile: bereits `p-3`, ergänze `min-h-[112px]` an der Datenkarte.
+- `src/pages/Bestellungen.tsx` – Datenkarte und „Neue Bestellung"-Tile
+- `src/pages/Rechnungen.tsx` – Datenkarte
+- `src/pages/Objekte.tsx` – Datenkarte und „Neues Objekt"-Tile
+- `src/pages/WaescheSets.tsx` – Datenkarte und „Neues Set"-Tile
+- `src/components/cards/StatCard.tsx` – Wrapper (ergänzt `min-h-[160px]`, aktuell ohne min-h)
 
 ## Nicht betroffen
 
-- Inhalt/Layout innerhalb der Karten (Texte, Icons, StatusBadge) bleibt unverändert.
-- Suchleiste, Header, Routing, Hooks, Daten-Logik bleiben unverändert.
-- Andere Seiten oder Komponenten werden nicht angefasst.
+Inhalt, Farben, Icons, Layout-Logik und alle anderen Dateien bleiben unverändert.
