@@ -48,7 +48,7 @@ export default function WaescheSets() {
               key={set.id}
               onClick={() => navigate(`/waeschesets/${set.id}/bearbeiten`)}
               className={cn(
-                'group text-left rounded-2xl border p-3 shadow-card transition-all hover:shadow-soft hover:-translate-y-0.5',
+                'group text-left rounded-2xl border p-3 min-h-[112px] shadow-card transition-all hover:shadow-soft hover:-translate-y-0.5',
                 'bg-accent/10 border-accent/30',
                 isSchnell && 'ring-2 ring-accent'
               )}

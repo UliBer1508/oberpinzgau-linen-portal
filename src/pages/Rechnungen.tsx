@@ -21,13 +21,6 @@ import { useKundeContext } from '@/contexts/KundeContext';
 import type { RechnungStatus } from '@/types/database';
 import { cn } from '@/lib/utils';
 
-const statusFilters: { label: string; value: RechnungStatus | 'alle' }[] = [
-  { label: 'Alle', value: 'alle' },
-  { label: 'Offen', value: 'offen' },
-  { label: 'Mahnung', value: 'mahnung' },
-  { label: 'Bezahlt', value: 'bezahlt' },
-  { label: 'Storniert', value: 'storniert' },
-];
 
 const getRechnungRowClassName = (status: RechnungStatus): string => {
   switch (status) {
@@ -49,15 +42,13 @@ export default function Rechnungen() {
   const { selectedKundeId } = useKundeContext();
   const { data: rechnungen = [], isLoading } = useRechnungen(selectedKundeId);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<RechnungStatus | 'alle'>('alle');
 
   const filteredRechnungen = rechnungen.filter((rechnung) => {
     const q = search.toLowerCase();
-    const matchesSearch =
+    return (
       rechnung.rechnungsnummer.toLowerCase().includes(q) ||
-      rechnung.kunde_name.toLowerCase().includes(q);
-    const matchesStatus = statusFilter === 'alle' || rechnung.status === statusFilter;
-    return matchesSearch && matchesStatus;
+      rechnung.kunde_name.toLowerCase().includes(q)
+    );
   });
 
   const formatCurrency = (amount: number) =>
@@ -66,7 +57,7 @@ export default function Rechnungen() {
   return (
     <MainLayout title="Rechnungen" subtitle="Übersicht aller Rechnungen">
       {/* Filters */}
-      <div className="mb-4 flex flex-col gap-3">
+      <div className="mb-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -76,14 +67,16 @@ export default function Rechnungen() {
             className="pl-10 rounded-2xl"
           />
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          {statusFilters.map((filter) => (
+      </div>
+      {false && (
+        <div className="hidden">
+          {[].map((filter: any) => (
             <Button
               key={filter.value}
-              variant={statusFilter === filter.value ? 'default' : 'outline'}
+              variant="outline"
               size="sm"
               className="rounded-full shrink-0 h-8 px-3 text-xs"
-              onClick={() => setStatusFilter(filter.value)}
+              onClick={() => {}}
             >
               {filter.label}
             </Button>
