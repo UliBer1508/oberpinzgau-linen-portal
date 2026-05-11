@@ -3,9 +3,26 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
+import { execSync } from "child_process";
+
+const APP_VERSION = "2.0.0";
+const BUILD_DATE = new Date().toISOString();
+let BUILD_COMMIT = process.env.LOVABLE_COMMIT_SHA || "";
+if (!BUILD_COMMIT) {
+  try {
+    BUILD_COMMIT = execSync("git rev-parse --short HEAD").toString().trim();
+  } catch {
+    BUILD_COMMIT = "dev";
+  }
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  define: {
+    __APP_VERSION__: JSON.stringify(APP_VERSION),
+    __BUILD_DATE__: JSON.stringify(BUILD_DATE),
+    __BUILD_COMMIT__: JSON.stringify(BUILD_COMMIT),
+  },
   server: {
     host: "::",
     port: 8080,
