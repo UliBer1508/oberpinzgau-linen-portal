@@ -59,7 +59,7 @@ export default function Objekte() {
             <button
               key={objekt.id}
               onClick={() => navigate(`/objekte/${objekt.id}`)}
-              className="group text-left rounded-2xl border border-primary/25 bg-primary/10 p-3 shadow-card transition-all hover:shadow-soft hover:-translate-y-0.5"
+              className="group text-left rounded-2xl border border-primary/25 bg-primary/10 p-3 min-h-[112px] shadow-card transition-all hover:shadow-soft hover:-translate-y-0.5"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
