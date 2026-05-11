@@ -68,21 +68,6 @@ export default function Rechnungen() {
           />
         </div>
       </div>
-      {false && (
-        <div className="hidden">
-          {[].map((filter: any) => (
-            <Button
-              key={filter.value}
-              variant="outline"
-              size="sm"
-              className="rounded-full shrink-0 h-8 px-3 text-xs"
-              onClick={() => {}}
-            >
-              {filter.label}
-            </Button>
-          ))}
-        </div>
-      </div>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
