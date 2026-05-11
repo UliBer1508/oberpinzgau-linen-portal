@@ -63,11 +63,15 @@ export default function Dashboard() {
   const { data: waescheSets = [], isLoading: setsLoading } = useWaescheSets(kunde?.id);
   const { data: bestellungen = [], isLoading: bestellungenLoading } = useBestellungen(kunde?.id);
   const { data: rechnungen = [], isLoading: rechnungenLoading } = useRechnungen(kunde?.id);
+  const { data: artikel = [] } = useWaescheArtikel();
   
   const isLoading = kundeLoading || objekteLoading || setsLoading || bestellungenLoading || rechnungenLoading;
   
   // Use correct status values from database
   const activeOrders = bestellungen.filter(b => b.status !== 'abgeschlossen' && b.status !== 'storniert').length;
+  const neueOrders = bestellungen.filter(b => b.status === 'neu').length;
+  const aktiveObjekte = objekte.filter((o: any) => o.aktiv !== false).length;
+  const verfuegbareArtikel = artikel.filter((a: any) => a.aktiv !== false).length;
   const offeneRechnungen = rechnungen.filter(r => r.status === 'offen');
   const offenerBetrag = offeneRechnungen.reduce((sum, r) => sum + (r.bruttobetrag || 0), 0);
   const recentOrders = bestellungen.slice(0, 5);
