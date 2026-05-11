@@ -48,7 +48,7 @@ export function StatCard({
   return (
     <div
       className={cn(
-        'group rounded-2xl border p-3 min-h-[160px] shadow-card transition-all hover:shadow-soft hover:-translate-y-0.5',
+        'group rounded-2xl border p-3 min-h-[112px] shadow-card transition-all hover:shadow-soft hover:-translate-y-0.5',
         surfaceStyles[variant],
         onClick && 'cursor-pointer',
         className
