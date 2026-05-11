@@ -262,7 +262,7 @@ export function QuickOrderDialog({ open, onOpenChange, objekt, set }: QuickOrder
             Abbrechen
           </Button>
           <Button variant="hero" className="h-14 text-base" onClick={handleSubmit} disabled={createBestellung.isPending || !setHasArtikel}>
-            {createBestellung.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Bestellen'}
+            {createBestellung.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Bestellungen'}
           </Button>
         </DialogFooter>
       </DialogContent>
