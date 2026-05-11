@@ -94,12 +94,6 @@ export default function Bestellungen() {
     <MainLayout
       title="Bestellungen"
       subtitle="Ihre Wäschebestellungen"
-      actions={
-        <Button variant="hero" size="sm" className="rounded-2xl" onClick={() => navigate('/bestellungen/neu')}>
-          <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">Neue Bestellung</span>
-        </Button>
-      }
     >
       {/* Suche */}
       <div className="mb-4">
