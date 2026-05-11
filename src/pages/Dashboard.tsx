@@ -46,12 +46,6 @@ export default function Dashboard() {
     <MainLayout
       title="Dashboard"
       subtitle="Übersicht über Ihre Bestellungen und Objekte"
-      actions={
-        <Button variant="hero" size="sm" onClick={() => navigate('/bestellungen/neu')} className="rounded-2xl">
-          <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">Neue Bestellung</span>
-        </Button>
-      }
     >
       {/* Übersicht – Kennzahlen */}
       <div className="grid gap-3 grid-cols-2">
