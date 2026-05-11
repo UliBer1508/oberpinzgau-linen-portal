@@ -160,9 +160,6 @@ export default function Bestellungen() {
           onClick={() => navigate('/bestellungen/neu')}
           className="w-full flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-card p-4 shadow-card text-center transition-all hover:border-primary/50 hover:bg-muted/50 hover:shadow-soft active:scale-[0.99]"
         >
-          <div className="flex items-center justify-between gap-2 w-full opacity-0 pointer-events-none">
-            <span className="text-sm font-medium">.</span>
-          </div>
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted">
             <Plus className="h-5 w-5 text-muted-foreground" />
           </div>
