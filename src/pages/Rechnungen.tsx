@@ -5,15 +5,6 @@ import { de } from 'date-fns/locale';
 import { FileText, Search } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { StatusBadge } from '@/components/StatusBadge';
 import { OverdueBadge } from '@/components/OverdueBadge';
 import { useRechnungen } from '@/hooks/useSupabaseData';
@@ -94,7 +85,7 @@ export default function Rechnungen() {
                 key={rechnung.id}
                 onClick={() => navigate(`/rechnungen/${rechnung.id}`)}
                 className={cn(
-                  'w-full text-left rounded-2xl border border-border bg-card p-4 shadow-card transition-all hover:shadow-soft active:scale-[0.99]',
+                  'w-full text-left rounded-2xl border border-border bg-card p-3 min-h-[112px] shadow-card transition-all hover:shadow-soft active:scale-[0.99]',
                   getRechnungRowClassName(rechnung.status)
                 )}
               >
