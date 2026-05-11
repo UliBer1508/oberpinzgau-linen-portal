@@ -3,13 +3,11 @@ import {
   Building2,
   Package,
   Loader2,
-  Plus,
   Wallet,
   ClipboardList,
 } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { StatCard } from '@/components/cards/StatCard';
-import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useKunde, useObjekte, useWaescheSets, useBestellungen, useRechnungen, useWaescheArtikel } from '@/hooks/useSupabaseData';
 import { QuickOrderTiles } from '@/components/QuickOrderTiles';
@@ -46,12 +44,6 @@ export default function Dashboard() {
     <MainLayout
       title="Dashboard"
       subtitle="Übersicht über Ihre Bestellungen und Objekte"
-      actions={
-        <Button variant="hero" size="sm" onClick={() => navigate('/bestellungen/neu')} className="rounded-2xl">
-          <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">Neue Bestellung</span>
-        </Button>
-      }
     >
       {/* Übersicht – Kennzahlen */}
       <div className="grid gap-3 grid-cols-2">
