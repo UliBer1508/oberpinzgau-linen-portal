@@ -72,7 +72,7 @@ export default function Dashboard() {
           onClick={() => navigate('/waeschesets')}
         />
         <StatCard
-          title="Artikel"
+          title="Wäscheartikel"
           value={verfuegbareArtikel}
           subtitle="verfügbar"
           variant="warning"

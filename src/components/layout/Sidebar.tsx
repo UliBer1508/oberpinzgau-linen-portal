@@ -31,7 +31,7 @@ const navItems = [
   { to: '/bestellungen', icon: ShoppingCart, label: 'Bestellungen' },
   { to: '/rechnungen', icon: Receipt, label: 'Rechnungen' },
   { to: '/waeschesets', icon: Package, label: 'Wäschesets' },
-  { to: '/artikel', icon: ClipboardList, label: 'Artikelkatalog' },
+  { to: '/artikel', icon: ClipboardList, label: 'Wäscheartikel' },
 ];
 
 export function AppSidebar() {
