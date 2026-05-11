@@ -9,7 +9,7 @@ export default function Artikel() {
 
   if (isLoading) {
     return (
-      <MainLayout title="Artikelkatalog" subtitle="Übersicht aller verfügbaren Wäscheartikel">
+      <MainLayout title="Wäscheartikel" subtitle="Übersicht aller verfügbaren Wäscheartikel">
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
@@ -19,7 +19,7 @@ export default function Artikel() {
 
   if (artikel.length === 0) {
     return (
-      <MainLayout title="Artikelkatalog" subtitle="Übersicht aller verfügbaren Wäscheartikel">
+      <MainLayout title="Wäscheartikel" subtitle="Übersicht aller verfügbaren Wäscheartikel">
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <ClipboardList className="h-12 w-12 text-muted-foreground/50" />
           <p className="mt-4 text-lg font-medium text-muted-foreground">
@@ -32,7 +32,7 @@ export default function Artikel() {
 
   return (
     <MainLayout 
-      title="Artikelkatalog" 
+      title="Wäscheartikel" 
       subtitle="Übersicht aller verfügbaren Wäscheartikel"
     >
       <div className="space-y-8">
