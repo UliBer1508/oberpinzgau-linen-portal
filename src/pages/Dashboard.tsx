@@ -135,27 +135,30 @@ export default function Dashboard() {
           icon={Sparkles}
           iconVariant="accent"
           title="Übersicht"
-          subtitle="4 Kennzahlen"
+          subtitle="5 Kennzahlen"
           open={statsOpen}
           chips={[
             { label: 'Best.', count: activeOrders, variant: 'info' },
-            { label: 'Obj.', count: objekte.length, variant: 'primary' },
+            { label: 'Obj.', count: aktiveObjekte, variant: 'primary' },
             { label: 'Sets', count: waescheSets.length, variant: 'accent' },
+            { label: 'Art.', count: verfuegbareArtikel, variant: 'warning' },
             { label: 'Rg.', count: offeneRechnungen.length, variant: offeneRechnungen.length > 0 ? 'warning' : 'success' },
           ]}
         />
         <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
-          <div className="mt-3 grid gap-3 grid-cols-2 lg:grid-cols-4">
+          <div className="mt-3 grid gap-3 grid-cols-2">
             <StatCard
-              title="Aktive Bestellungen"
+              title="Bestellungen"
               value={activeOrders}
+              subtitle={neueOrders > 0 ? `${neueOrders} neu` : 'aktiv'}
               variant="info"
-              icon={<Clock className="h-6 w-6" />}
+              icon={<ShoppingCart className="h-6 w-6" />}
               onClick={() => navigate('/bestellungen')}
             />
             <StatCard
               title="Objekte"
-              value={objekte.length}
+              value={aktiveObjekte}
+              subtitle={aktiveObjekte === 1 ? '1 aktiv' : `${aktiveObjekte} aktiv`}
               variant="primary"
               icon={<Building2 className="h-6 w-6" />}
               onClick={() => navigate('/objekte')}
@@ -163,15 +166,28 @@ export default function Dashboard() {
             <StatCard
               title="Wäschesets"
               value={waescheSets.length}
+              subtitle={waescheSets.length === 1 ? '1 Set' : `${waescheSets.length} Sets`}
               variant="accent"
               icon={<Package className="h-6 w-6" />}
               onClick={() => navigate('/waeschesets')}
             />
             <StatCard
-              title="Offene Rechnungen"
+              title="Artikel"
+              value={verfuegbareArtikel}
+              subtitle="verfügbar"
+              variant="warning"
+              icon={<ClipboardList className="h-6 w-6" />}
+              onClick={() => navigate('/artikel')}
+            />
+            <StatCard
+              title="Rechnungen"
               value={offeneRechnungen.length}
-              subtitle={`€${offenerBetrag.toFixed(2)} offen`}
-              variant={offeneRechnungen.length > 0 ? 'warning' : 'success'}
+              subtitle={
+                offeneRechnungen.length > 0
+                  ? `${offeneRechnungen.length} offen · ${rechnungen.length} gesamt`
+                  : 'alle bezahlt'
+              }
+              variant={offeneRechnungen.length > 0 ? 'warning' : 'neutral'}
               icon={<Wallet className="h-6 w-6" />}
               onClick={() => navigate('/rechnungen')}
             />
