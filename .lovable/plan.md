@@ -1,35 +1,17 @@
-# Footer mit Copyright und Versionsnummer
-
 ## Ziel
-Auf allen Seiten ein dezenter Footer:
-`© 2026 Steinbock Chalets · v2.0.0 · Build 11.05.2026 (a1b2c3d)`
+Auf dem Handy soll immer ein Abmelde-Button sichtbar sein. Aktuell existiert Logout nur in der Desktop-Sidebar, daher fehlt auf Mobile (BottomNav-Layout) jede Möglichkeit, sich abzumelden.
 
-## Was geändert wird
+## Umsetzung
 
-### 1. `vite.config.ts` – Build-Infos als globale Konstanten
-- `define` ergänzen mit:
-  - `__APP_VERSION__` = `"2.0.0"` (aus package.json oder hartcodiert)
-  - `__BUILD_DATE__` = aktuelles ISO-Datum zur Build-Zeit
-  - `__BUILD_COMMIT__` = `process.env.LOVABLE_COMMIT_SHA` oder via `git rev-parse --short HEAD` (Fallback `'dev'`)
+1. **Mobiler Header (`src/components/layout/MainLayout.tsx` bzw. zugehöriger Mobile-Header)**
+   - Oben rechts ein `LogOut`-Icon (lucide-react) als Icon-Button platzieren.
+   - Nur auf Mobile sichtbar (`md:hidden`), da Desktop-Sidebar bereits einen Abmelden-Eintrag hat.
+   - onClick → `logout()` aus `useAuth()`, danach `navigate('/login')`.
+   - Bestätigungs-Dialog (AlertDialog von shadcn) vor dem Abmelden, um versehentliche Klicks zu vermeiden.
 
-### 2. `src/vite-env.d.ts` – Typdeklarationen
-- Globale Konstanten `__APP_VERSION__`, `__BUILD_DATE__`, `__BUILD_COMMIT__` als `string` deklarieren.
+2. **Login-Zugang**
+   - Nicht nötig: `ProtectedRoute` leitet automatisch nach `/login` um, sobald keine Session mehr besteht.
 
-### 3. `src/components/layout/Footer.tsx` – neue Komponente
-- Eine Zeile, zentriert, `text-xs text-muted-foreground`, dezent
-- Inhalt: `© 2026 Steinbock Chalets · v{__APP_VERSION__} · {Build-Datum DE-Format} · {Commit}`
-- Padding `py-3`, oberer Border `border-t border-sidebar-border/50`
-
-### 4. `src/components/layout/MainLayout.tsx` – Footer einbinden
-- Footer **innerhalb** von `SidebarInset`, nach dem Content-`<div>`
-- Auf Mobile mit `mb-16` damit er nicht hinter der `BottomNav` (h-16) verschwindet
-- Bestehendes `pb-24 md:pb-8` am Content-Container bleibt, damit Inhalt + Footer Platz über BottomNav haben
-
-## Technische Details
-- Jahr im Copyright wird hartkodiert auf `2026` gesetzt (kein dynamisches `new Date().getFullYear()`, da Steinbock Chalets es so wünscht).
-- Commit-Hash wird zur Build-Zeit via `child_process.execSync('git rev-parse --short HEAD')` ermittelt; falls nicht verfügbar, Fallback `'dev'`.
-- Build-Datum als deutsches Format `dd.MM.yyyy`.
-
-## Was NICHT geändert wird
-- Keine Änderungen an Routing, BottomNav-Höhe oder Sidebar.
-- Keine neue Route oder Seite.
+## Nicht Teil dieses Plans
+- Keine Änderungen am Auth-Flow, Backend oder an der Desktop-Sidebar.
+- Kein Google-Login (separater Wunsch, falls gewünscht eigener Plan).
