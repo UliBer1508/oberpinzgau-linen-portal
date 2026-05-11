@@ -1,29 +1,26 @@
 ## Ziel
-Die Wäschesets-Übersicht (`/waeschesets`) soll kompakte Kacheln im Stil der Dashboard-StatCards zeigen (siehe Bild: kleine Karte mit Titel, großer Zahl, Subtitle, Icon-Kachel, farbiger Hintergrund). Klick auf eine Kachel öffnet die Detail-/Bearbeiten-Ansicht.
+Auf der Bestellungen-Seite (`/bestellungen`):
+1. Status-Filter-Buttons entfernen — die Karten zeigen den Status bereits über Farbe und Badge.
+2. „Neue Bestellung"-Plus-Kachel im Grid ergänzen (gleicher Stil wie auf Wäschesets/Objekte).
 
-## Aktueller Stand
-- `src/pages/WaescheSets.tsx` rendert große Karten mit Artikel-Liste, Schnellbestellungs-Toggle, Bearbeiten/Löschen-Buttons und Preis-Footer.
-- Routen: `/waeschesets`, `/waeschesets/neu`, `/waeschesets/:id/bearbeiten`. **Es gibt keine reine Detail-Route** — Klick führt sinnvollerweise zur Bearbeiten-Seite, die alle Details zeigt.
-- Im Dashboard wird `StatCard` (`src/components/cards/StatCard.tsx`) als Vorlage verwendet — kompakt, farbig, klickbar.
+## Änderungen
 
-## Lösung
+**Nur `src/pages/Bestellungen.tsx`:**
 
-**Datei: `src/pages/WaescheSets.tsx`** komplett neu strukturieren (Listenseite):
-
-1. Grid auf `grid-cols-2 gap-3` ändern (wie Dashboard, mobil-first 2-spaltig).
-2. Pro Set eine kompakte Kachel rendern, die optisch `StatCard` entspricht:
-   - Hintergrund: `accent`-Tint (`bg-accent/10 border-accent/30`) wie die Wäschesets-Karte im Dashboard. Wenn das Set die Schnellbestellung des Objekts ist → zusätzlich `ring-2 ring-accent` und kleines `Zap`-Badge oben.
-   - Layout: oben Titel (Set-Name, klein/uppercase) + Icon-Kachel rechts (`Package`, `bg-accent/20 text-accent`)
-   - Mitte: große Zahl = Anzahl Artikel im Set
-   - Subtitle: z. B. „X Stück · €Y" oder Objekt-Name (`set.objekt?.name`)
-3. Komplette Karte ist `<button>` und navigiert per `onClick` zu `/waeschesets/:id/bearbeiten` (Detail/Bearbeiten).
-4. Schnellbestellung-Toggle, Bearbeiten- und Löschen-Buttons werden aus der Kachel entfernt — sie gehören in die Detail-/Bearbeitungsansicht (`NeuesWaescheSet.tsx` im Edit-Modus, wo Löschen/Toggle bereits existieren oder ergänzt werden können). Diese Logik bleibt im Code aber ungenutzt → entfernen (Hooks `useSetSchnellbestellungSet`, `useDeleteWaescheSet`, `handleEdit`, `handleDelete`, `handleToggleSchnell`, `calculateSetPrice` falls nicht mehr gebraucht — Preis kann inline berechnet werden).
-5. „Neues Set erstellen"-Kachel als gestrichelte Plus-Kachel im selben kompakten Format am Ende des Grids belassen.
-6. Header-Action „Neues Set erstellen" bleibt.
-
-## Hinweis zur Detail-Ansicht
-Klick führt aktuell zur Bearbeiten-Seite (`/waeschesets/:id/bearbeiten`) — dort sind alle Details sichtbar (Name, Beschreibung, Artikel mit Mengen/Berechnungsart). Schnellbestellung-Toggle und Löschen sollten dort verfügbar sein. **Das wird in dieser Plan-Iteration nicht angepasst** — falls die Edit-Seite die Aktionen noch nicht hat, in einem Folge-Schritt ergänzen.
+1. Komplette `<div className="flex flex-wrap gap-1.5">…statusFilters…</div>` entfernen.
+2. State `statusFilter` und Konstante `statusFilters` entfernen; in `filteredBestellungen` die `matchesStatus`-Bedingung streichen (nur noch `matchesSearch`).
+3. Im Bestellungs-Grid am Ende eine gestrichelte Plus-Kachel ergänzen, die zu `/bestellungen/neu` navigiert — identisch mit der auf Objekte/Wäschesets:
+   ```tsx
+   <button onClick={() => navigate('/bestellungen/neu')}
+     className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border p-3 text-center transition-colors hover:border-primary/50 hover:bg-muted/50 min-h-[112px]">
+     <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-muted">
+       <Plus className="h-5 w-5 text-muted-foreground" />
+     </div>
+     <p className="mt-2 text-xs font-medium text-muted-foreground">Neue Bestellung</p>
+   </button>
+   ```
+4. Die Plus-Kachel wird auch im leeren Empty-State sichtbar — daher Empty-State so anpassen, dass das Grid mit der Plus-Kachel gerendert wird, wenn keine Bestellungen existieren (statt der separaten Empty-Box). Optional: Empty-Box ganz entfernen, weil die Plus-Kachel selbsterklärend ist.
+5. Imports aufräumen: `BestellungStatus` wird ggf. nicht mehr benötigt — bleibt aber für `getBestellungRowClassName`.
 
 ## Nicht angefasst
-- `StatCard.tsx` bleibt unverändert (Wäschesets-Kachel wird inline gebaut, da sie eine eigene Klick-Logik + ggf. Schnellbestellung-Indikator hat).
-- Routen, Hooks-Definitionen, andere Seiten.
+- Such-Input, Header-Action „Neue Bestellung", Karten-Layout, Status-Farben, Hooks.
