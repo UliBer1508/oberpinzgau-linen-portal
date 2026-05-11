@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
-type StatCardVariant = 'primary' | 'accent' | 'success' | 'warning' | 'info';
+type StatCardVariant = 'primary' | 'accent' | 'success' | 'warning' | 'info' | 'neutral';
 
 interface StatCardProps {
   title: string;
@@ -17,12 +17,22 @@ interface StatCardProps {
   onClick?: () => void;
 }
 
-const variantStyles: Record<StatCardVariant, string> = {
-  primary: 'bg-primary/10 text-primary',
-  accent: 'bg-accent/15 text-accent',
-  success: 'bg-success/15 text-success',
-  warning: 'bg-warning/15 text-warning',
+const iconStyles: Record<StatCardVariant, string> = {
+  primary: 'bg-primary/15 text-primary',
+  accent: 'bg-accent/20 text-accent',
+  success: 'bg-success/20 text-success',
+  warning: 'bg-warning/20 text-warning',
   info: 'bg-info/15 text-info',
+  neutral: 'bg-muted text-muted-foreground',
+};
+
+const surfaceStyles: Record<StatCardVariant, string> = {
+  primary: 'bg-primary/10 border-primary/25',
+  accent: 'bg-accent/10 border-accent/30',
+  success: 'bg-success/10 border-success/25',
+  warning: 'bg-warning/10 border-warning/30',
+  info: 'bg-info/10 border-info/25',
+  neutral: 'bg-card border-border',
 };
 
 export function StatCard({
@@ -38,7 +48,8 @@ export function StatCard({
   return (
     <div
       className={cn(
-        'group rounded-2xl border border-border bg-card p-3 shadow-card transition-all hover:shadow-soft hover:-translate-y-0.5',
+        'group rounded-2xl border p-3 shadow-card transition-all hover:shadow-soft hover:-translate-y-0.5',
+        surfaceStyles[variant],
         onClick && 'cursor-pointer',
         className
       )}
@@ -70,7 +81,7 @@ export function StatCard({
         <div
           className={cn(
             'flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-transform group-hover:scale-110',
-            variantStyles[variant]
+            iconStyles[variant]
           )}
         >
           {icon}

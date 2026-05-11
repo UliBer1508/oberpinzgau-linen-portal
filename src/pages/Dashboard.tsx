@@ -12,6 +12,7 @@ import {
   Inbox,
   Sparkles,
   ChevronDown,
+  ClipboardList,
 } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { StatCard } from '@/components/cards/StatCard';
@@ -23,7 +24,7 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { useKunde, useObjekte, useWaescheSets, useBestellungen, useRechnungen, RechnungMitBestellung } from '@/hooks/useSupabaseData';
+import { useKunde, useObjekte, useWaescheSets, useBestellungen, useRechnungen, useWaescheArtikel, RechnungMitBestellung } from '@/hooks/useSupabaseData';
 import { QuickOrderTiles } from '@/components/QuickOrderTiles';
 import { SectionHeader } from '@/components/dashboard/SectionHeader';
 import type { RechnungStatus, BestellungStatus } from '@/types/database';
@@ -62,11 +63,15 @@ export default function Dashboard() {
   const { data: waescheSets = [], isLoading: setsLoading } = useWaescheSets(kunde?.id);
   const { data: bestellungen = [], isLoading: bestellungenLoading } = useBestellungen(kunde?.id);
   const { data: rechnungen = [], isLoading: rechnungenLoading } = useRechnungen(kunde?.id);
+  const { data: artikel = [] } = useWaescheArtikel();
   
   const isLoading = kundeLoading || objekteLoading || setsLoading || bestellungenLoading || rechnungenLoading;
   
   // Use correct status values from database
   const activeOrders = bestellungen.filter(b => b.status !== 'abgeschlossen' && b.status !== 'storniert').length;
+  const neueOrders = bestellungen.filter(b => b.status === 'neu').length;
+  const aktiveObjekte = objekte.filter((o: any) => o.aktiv !== false).length;
+  const verfuegbareArtikel = artikel.filter((a: any) => a.aktiv !== false).length;
   const offeneRechnungen = rechnungen.filter(r => r.status === 'offen');
   const offenerBetrag = offeneRechnungen.reduce((sum, r) => sum + (r.bruttobetrag || 0), 0);
   const recentOrders = bestellungen.slice(0, 5);
@@ -130,27 +135,30 @@ export default function Dashboard() {
           icon={Sparkles}
           iconVariant="accent"
           title="Übersicht"
-          subtitle="4 Kennzahlen"
+          subtitle="5 Kennzahlen"
           open={statsOpen}
           chips={[
             { label: 'Best.', count: activeOrders, variant: 'info' },
-            { label: 'Obj.', count: objekte.length, variant: 'primary' },
+            { label: 'Obj.', count: aktiveObjekte, variant: 'primary' },
             { label: 'Sets', count: waescheSets.length, variant: 'accent' },
+            { label: 'Art.', count: verfuegbareArtikel, variant: 'warning' },
             { label: 'Rg.', count: offeneRechnungen.length, variant: offeneRechnungen.length > 0 ? 'warning' : 'success' },
           ]}
         />
         <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
-          <div className="mt-3 grid gap-3 grid-cols-2 lg:grid-cols-4">
+          <div className="mt-3 grid gap-3 grid-cols-2">
             <StatCard
-              title="Aktive Bestellungen"
+              title="Bestellungen"
               value={activeOrders}
+              subtitle={neueOrders > 0 ? `${neueOrders} neu` : 'aktiv'}
               variant="info"
-              icon={<Clock className="h-6 w-6" />}
+              icon={<ShoppingCart className="h-6 w-6" />}
               onClick={() => navigate('/bestellungen')}
             />
             <StatCard
               title="Objekte"
-              value={objekte.length}
+              value={aktiveObjekte}
+              subtitle={aktiveObjekte === 1 ? '1 aktiv' : `${aktiveObjekte} aktiv`}
               variant="primary"
               icon={<Building2 className="h-6 w-6" />}
               onClick={() => navigate('/objekte')}
@@ -158,15 +166,28 @@ export default function Dashboard() {
             <StatCard
               title="Wäschesets"
               value={waescheSets.length}
+              subtitle={waescheSets.length === 1 ? '1 Set' : `${waescheSets.length} Sets`}
               variant="accent"
               icon={<Package className="h-6 w-6" />}
               onClick={() => navigate('/waeschesets')}
             />
             <StatCard
-              title="Offene Rechnungen"
+              title="Artikel"
+              value={verfuegbareArtikel}
+              subtitle="verfügbar"
+              variant="warning"
+              icon={<ClipboardList className="h-6 w-6" />}
+              onClick={() => navigate('/artikel')}
+            />
+            <StatCard
+              title="Rechnungen"
               value={offeneRechnungen.length}
-              subtitle={`€${offenerBetrag.toFixed(2)} offen`}
-              variant={offeneRechnungen.length > 0 ? 'warning' : 'success'}
+              subtitle={
+                offeneRechnungen.length > 0
+                  ? `${offeneRechnungen.length} offen · ${rechnungen.length} gesamt`
+                  : 'alle bezahlt'
+              }
+              variant={offeneRechnungen.length > 0 ? 'warning' : 'neutral'}
               icon={<Wallet className="h-6 w-6" />}
               onClick={() => navigate('/rechnungen')}
             />
