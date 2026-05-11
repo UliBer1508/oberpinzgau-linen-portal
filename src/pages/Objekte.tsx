@@ -53,7 +53,7 @@ export default function Objekte() {
             <button
               key={objekt.id}
               onClick={() => navigate(`/objekte/${objekt.id}`)}
-              className="group text-left rounded-2xl border border-primary/25 bg-primary/10 p-3 min-h-[160px] shadow-card transition-all hover:shadow-soft hover:-translate-y-0.5"
+              className="group text-left rounded-2xl border border-primary/25 bg-primary/10 p-3 min-h-[112px] shadow-card transition-all hover:shadow-soft hover:-translate-y-0.5"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
@@ -90,7 +90,7 @@ export default function Objekte() {
           {/* Add new */}
           <button
             onClick={() => navigate('/objekte/neu')}
-            className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border p-3 text-center transition-colors hover:border-primary/50 hover:bg-muted/50 min-h-[160px]"
+            className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border p-3 text-center transition-colors hover:border-primary/50 hover:bg-muted/50 min-h-[112px]"
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-muted">
               <Plus className="h-5 w-5 text-muted-foreground" />

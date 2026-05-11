@@ -114,7 +114,7 @@ export default function Bestellungen() {
             key={bestellung.id}
             onClick={() => navigate(`/bestellungen/${bestellung.id}`)}
             className={cn(
-              'w-full text-left rounded-2xl border border-border bg-card p-3 min-h-[160px] shadow-card transition-all hover:shadow-soft active:scale-[0.99]',
+              'w-full text-left rounded-2xl border border-border bg-card p-3 min-h-[112px] shadow-card transition-all hover:shadow-soft active:scale-[0.99]',
               getBestellungRowClassName(bestellung.status)
             )}
           >
@@ -152,7 +152,7 @@ export default function Bestellungen() {
         {/* Neue Bestellung */}
         <button
           onClick={() => navigate('/bestellungen/neu')}
-          className="w-full flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-card p-3 min-h-[160px] shadow-card text-center transition-all hover:border-primary/50 hover:bg-muted/50 hover:shadow-soft active:scale-[0.99]"
+          className="w-full flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-card p-3 min-h-[112px] shadow-card text-center transition-all hover:border-primary/50 hover:bg-muted/50 hover:shadow-soft active:scale-[0.99]"
         >
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted">
             <Plus className="h-5 w-5 text-muted-foreground" />
