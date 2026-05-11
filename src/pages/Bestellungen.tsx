@@ -21,14 +21,6 @@ import type { BestellungStatus } from '@/types/database';
 import { useKunde, useBestellungen } from '@/hooks/useSupabaseData';
 import { useQueryClient } from '@tanstack/react-query';
 
-const statusFilters: { label: string; value: BestellungStatus | 'alle' }[] = [
-  { label: 'Alle', value: 'alle' },
-  { label: 'Neu', value: 'neu' },
-  { label: 'In Bearbeitung', value: 'in_bearbeitung' },
-  { label: 'Ausgeliefert', value: 'ausgeliefert' },
-  { label: 'Abgeholt', value: 'abgeholt' },
-  { label: 'Abgeschlossen', value: 'abgeschlossen' },
-];
 
 const getBestellungRowClassName = (status: BestellungStatus): string => {
   switch (status) {
@@ -52,7 +44,7 @@ export default function Bestellungen() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<BestellungStatus | 'alle'>('alle');
+  
 
   const { data: kunde, isLoading: kundeLoading } = useKunde();
   const { data: bestellungen = [], isLoading: bestellungenLoading } = useBestellungen(kunde?.id);
@@ -85,10 +77,7 @@ export default function Bestellungen() {
     const objektName = bestellung.objekt?.name || '';
     const nr = bestellung.bestellnummer || '';
     const q = searchQuery.toLowerCase();
-    const matchesSearch =
-      objektName.toLowerCase().includes(q) || nr.toLowerCase().includes(q);
-    const matchesStatus = statusFilter === 'alle' || bestellung.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    return objektName.toLowerCase().includes(q) || nr.toLowerCase().includes(q);
   });
 
   if (isLoading) {
