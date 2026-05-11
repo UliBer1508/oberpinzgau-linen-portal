@@ -3,13 +3,11 @@ import {
   Building2,
   Package,
   Loader2,
-  Plus,
   Wallet,
   ClipboardList,
 } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { StatCard } from '@/components/cards/StatCard';
-import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useKunde, useObjekte, useWaescheSets, useBestellungen, useRechnungen, useWaescheArtikel } from '@/hooks/useSupabaseData';
 import { QuickOrderTiles } from '@/components/QuickOrderTiles';
