@@ -30,6 +30,7 @@ export default function Objekte() {
     <MainLayout
       title="Objekte"
       subtitle="Übersicht Ihrer Standorte und Objekte"
+      backTo="/dashboard"
     >
       {objekte.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
