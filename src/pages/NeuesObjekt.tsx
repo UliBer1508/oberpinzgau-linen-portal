@@ -82,8 +82,9 @@ export default function NeuesObjekt() {
     <MainLayout
       title="Neues Objekt"
       subtitle="Neues Standort/Objekt anlegen"
+      backTo="/objekte"
       actions={
-        <Button variant="ghost" size="sm" onClick={() => navigate('/objekte')}>
+        <Button variant="ghost" size="sm" className="hidden md:inline-flex" onClick={() => navigate('/objekte')}>
           <ArrowLeft className="h-4 w-4" />
           <span className="hidden sm:inline">Zurück</span>
         </Button>

@@ -265,8 +265,9 @@ export default function BestellungDetail() {
     <MainLayout
       title={`#${bestellung.bestellnummer || bestellung.id.slice(-4).toUpperCase()}`}
       subtitle={format(new Date(bestellung.created_at), 'dd. MMMM yyyy', { locale: de })}
+      backTo="/bestellungen"
       actions={
-        <Button variant="ghost" size="sm" className="rounded-2xl" onClick={() => navigate('/bestellungen')}>
+        <Button variant="ghost" size="sm" className="rounded-2xl hidden md:inline-flex" onClick={() => navigate('/bestellungen')}>
           <ArrowLeft className="h-4 w-4" />
           <span className="hidden sm:inline">Zurück</span>
         </Button>
