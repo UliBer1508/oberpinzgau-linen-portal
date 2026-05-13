@@ -94,6 +94,7 @@ export default function Bestellungen() {
     <MainLayout
       title="Bestellungen"
       subtitle="Ihre Wäschebestellungen"
+      backTo="/dashboard"
     >
       {/* Suche */}
       <div className="mb-4">

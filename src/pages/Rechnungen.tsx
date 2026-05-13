@@ -46,7 +46,7 @@ export default function Rechnungen() {
     new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount);
 
   return (
-    <MainLayout title="Rechnungen" subtitle="Übersicht aller Rechnungen">
+    <MainLayout title="Rechnungen" subtitle="Übersicht aller Rechnungen" backTo="/dashboard">
       {/* Filters */}
       <div className="mb-4">
         <div className="relative">

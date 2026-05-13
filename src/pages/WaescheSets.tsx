@@ -27,6 +27,7 @@ export default function WaescheSets() {
     <MainLayout
       title="Wäschesets"
       subtitle="Verwalten Sie Ihre vordefinierten Wäschesets"
+      backTo="/dashboard"
       actions={
         <Button variant="hero" size="sm" className="rounded-2xl" onClick={() => navigate('/waeschesets/neu')}>
           <Plus className="h-4 w-4" />

@@ -44,7 +44,7 @@ export default function Profil() {
   };
 
   return (
-    <MainLayout title="Profil" subtitle="Konto- und Sicherheitseinstellungen">
+    <MainLayout title="Profil" subtitle="Konto- und Sicherheitseinstellungen" backTo="/dashboard">
       <div className="max-w-2xl space-y-6">
         <section className="rounded-2xl border bg-card p-6 shadow-card space-y-4">
           <div className="flex items-center gap-3">

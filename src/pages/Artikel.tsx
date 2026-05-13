@@ -34,6 +34,7 @@ export default function Artikel() {
     <MainLayout 
       title="Wäscheartikel" 
       subtitle="Übersicht aller verfügbaren Wäscheartikel"
+      backTo="/dashboard"
     >
       <div className="space-y-8">
         {kategorien.map((kategorie, katIndex) => (
