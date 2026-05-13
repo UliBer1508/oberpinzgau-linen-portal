@@ -28,12 +28,6 @@ export default function WaescheSets() {
       title="Wäschesets"
       subtitle="Verwalten Sie Ihre vordefinierten Wäschesets"
       backTo="/dashboard"
-      actions={
-        <Button variant="hero" size="sm" className="rounded-2xl" onClick={() => navigate('/waeschesets/neu')}>
-          <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">Neues Set</span>
-        </Button>
-      }
     >
       <div className="grid gap-3 grid-cols-2">
         {waescheSets.map((set) => {
