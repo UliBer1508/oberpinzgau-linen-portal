@@ -59,9 +59,10 @@ export default function RechnungDetail() {
     <MainLayout 
       title={`Rechnung ${rechnung.rechnungsnummer}`}
       subtitle={`vom ${format(new Date(rechnung.rechnungsdatum), 'dd. MMMM yyyy', { locale: de })}`}
+      backTo="/rechnungen"
       actions={
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" asChild>
+          <Button variant="outline" size="sm" asChild className="hidden md:inline-flex">
             <Link to="/rechnungen">
               <ArrowLeft className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Zurück</span>

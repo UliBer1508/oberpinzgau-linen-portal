@@ -263,8 +263,9 @@ const NeuesWaescheSet = () => {
     <MainLayout
       title={isEdit ? 'Wäscheset bearbeiten' : 'Neues Wäscheset'}
       subtitle={isEdit ? 'Bestehendes Set anpassen' : 'Erstellen Sie ein neues Wäscheset'}
+      backTo="/waeschesets"
     >
-      <div className="mb-4">
+      <div className="mb-4 hidden md:block">
         <Button variant="ghost" onClick={() => navigate('/waeschesets')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Zurück zu Wäschesets

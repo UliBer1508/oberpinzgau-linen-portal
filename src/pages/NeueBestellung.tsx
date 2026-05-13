@@ -230,8 +230,9 @@ export default function NeueBestellung() {
     <MainLayout 
       title="Neue Bestellung" 
       subtitle="Erstellen Sie eine neue Wäschebestellung"
+      backTo="/bestellungen"
       actions={
-        <Button variant="outline" onClick={() => navigate('/bestellungen')}>
+        <Button variant="outline" className="hidden md:inline-flex" onClick={() => navigate('/bestellungen')}>
           <ArrowLeft className="h-4 w-4" />
           Abbrechen
         </Button>

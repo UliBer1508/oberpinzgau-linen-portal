@@ -149,8 +149,9 @@ export default function ObjektDetail() {
     <MainLayout
       title="Ihre Objekte"
       subtitle="Detailansicht"
+      backTo="/objekte"
       actions={
-        <div className="flex items-center gap-1">
+        <div className="hidden md:flex items-center gap-1">
           <Button variant="ghost" size="sm" onClick={() => navigate('/objekte')}>
             <ArrowLeft className="h-4 w-4" />
             <span className="hidden sm:inline">Zurück</span>

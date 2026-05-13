@@ -1,6 +1,6 @@
 import { ReactNode, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserCog, LogOut } from 'lucide-react';
+import { UserCog, LogOut, ArrowLeft } from 'lucide-react';
 import { AppSidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
 import { Footer } from './Footer';
@@ -23,9 +23,10 @@ interface MainLayoutProps {
   title: string;
   subtitle?: string;
   actions?: ReactNode;
+  backTo?: string;
 }
 
-export function MainLayout({ children, title, subtitle, actions }: MainLayoutProps) {
+export function MainLayout({ children, title, subtitle, actions, backTo }: MainLayoutProps) {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -45,7 +46,18 @@ export function MainLayout({ children, title, subtitle, actions }: MainLayoutPro
 
         <SidebarInset className="bg-transparent min-w-0 w-full overflow-x-hidden">
           <header className="sticky top-0 z-30 border-b border-sidebar-border bg-sidebar/85 backdrop-blur supports-[backdrop-filter]:bg-sidebar/70">
-            <div className="flex h-14 md:h-16 items-center gap-3 px-3 md:px-8">
+            <div className="flex h-14 md:h-16 items-center gap-2 md:gap-3 px-3 md:px-8">
+              {backTo && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden h-10 w-10 rounded-full shrink-0 -ml-1"
+                  onClick={() => navigate(backTo)}
+                  aria-label="Zurück"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              )}
               <div className="flex-1 min-w-0">
                 <h1 className="font-display text-base md:text-2xl font-bold text-foreground truncate leading-tight">
                   {title}
