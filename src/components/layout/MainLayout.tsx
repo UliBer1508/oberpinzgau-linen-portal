@@ -48,15 +48,14 @@ export function MainLayout({ children, title, subtitle, actions, backTo }: MainL
           <header className="sticky top-0 z-30 border-b border-sidebar-border bg-sidebar/85 backdrop-blur supports-[backdrop-filter]:bg-sidebar/70">
             <div className="flex h-14 md:h-16 items-center gap-2 md:gap-3 px-3 md:px-8">
               {backTo && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="md:hidden h-10 w-10 rounded-full shrink-0 -ml-1"
+                <button
+                  type="button"
                   onClick={() => navigate(backTo)}
                   aria-label="Zurück"
+                  className="md:hidden inline-flex h-11 w-11 items-center justify-center rounded-full shrink-0 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-95 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
+                  <ArrowLeft className="h-5 w-5" strokeWidth={2.5} />
+                </button>
               )}
               <div className="flex-1 min-w-0">
                 <h1 className="font-display text-base md:text-2xl font-bold text-foreground truncate leading-tight">
