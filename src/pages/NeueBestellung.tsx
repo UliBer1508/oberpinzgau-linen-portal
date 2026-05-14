@@ -127,7 +127,9 @@ export default function NeueBestellung() {
       const newItems: OrderItem[] = selectedSet.artikel.map(a => ({
         artikel_id: a.artikel_id,
         artikel_name: a.waescheartikel?.name || 'Unbekannt',
-        menge: a.menge,
+        menge: a.berechnungsart === 'pro_gast'
+          ? a.menge * Math.max(1, anzahlPersonen)
+          : a.menge,
         preis: a.waescheartikel?.preis || 0,
       }));
       setOrderItems(newItems);
