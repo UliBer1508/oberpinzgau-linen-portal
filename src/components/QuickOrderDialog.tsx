@@ -27,6 +27,7 @@ const MAX_SETS = 20;
 export function QuickOrderDialog({ open, onOpenChange, objekt, set }: QuickOrderDialogProps) {
   const [lieferdatum, setLieferdatum] = useState<Date | undefined>();
   const [anzahlSets, setAnzahlSets] = useState(1);
+  const [personenProSet, setPersonenProSet] = useState(2);
   const [mitBuchung, setMitBuchung] = useState(false);
   const [gastname, setGastname] = useState('');
   const [checkIn, setCheckIn] = useState<Date | undefined>();
