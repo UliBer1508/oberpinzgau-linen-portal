@@ -39,6 +39,7 @@ export function QuickOrderDialog({ open, onOpenChange, objekt, set }: QuickOrder
   const reset = () => {
     setLieferdatum(undefined);
     setAnzahlSets(1);
+    setPersonenProSet(2);
     setMitBuchung(false);
     setGastname('');
     setCheckIn(undefined);
