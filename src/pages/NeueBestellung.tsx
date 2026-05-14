@@ -136,7 +136,22 @@ export default function NeueBestellung() {
     }
   };
 
-  // Artikel hinzufügen (Default-Menge = Anzahl Personen)
+  // Bei Änderung der Personenzahl: pro_gast-Mengen aus dem Set neu berechnen
+  useEffect(() => {
+    if (!selectedSetId) return;
+    const selectedSet = waescheSets?.find(s => s.id === selectedSetId);
+    if (!selectedSet?.artikel) return;
+    setOrderItems(prev =>
+      prev.map(item => {
+        const setArt = selectedSet.artikel.find(a => a.artikel_id === item.artikel_id);
+        if (!setArt || setArt.berechnungsart !== 'pro_gast') return item;
+        return { ...item, menge: setArt.menge * Math.max(1, anzahlPersonen) };
+      })
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [anzahlPersonen, selectedSetId]);
+
+  // Artikel hinzufügen (Default-Menge = 1)
   const handleAddArtikel = (art: { id: string; name: string; preis: number | null }) => {
     setOrderItems(prev => {
       const existing = prev.find(item => item.artikel_id === art.id);
