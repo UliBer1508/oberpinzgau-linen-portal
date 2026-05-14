@@ -65,16 +65,18 @@ export function QuickOrderDialog({ open, onOpenChange, objekt, set }: QuickOrder
         check_in: mitBuchung && checkIn ? format(checkIn, 'yyyy-MM-dd') : null,
         check_out: mitBuchung && checkOut ? format(checkOut, 'yyyy-MM-dd') : null,
         anzahl_personen: mitBuchung ? anzahlPersonen : null,
-        positionen: set.artikel.map(a => ({
-          artikel_id: a.artikel_id,
-          menge: mitBuchung
-            ? (a.berechnungsart === 'pro_gast' ? a.menge * anzahlPersonen : a.menge)
-            : a.menge * anzahlSets,
-        })),
+        positionen: set.artikel.map(a => {
+          const personen = mitBuchung ? anzahlPersonen : personenProSet;
+          const sets = mitBuchung ? 1 : anzahlSets;
+          const menge = a.berechnungsart === 'pro_gast'
+            ? a.menge * personen * sets
+            : a.menge * sets;
+          return { artikel_id: a.artikel_id, menge };
+        }),
       });
       toast({
         title: 'Bestellung gesendet',
-        description: `${objekt.name} – ${set.name}${mitBuchung ? ` für ${anzahlPersonen} Pers.` : ` (${anzahlSets}× Set)`} – Lieferung am ${format(lieferdatum, 'dd.MM.yyyy', { locale: de })}`,
+        description: `${objekt.name} – ${set.name}${mitBuchung ? ` für ${anzahlPersonen} Pers.` : ` (${anzahlSets}× Set à ${personenProSet} Pers.)`} – Lieferung am ${format(lieferdatum, 'dd.MM.yyyy', { locale: de })}`,
       });
       reset();
       onOpenChange(false);
