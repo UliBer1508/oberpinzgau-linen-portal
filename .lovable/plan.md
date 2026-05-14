@@ -1,47 +1,36 @@
-## Lösung
+## Ziel
+Einheitlicher „Schließen"-Button (X-Icon) mit grünem Hintergrund (Primary) als Standard für alle Dialoge/Sheets/Drawer.
 
-Im **Schnellbestellung-Dialog** (`QuickOrderDialog.tsx`) ohne Buchungsdetails kommt ein zweiter Stepper **„Personen pro Set"** dazu (Default 2). So lässt sich abbilden:
-- Hotel: 5 Sets × 2 Personen
-- Ferienhaus: 1 Set × 6 Personen
+## Umsetzung
 
-### UI (nur bei `mitBuchung === false`)
+### 1. Neue Komponente `src/components/ui/close-button.tsx`
+Wiederverwendbarer Button mit Design-Token (`bg-primary text-primary-foreground`), Hover/Focus-Ring, abgerundet:
 
-```text
-┌──────────────────────────────────────────┐
-│ Anzahl Sets          [-]  1  [+]         │
-│ Personen pro Set     [-]  2  [+]         │
-│ „pro Gast"-Mengen werden je Set × Pers.  │
-│ multipliziert.                           │
-└──────────────────────────────────────────┘
+```tsx
+<button className="inline-flex h-8 w-8 items-center justify-center rounded-full
+  bg-primary text-primary-foreground shadow-sm
+  hover:bg-primary/90 focus:outline-none focus-visible:ring-2
+  focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors">
+  <X className="h-4 w-4" />
+  <span className="sr-only">Schließen</span>
+</button>
 ```
 
-### Berechnung
+Forwarded ref + Props-Spread → einsetzbar mit `DialogPrimitive.Close asChild` / `SheetPrimitive.Close asChild`.
 
-```ts
-const personen = mitBuchung ? anzahlPersonen : personenProSet;
+### 2. Ersetzen in UI-Primitives
+- `src/components/ui/dialog.tsx` (Z. 45–48): aktuellen `DialogPrimitive.Close` mit X-Icon durch die neue Komponente ersetzen.
+- `src/components/ui/sheet.tsx` (Z. 60–63): analog.
+- `src/components/ui/alert-dialog.tsx`: hat keinen X-Button (nur Action/Cancel) → unverändert.
+- `src/components/ui/drawer.tsx`: prüfen, ob X vorhanden; falls ja, ebenfalls ersetzen.
 
-const menge = a.berechnungsart === 'pro_gast'
-  ? a.menge * personen * anzahlSets
-  : a.menge * anzahlSets;          // pro_buchung skaliert nur mit Sets
-```
+### 3. Position bleibt
+Top-right `absolute right-4 top-4`, jetzt aber als grüner Pill-Button statt grauer Outline-X.
 
-Bei `mitBuchung === true` bleibt `anzahlSets` implizit 1 (eine Buchung = ein Set), Stepper bleibt versteckt wie bisher.
+## Was NICHT angefasst wird
+- „Abbrechen"-Buttons in Dialog-Footern (sind Aktions-Buttons, keine Close-X).
+- Buttons mit Text wie „Schließen" in Footern (separate Aktion).
+- Falls gewünscht später: Sage Bescheid und ich passe die ebenfalls an.
 
-### Vorschau-Beispiele
-
-| Konfiguration | Bettwäsche (pro Gast, menge 1) | Badvorleger (pro Buchung, menge 3) |
-|---|---|---|
-| 1 Set, 2 Personen | `1 × 2 = 2` | `3` |
-| 1 Set, 6 Personen | `1 × 6 = 6` | `3` |
-| 5 Sets, 2 Personen | `1 × 2 × 5 = 10` | `3 × 5 = 15` |
-| Buchung, 4 Personen | `1 × 4 = 4` | `3` |
-
-`× 1` wird in der Anzeige weggelassen.
-
-### Änderungen
-- `QuickOrderDialog.tsx`: neuer State `personenProSet` (Default 2), zweiter Stepper, neue Berechnung in Submit + Vorschau, Hilfetexte angepasst.
-
-### Nicht betroffen
-- Datenbank, Typen, Wäscheset-Definition.
-- `NeueBestellung.tsx`.
-- Buchungs-Modus-Logik.
+## Effekt
+Alle bestehenden Dialoge (`QuickOrderDialog`, `WaescheSetFormDialog`, alle Sheets etc.) bekommen automatisch den neuen grünen Schließen-Button — keine Änderungen an den Aufrufstellen nötig.
