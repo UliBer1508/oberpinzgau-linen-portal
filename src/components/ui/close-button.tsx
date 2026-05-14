@@ -11,9 +11,9 @@ export const CloseButton = React.forwardRef<
     type="button"
     aria-label="Schließen"
     className={cn(
-      "inline-flex h-8 w-8 items-center justify-center rounded-full",
+      "inline-flex h-11 w-11 items-center justify-center rounded-full",
       "bg-primary text-primary-foreground shadow-sm",
-      "hover:bg-primary/90 transition-colors",
+      "hover:bg-primary/90 active:scale-95 transition",
       "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
       "disabled:pointer-events-none disabled:opacity-50",
       className,
