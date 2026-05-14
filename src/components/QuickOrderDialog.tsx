@@ -199,15 +199,21 @@ export function QuickOrderDialog({ open, onOpenChange, objekt, set }: QuickOrder
             </Collapsible>
           </div>
 
-          {/* Anzahl Sets */}
+          {/* Anzahl Sets + Personen pro Set */}
           {!mitBuchung && (
-            <div className="rounded-xl border border-border bg-card p-3">
+            <div className="rounded-xl border border-border bg-card p-3 space-y-3">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium">Anzahl Sets</Label>
                 <Stepper value={anzahlSets} onChange={setAnzahlSets} />
               </div>
-              <p className="text-[11px] text-muted-foreground mt-1">
-                Multipliziert die Menge aller Artikel im Set.
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium flex items-center gap-1.5">
+                  <Users className="h-4 w-4" /> Personen pro Set
+                </Label>
+                <Stepper value={personenProSet} onChange={setPersonenProSet} min={1} max={50} />
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                „pro Gast"-Mengen werden je Set × Personen multipliziert. „pro Buchung"-Artikel skalieren nur mit der Anzahl Sets.
               </p>
             </div>
           )}
@@ -218,12 +224,14 @@ export function QuickOrderDialog({ open, onOpenChange, objekt, set }: QuickOrder
               <div className="text-xs font-medium text-muted-foreground mb-1">Berechnete Mengen</div>
               {set!.artikel.map((a) => {
                 const istProGast = a.berechnungsart === 'pro_gast';
-                const menge = mitBuchung
-                  ? (istProGast ? a.menge * anzahlPersonen : a.menge)
-                  : a.menge * anzahlSets;
-                const formel = mitBuchung
-                  ? (istProGast ? `${a.menge} × ${anzahlPersonen}` : `${a.menge}× pro Buchung`)
-                  : `${a.menge} × ${anzahlSets}`;
+                const personen = mitBuchung ? anzahlPersonen : personenProSet;
+                const sets = mitBuchung ? 1 : anzahlSets;
+                const menge = istProGast ? a.menge * personen * sets : a.menge * sets;
+                // Formel kompakt aufbauen, × 1 weglassen
+                const teile: (string | number)[] = [a.menge];
+                if (istProGast) teile.push(personen);
+                if (sets > 1) teile.push(`${sets} Set${sets > 1 ? 's' : ''}`);
+                const formel = teile.length > 1 ? teile.join(' × ') : (istProGast ? `${a.menge}` : `${a.menge} pro Buchung`);
                 return (
                   <div key={a.artikel_id} className="flex items-center justify-between gap-2">
                     <span className="truncate">
